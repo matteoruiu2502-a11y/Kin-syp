@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escal'hop! — Restaurant à Loverval</title>
+  <meta name="description" content="Escal'hop!, restaurant à Loverval : escalopes maison, plats généreux et desserts gourmands. Noté 4.9/5 sur Google (119+ avis). Sur place, à emporter et réservations." />
+  <meta name="theme-color" content="#0D0D0D" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="restaurant" />
+  <meta property="og:title" content="Escal'hop! — Restaurant à Loverval" />
+  <meta property="og:description" content="Escalopes maison, plats généreux, desserts gourmands. ★ 4.9/5 sur Google." />
+  <meta property="og:locale" content="fr_BE" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            night: '#0D0D0D',
+            coal: '#151515',
+            gold: { DEFAULT: '#D4AF37', light: '#F3D77A', dark: '#9C7C1E' },
+          },
+          fontFamily: {
+            hand: ['Caveat', 'cursive'],
+            serif: ['"Playfair Display"', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Données structurées (SEO Google) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": "Escal'hop!",
+    "servesCuisine": ["Belge", "Européenne", "Escalopes"],
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Loverval",
+      "postalCode": "6280",
+      "addressCountry": "BE"
+    },
+    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "119" },
+    "sameAs": ["https://www.facebook.com/p/Escalhop-61581492266239/"]
+  }
+  </script>
+
+  <style>
+    :root { --gold: #D4AF37; --night: #0D0D0D; }
+    html, body { background: var(--night); color: #EDEDED; }
+    body { font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; overflow-x: clip; }
+    ::selection { background: var(--gold); color: var(--night); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0D0D0D; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(#9C7C1E, #D4AF37); border-radius: 8px; }
+
+    /* ---------- Logo ---------- */
+    .logo-script {
+      font-family: 'Caveat', cursive; font-weight: 700; line-height: .9;
+      background: linear-gradient(120deg, #fff 0%, #F3D77A 45%, #D4AF37 60%, #fff 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: shine 6s linear infinite;
+    }
+    .logo-sub {
+      font-family: 'Inter', sans-serif; font-weight: 500; color: var(--gold);
+      letter-spacing: .55em; font-size: .6rem; padding-left: .55em;
+    }
+
+    /* ---------- Glassmorphism ---------- */
+    .glass {
+      background: rgba(255,255,255,.04);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      border: 1px solid rgba(212,175,55,.18);
+    }
+    .glass-strong {
+      background: rgba(13,13,13,.72);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+    }
+
+    /* ---------- Header ---------- */
+    #header { transition: all .45s cubic-bezier(.2,.8,.2,1); }
+    #header .header-inner { transition: padding .45s cubic-bezier(.2,.8,.2,1); }
+    #header .logo-script { transition: font-size .45s cubic-bezier(.2,.8,.2,1); }
+    #header.scrolled { border-bottom: 1px solid rgba(212,175,55,.2); box-shadow: 0 10px 40px -10px rgba(0,0,0,.8); }
+    #header.scrolled .header-inner { padding-top: .5rem; padding-bottom: .5rem; }
+    #header.scrolled .logo-script { font-size: 1.9rem; }
+    #header.scrolled .logo-sub { font-size: .5rem; }
+
+    .nav-link { position: relative; }
+    .nav-link::after {
+      content: ''; position: absolute; left: 0; bottom: -6px; height: 1px; width: 100%;
+      background: var(--gold); transform: scaleX(0); transform-origin: right; transition: transform .35s ease;
+    }
+    .nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); transform-origin: left; }
+    .nav-link.active { color: var(--gold); }
+
+    /* ---------- Hero lighting ---------- */
+    .hero-bg {
+      background:
+        radial-gradient(ellipse at 50% 120%, rgba(212,175,55,.12), transparent 60%),
+        linear-gradient(180deg, #0D0D0D 0%, #111 50%, #0D0D0D 100%);
+    }
+    .spotlight {
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 40%), rgba(212,175,55,.16), transparent 45%);
+      transition: background .1s linear;
+    }
+    .orb { position: absolute; border-radius: 9999px; filter: blur(80px); opacity: .55; pointer-events: none; }
+    .orb-1 { width: 420px; height: 420px; background: #D4AF37; top: -120px; left: -120px; opacity: .18; animation: float1 14s ease-in-out infinite; }
+    .orb-2 { width: 360px; height: 360px; background: #9C7C1E; bottom: -100px; right: -80px; opacity: .22; animation: float2 18s ease-in-out infinite; }
+    .orb-3 { width: 260px; height: 260px; background: #F3D77A; top: 40%; left: 60%; opacity: .08; animation: float1 20s ease-in-out infinite reverse; }
+    .grain {
+      position: absolute; inset: 0; pointer-events: none; opacity: .05; mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .light-beam {
+      position: absolute; top: -20%; width: 2px; height: 140%; pointer-events: none;
+      background: linear-gradient(180deg, transparent, rgba(212,175,55,.35), transparent);
+      filter: blur(1px); animation: beam 9s ease-in-out infinite;
+    }
+
+    @keyframes float1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(80px,60px) scale(1.15); } }
+    @keyframes float2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-70px,-50px) scale(1.1); } }
+    @keyframes beam { 0%,100% { transform: rotate(18deg) translateX(-40vw); opacity: 0; } 30%,70% { opacity: 1; } 50% { transform: rotate(18deg) translateX(40vw); } }
+    @keyframes shine { to { background-position: 200% center; } }
+
+    /* ---------- Badge ---------- */
+    .badge {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(212,175,55,.18), rgba(212,175,55,.05));
+      border: 1px solid rgba(212,175,55,.5);
+      box-shadow: 0 0 0 0 rgba(212,175,55,.5);
+      animation: pulse-ring 2.8s ease-out infinite;
+    }
+    .badge::before {
+      content: ''; position: absolute; top: 0; left: -75%; width: 50%; height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,.45), transparent);
+      transform: skewX(-20deg); animation: sweep 3.5s ease-in-out infinite;
+    }
+    .badge .star { display: inline-block; animation: twinkle 2s ease-in-out infinite; }
+    @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(212,175,55,.45); } 70% { box-shadow: 0 0 0 16px rgba(212,175,55,0); } 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); } }
+    @keyframes sweep { 0% { left: -75%; } 60%,100% { left: 130%; } }
+    @keyframes twinkle { 0%,100% { transform: scale(1) rotate(0); filter: drop-shadow(0 0 0 #D4AF37); } 50% { transform: scale(1.25) rotate(15deg); filter: drop-shadow(0 0 6px #D4AF37); } }
+
+    /* ---------- Buttons (glow + shine) ---------- */
+    .btn-gold, .btn-ghost {
+      position: relative; overflow: hidden; isolation: isolate;
+      transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease, color .3s ease, background .3s ease;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #F3D77A 0%, #D4AF37 45%, #9C7C1E 100%);
+      color: #0D0D0D; box-shadow: 0 0 20px -4px rgba(212,175,55,.55);
+    }
+    .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 0 40px 2px rgba(212,175,55,.65), 0 10px 30px -10px rgba(212,175,55,.8); }
+    .btn-ghost { border: 1px solid rgba(212,175,55,.55); color: #F3D77A; background: rgba(212,175,55,.04); }
+    .btn-ghost:hover { transform: translateY(-3px); background: rgba(212,175,55,.12); box-shadow: 0 0 30px -4px rgba(212,175,55,.55); color: #fff; }
+    .btn-gold::after, .btn-ghost::after {
+      content: ''; position: absolute; top: 0; left: -120%; width: 60%; height: 100%; z-index: -1;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,.55), transparent);
+      transform: skewX(-25deg); transition: left .7s ease;
+    }
+    .btn-gold:hover::after, .btn-ghost:hover::after { left: 140%; }
+    .btn-gold:active, .btn-ghost:active { transform: translateY(0) scale(.97); }
+
+    /* ---------- Reveal on scroll ---------- */
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1); transition-delay: var(--d, 0ms); }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ---------- Section titles ---------- */
+    .eyebrow { font-family: 'Caveat', cursive; color: var(--gold); font-size: 1.75rem; }
+    .gold-line { height: 1px; width: 70px; background: linear-gradient(90deg, transparent, #D4AF37, transparent); }
+    .text-gold-grad {
+      background: linear-gradient(120deg, #F3D77A, #D4AF37 50%, #9C7C1E);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+
+    /* ---------- Menu tabs ---------- */
+    .tab-btn { position: relative; z-index: 1; transition: color .35s ease; }
+    .tab-btn.active { color: #0D0D0D; }
+    #tab-indicator {
+      position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 9999px; z-index: 0;
+      background: linear-gradient(135deg, #F3D77A, #D4AF37 50%, #9C7C1E);
+      box-shadow: 0 0 25px -2px rgba(212,175,55,.6);
+      transition: transform .5s cubic-bezier(.65,0,.35,1), width .5s cubic-bezier(.65,0,.35,1);
+    }
+    .menu-panel { transition: opacity .4s ease, transform .4s ease; }
+    .menu-panel.leaving { opacity: 0; transform: translateY(16px); }
+    .menu-item { opacity: 0; transform: translateY(20px); animation: itemIn .55s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: var(--d, 0ms); }
+    @keyframes itemIn { to { opacity: 1; transform: none; } }
+    .menu-card { transition: transform .4s ease, border-color .4s ease, box-shadow .4s ease; }
+    .menu-card:hover { transform: translateY(-4px); border-color: rgba(212,175,55,.5); box-shadow: 0 20px 40px -20px rgba(212,175,55,.35); }
+    .dots { flex: 1; border-bottom: 1px dotted rgba(212,175,55,.35); margin: 0 .75rem; transform: translateY(-5px); min-width: 1rem; }
+
+    /* ---------- Reviews carousel ---------- */
+    .reviews-track { display: flex; transition: transform .7s cubic-bezier(.65,0,.35,1); }
+    .reviews-track > * { flex: 0 0 100%; }
+    @media (min-width: 768px) { .reviews-track > * { flex-basis: 50%; } }
+    @media (min-width: 1024px) { .reviews-track > * { flex-basis: 33.3333%; } }
+
+    /* ---------- Cards glow on hover (mouse-tracked) ---------- */
+    .glow-card { position: relative; }
+    .glow-card::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .4s ease;
+      background: radial-gradient(400px circle at var(--cx, 50%) var(--cy, 50%), rgba(212,175,55,.14), transparent 40%);
+    }
+    .glow-card:hover::before { opacity: 1; }
+
+    /* ---------- Mobile menu ---------- */
+    #mobile-menu { transition: opacity .4s ease, visibility .4s ease; }
+    #mobile-menu.open { opacity: 1; visibility: visible; }
+    #mobile-menu a { opacity: 0; transform: translateY(20px); transition: all .5s cubic-bezier(.2,.8,.2,1); }
+    #mobile-menu.open a { opacity: 1; transform: none; }
+    .burger span { transition: transform .35s ease, opacity .35s ease; }
+    .burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .burger.open span:nth-child(2) { opacity: 0; }
+    .burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* ---------- FAQ ---------- */
+    details summary::-webkit-details-marker { display: none; }
+    details[open] .faq-icon { transform: rotate(45deg); }
+    .faq-icon { transition: transform .3s ease; }
+
+    /* Scroll progress */
+    #progress { transform-origin: left; transform: scaleX(0); }
+
+    /* Scroll hint */
+    .scroll-hint span { animation: scrollDot 2s ease-in-out infinite; }
+    @keyframes scrollDot { 0% { transform: translateY(0); opacity: 1; } 80% { transform: translateY(14px); opacity: 0; } 100% { opacity: 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal, .menu-item { opacity: 1 !important; transform: none !important; }
+    }
+  </style>
+</head>
+
+<body class="antialiased">
+
+  <!-- Barre de progression de scroll -->
+  <div id="progress" class="fixed top-0 left-0 right-0 h-[2px] z-[70] bg-gradient-to-r from-gold-dark via-gold to-gold-light"></div>
+
+  <!-- ============ HEADER ============ -->
+  <header id="header" class="fixed top-0 inset-x-0 z-50">
+    <div class="glass-strong absolute inset-0 -z-10 opacity-0 transition-opacity duration-500" id="header-bg"></div>
+    <div class="header-inner max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-5">
+      <a href="#accueil" class="flex flex-col items-center select-none" aria-label="Escal'hop! — Accueil">
+        <span class="logo-script text-[2.4rem] sm:text-[2.6rem]">Escal'hop!</span>
+        <span class="logo-sub -mt-0.5">RESTAURANT</span>
+      </a>
+
+      <nav class="hidden lg:flex items-center gap-8 text-sm tracking-wide text-neutral-300" aria-label="Navigation principale">
+        <a href="#concept" class="nav-link hover:text-white">Concept</a>
+        <a href="#menu" class="nav-link hover:text-white">La Carte</a>
+        <a href="#avis" class="nav-link hover:text-white">Avis</a>
+        <a href="#infos" class="nav-link hover:text-white">Horaires & Accès</a>
+        <a href="#faq" class="nav-link hover:text-white">FAQ</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <span id="open-status-header" class="hidden md:inline-flex items-center gap-2 text-xs text-neutral-400">
+          <span class="status-dot w-2 h-2 rounded-full bg-neutral-500"></span><span class="status-text">…</span>
+        </span>
+        <a href="#reservation" class="btn-gold hidden sm:inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold">Réserver</a>
+        <button id="burger" class="burger lg:hidden flex flex-col justify-center gap-[5px] w-11 h-11 rounded-full glass items-center" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="block w-5 h-[2px] bg-gold rounded"></span>
+          <span class="block w-5 h-[2px] bg-gold rounded"></span>
+          <span class="block w-5 h-[2px] bg-gold rounded"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Menu mobile -->
+  <div id="mobile-menu" class="fixed inset-0 z-40 glass-strong opacity-0 invisible flex flex-col items-center justify-center gap-7 lg:hidden">
+    <a href="#concept" class="font-serif text-3xl text-white" style="transition-delay:.05s">Concept</a>
+    <a href="#menu" class="font-serif text-3xl text-white" style="transition-delay:.1s">La Carte</a>
+    <a href="#avis" class="font-serif text-3xl text-white" style="transition-delay:.15s">Avis</a>
+    <a href="#infos" class="font-serif text-3xl text-white" style="transition-delay:.2s">Horaires & Accès</a>
+    <a href="#faq" class="font-serif text-3xl text-white" style="transition-delay:.25s">FAQ</a>
+    <a href="#reservation" class="btn-gold rounded-full px-8 py-3 font-semibold mt-4" style="transition-delay:.3s">Réserver une table</a>
+  </div>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section id="accueil" class="hero-bg relative min-h-[100svh] flex items-center justify-center overflow-clip">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="light-beam left-1/2"></div>
+      <div class="light-beam left-1/3" style="animation-delay:-4s; animation-duration:12s"></div>
+      <div class="spotlight" id="spotlight"></div>
+      <div class="grain"></div>
+
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center pt-28 pb-20">
+        <a href="#avis" class="badge reveal inline-flex items-center gap-2 rounded-full px-4 sm:px-5 py-2 text-xs sm:text-sm font-medium text-gold-light">
+          <span class="star text-gold">★</span>
+          <span><strong class="text-white">4.9/5</strong> sur Google <span class="text-neutral-400">(119+ avis)</span></span>
+        </a>
+
+        <h1 class="reveal mt-8 font-serif text-[2.6rem] leading-[1.05] sm:text-6xl lg:text-7xl font-medium text-white" style="--d:120ms">
+          L'art de l'escalope,<br />
+          <span class="italic text-gold-grad">servi avec passion.</span>
+        </h1>
+
+        <p class="reveal mt-6 max-w-2xl mx-auto text-base sm:text-lg text-neutral-400 font-light leading-relaxed" style="--d:240ms">
+          Bienvenue chez <span class="font-hand text-2xl text-gold">Escal'hop!</span> à Loverval — une cuisine généreuse et fait maison,
+          des produits frais, et un accueil qui donne envie de revenir.
+        </p>
+
+        <div class="reveal mt-10 flex flex-col sm:flex-row items-center justify-center gap-4" style="--d:360ms">
+          <a href="#menu" class="btn-gold w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-semibold tracking-wide">
+            Découvrir la carte
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#reservation" class="btn-ghost w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-medium tracking-wide">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
+            Réserver une table
+          </a>
+        </div>
+
+        <div class="reveal mt-14 grid grid-cols-3 gap-3 sm:gap-6 max-w-xl mx-auto" style="--d:480ms">
+          <div class="glass rounded-2xl py-4 px-2">
+            <div class="font-serif text-2xl sm:text-3xl text-gold"><span class="counter" data-target="4.9" data-decimals="1">0</span><span class="text-base text-neutral-500">/5</span></div>
+            <div class="text-[11px] sm:text-xs text-neutral-400 mt-1 uppercase tracking-wider">Note Google</div>
+          </div>
+          <div class="glass rounded-2xl py-4 px-2">
+            <div class="font-serif text-2xl sm:text-3xl text-gold"><span class="counter" data-target="119" data-suffix="+">0</span></div>
+            <div class="text-[11px] sm:text-xs text-neutral-400 mt-1 uppercase tracking-wider">Avis clients</div>
+          </div>
+          <div class="glass rounded-2xl py-4 px-2">
+            <div class="font-serif text-2xl sm:text-3xl text-gold"><span class="counter" data-target="100" data-suffix="%">0</span></div>
+            <div class="text-[11px] sm:text-xs text-neutral-400 mt-1 uppercase tracking-wider">Fait maison</div>
+          </div>
+        </div>
+      </div>
+
+      <a href="#concept" class="scroll-hint absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-6 h-10 rounded-full border border-gold/50 flex justify-center pt-2" aria-label="Défiler vers le bas">
+        <span class="block w-1 h-2 rounded-full bg-gold"></span>
+      </a>
+    </section>
+
+    <!-- ============ CONCEPT ============ -->
+    <section id="concept" class="relative py-24 sm:py-32 overflow-clip">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+          <div>
+            <p class="eyebrow reveal">Notre concept</p>
+            <h2 class="reveal font-serif text-4xl sm:text-5xl text-white mt-2 leading-tight" style="--d:100ms">
+              Une escale gourmande,<br /><span class="text-gold-grad italic">hop!</span> à deux pas de chez vous.
+            </h2>
+            <div class="gold-line my-8 reveal" style="--d:150ms"></div>
+            <p class="reveal text-neutral-400 leading-relaxed text-lg font-light" style="--d:200ms">
+              Chez Escal'hop!, on a choisi de faire simple, mais de le faire parfaitement.
+              Des escalopes panées minute, des viandes tendres, des sauces maison mijotées,
+              des frites croustillantes et des desserts qui réconfortent.
+            </p>
+            <p class="reveal text-neutral-400 leading-relaxed text-lg font-light mt-4" style="--d:260ms">
+              Que ce soit pour un lunch rapide, un dîner entre amis ou un repas en famille,
+              on vous accueille comme à la maison — sur place ou à emporter.
+            </p>
+            <div class="reveal mt-10 flex flex-wrap gap-3" style="--d:320ms">
+              <span class="glass rounded-full px-4 py-2 text-sm text-neutral-300">🍽️ Sur place</span>
+              <span class="glass rounded-full px-4 py-2 text-sm text-neutral-300">🥡 À emporter</span>
+              <span class="glass rounded-full px-4 py-2 text-sm text-neutral-300">👨‍👩‍👧 Familles bienvenues</span>
+              <span class="glass rounded-full px-4 py-2 text-sm text-neutral-300">🎉 Groupes & événements</span>
+            </div>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-5">
+            <div class="glow-card glass rounded-3xl p-7 reveal" style="--d:100ms">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-gold/10 border border-gold/30 text-2xl">🥩</div>
+              <h3 class="font-serif text-xl text-white mt-5">Produits frais</h3>
+              <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Viandes sélectionnées avec soin et légumes de saison, travaillés chaque jour en cuisine.</p>
+            </div>
+            <div class="glow-card glass rounded-3xl p-7 reveal sm:translate-y-10" style="--d:200ms">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-gold/10 border border-gold/30 text-2xl">👨‍🍳</div>
+              <h3 class="font-serif text-xl text-white mt-5">100% fait maison</h3>
+              <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Panure, sauces, frites et desserts : tout est préparé sur place, rien n'est industriel.</p>
+            </div>
+            <div class="glow-card glass rounded-3xl p-7 reveal" style="--d:300ms">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-gold/10 border border-gold/30 text-2xl">✨</div>
+              <h3 class="font-serif text-xl text-white mt-5">Accueil chaleureux</h3>
+              <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Une équipe souriante et aux petits soins — c'est ce que nos clients retiennent le plus.</p>
+            </div>
+            <div class="glow-card glass rounded-3xl p-7 reveal sm:translate-y-10" style="--d:400ms">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-gold/10 border border-gold/30 text-2xl">💶</div>
+              <h3 class="font-serif text-xl text-white mt-5">Prix justes</h3>
+              <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Des assiettes généreuses à prix doux, pour se faire plaisir sans compter.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MENU ============ -->
+    <section id="menu" class="relative py-24 sm:py-32 bg-coal/60 overflow-clip">
+      <div class="orb" style="width:500px;height:500px;background:#D4AF37;opacity:.06;top:10%;right:-200px"></div>
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div class="text-center">
+          <p class="eyebrow reveal">La carte</p>
+          <h2 class="reveal font-serif text-4xl sm:text-5xl text-white mt-2" style="--d:100ms">Nos <span class="text-gold-grad italic">savoureuses</span> créations</h2>
+          <p class="reveal text-neutral-400 mt-4 max-w-xl mx-auto font-light" style="--d:160ms">Choisissez une catégorie pour explorer la carte.</p>
+        </div>
+
+        <!-- Onglets -->
+        <div class="reveal mt-12 flex justify-center" style="--d:220ms">
+          <div id="tabs" role="tablist" aria-label="Catégories du menu" class="glass relative inline-flex rounded-full p-1">
+            <span id="tab-indicator"></span>
+            <button role="tab" aria-selected="true"  data-tab="entrees"  class="tab-btn active px-5 sm:px-8 py-3 rounded-full text-sm sm:text-base font-medium">Entrées</button>
+            <button role="tab" aria-selected="false" data-tab="plats"    class="tab-btn px-5 sm:px-8 py-3 rounded-full text-sm sm:text-base font-medium text-neutral-300">Plats</button>
+            <button role="tab" aria-selected="false" data-tab="desserts" class="tab-btn px-5 sm:px-8 py-3 rounded-full text-sm sm:text-base font-medium text-neutral-300">Desserts</button>
+          </div>
+        </div>
+
+        <!-- Contenu rempli en JS -->
+        <div id="menu-panel" role="tabpanel" class="menu-panel mt-12 grid md:grid-cols-2 gap-5" aria-live="polite"></div>
+
+        <div class="reveal mt-12 text-center text-sm text-neutral-500" style="--d:100ms">
+          <p>🌱 Options végétariennes disponibles · ⚠️ Allergènes : demandez à notre équipe, nous vous renseignons avec plaisir.</p>
+          <p class="mt-1">Prix TVAC en euros. Carte susceptible d'évoluer selon les saisons et les arrivages.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AVIS ============ -->
+    <section id="avis" class="relative py-24 sm:py-32 overflow-clip">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 items-center">
+          <div class="text-center lg:text-left">
+            <p class="eyebrow reveal">Ils en parlent</p>
+            <h2 class="reveal font-serif text-4xl sm:text-5xl text-white mt-2" style="--d:100ms">Ce que disent <span class="text-gold-grad italic">nos clients</span></h2>
+            <div class="reveal glass rounded-3xl p-7 mt-8 inline-block text-left w-full max-w-sm" style="--d:200ms">
+              <div class="flex items-end gap-3">
+                <span class="font-serif text-6xl text-gold leading-none"><span class="counter" data-target="4.9" data-decimals="1">0</span></span>
+                <span class="text-neutral-500 pb-1">/ 5</span>
+              </div>
+              <div class="mt-3 text-gold text-xl tracking-widest" aria-hidden="true">★★★★★</div>
+              <p class="text-neutral-400 text-sm mt-2">Basé sur <strong class="text-white"><span class="counter" data-target="119" data-suffix="+">0</span> avis</strong> Google</p>
+              <div class="mt-5 space-y-2 text-xs">
+                <div class="flex items-center gap-2"><span class="w-6 text-neutral-400">5★</span><div class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden"><div class="bar h-full bg-gradient-to-r from-gold-dark to-gold rounded-full" data-w="93" style="width:0"></div></div></div>
+                <div class="flex items-center gap-2"><span class="w-6 text-neutral-400">4★</span><div class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden"><div class="bar h-full bg-gradient-to-r from-gold-dark to-gold rounded-full" data-w="5" style="width:0"></div></div></div>
+                <div class="flex items-center gap-2"><span class="w-6 text-neutral-400">3★</span><div class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden"><div class="bar h-full bg-gradient-to-r from-gold-dark to-gold rounded-full" data-w="2" style="width:0"></div></div></div>
+              </div>
+              <a id="google-review-link" href="#" target="_blank" rel="noopener" class="btn-ghost mt-6 w-full inline-flex justify-center rounded-full px-5 py-3 text-sm">Laisser un avis sur Google</a>
+            </div>
+          </div>
+
+          <div class="lg:col-span-2 min-w-0 reveal" style="--d:200ms">
+            <div class="overflow-clip -mx-2">
+              <div id="reviews-track" class="reviews-track"></div>
+            </div>
+            <div class="flex items-center justify-center lg:justify-end gap-4 mt-8">
+              <button id="rev-prev" class="w-12 h-12 rounded-full glass text-gold hover:bg-gold/10 transition" aria-label="Avis précédent">←</button>
+              <div id="rev-dots" class="flex gap-2"></div>
+              <button id="rev-next" class="w-12 h-12 rounded-full glass text-gold hover:bg-gold/10 transition" aria-label="Avis suivant">→</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RÉSERVATION ============ -->
+    <section id="reservation" class="relative py-24 sm:py-28 overflow-clip">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="glass rounded-[2rem] p-8 sm:p-12 relative overflow-clip reveal">
+          <div class="orb" style="width:320px;height:320px;background:#D4AF37;opacity:.15;top:-120px;right:-80px"></div>
+          <div class="relative grid md:grid-cols-2 gap-10 items-center">
+            <div>
+              <p class="eyebrow">Réservation</p>
+              <h2 class="font-serif text-3xl sm:text-4xl text-white mt-1">Réservez votre <span class="text-gold-grad italic">table</span></h2>
+              <p class="text-neutral-400 mt-4 font-light leading-relaxed">
+                Le plus simple ? Un petit coup de fil ou un message sur Facebook.
+                Vous pouvez aussi remplir le formulaire : il prépare votre demande par e-mail ou message.
+              </p>
+              <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                <a data-bind="phone-link" href="#" class="btn-gold inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold">
+                  📞 <span data-bind="phone">Appeler</span>
+                </a>
+                <a data-bind="facebook-link" href="#" target="_blank" rel="noopener" class="btn-ghost inline-flex items-center justify-center gap-2 rounded-full px-6 py-3">
+                  Messenger
+                </a>
+              </div>
+            </div>
+
+            <form id="resa-form" class="grid grid-cols-2 gap-3" novalidate>
+              <label class="col-span-2 text-xs text-neutral-400">Nom
+                <input name="nom" required class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold px-4 py-3 text-white placeholder-neutral-600" placeholder="Votre nom" />
+              </label>
+              <label class="text-xs text-neutral-400">Date
+                <input name="date" type="date" required class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold px-3 py-3 text-white [color-scheme:dark]" />
+              </label>
+              <label class="text-xs text-neutral-400">Heure
+                <input name="heure" type="time" required class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold px-3 py-3 text-white [color-scheme:dark]" />
+              </label>
+              <label class="text-xs text-neutral-400">Personnes
+                <input name="personnes" type="number" min="1" max="40" value="2" required class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold px-4 py-3 text-white" />
+              </label>
+              <label class="text-xs text-neutral-400">Téléphone
+                <input name="tel" type="tel" required class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold px-4 py-3 text-white placeholder-neutral-600" placeholder="04xx xx xx xx" />
+              </label>
+              <label class="col-span-2 text-xs text-neutral-400">Message (optionnel)
+                <textarea name="message" rows="2" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold px-4 py-3 text-white placeholder-neutral-600" placeholder="Anniversaire, allergie, chaise bébé…"></textarea>
+              </label>
+              <button type="submit" class="btn-gold col-span-2 rounded-full px-6 py-3.5 font-semibold mt-1">Envoyer ma demande</button>
+              <p id="resa-feedback" class="col-span-2 text-sm text-center min-h-[1.25rem]"></p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HORAIRES & ADRESSE ============ -->
+    <section id="infos" class="relative py-24 sm:py-32 bg-coal/60">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <p class="eyebrow reveal">Infos pratiques</p>
+          <h2 class="reveal font-serif text-4xl sm:text-5xl text-white mt-2" style="--d:100ms">Horaires & <span class="text-gold-grad italic">Accès</span></h2>
+        </div>
+
+        <div class="mt-14 grid lg:grid-cols-3 gap-6">
+          <!-- Horaires -->
+          <div class="glow-card glass rounded-3xl p-7 sm:p-8 reveal">
+            <div class="flex items-center justify-between">
+              <h3 class="font-serif text-2xl text-white">Horaires</h3>
+              <span id="open-status" class="inline-flex items-center gap-2 text-xs rounded-full px-3 py-1 bg-white/5">
+                <span class="status-dot w-2 h-2 rounded-full bg-neutral-500"></span><span class="status-text">…</span>
+              </span>
+            </div>
+            <ul id="hours-list" class="mt-6 space-y-1 text-sm"></ul>
+            <p class="text-xs text-neutral-500 mt-5">Jours fériés : horaires susceptibles de varier, consultez notre page Facebook.</p>
+          </div>
+
+          <!-- Adresse / contact -->
+          <div class="glow-card glass rounded-3xl p-7 sm:p-8 reveal" style="--d:120ms">
+            <h3 class="font-serif text-2xl text-white">Nous trouver</h3>
+            <ul class="mt-6 space-y-5 text-sm">
+              <li class="flex gap-4">
+                <span class="w-10 h-10 shrink-0 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center">📍</span>
+                <div><div class="text-neutral-500 text-xs uppercase tracking-wider">Adresse</div><div class="text-white mt-0.5" data-bind="address">—</div></div>
+              </li>
+              <li class="flex gap-4">
+                <span class="w-10 h-10 shrink-0 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center">📞</span>
+                <div><div class="text-neutral-500 text-xs uppercase tracking-wider">Téléphone</div><a data-bind="phone-link" href="#" class="text-white mt-0.5 hover:text-gold transition"><span data-bind="phone">—</span></a></div>
+              </li>
+              <li class="flex gap-4">
+                <span class="w-10 h-10 shrink-0 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center">✉️</span>
+                <div><div class="text-neutral-500 text-xs uppercase tracking-wider">E-mail</div><a data-bind="email-link" href="#" class="text-white mt-0.5 hover:text-gold transition break-all"><span data-bind="email">—</span></a></div>
+              </li>
+              <li class="flex gap-4">
+                <span class="w-10 h-10 shrink-0 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center">🚗</span>
+                <div><div class="text-neutral-500 text-xs uppercase tracking-wider">Accès</div><div class="text-white mt-0.5" data-bind="access">—</div></div>
+              </li>
+            </ul>
+            <div class="mt-7 grid grid-cols-2 gap-3">
+              <a data-bind="maps-link" href="#" target="_blank" rel="noopener" class="btn-gold rounded-full px-4 py-3 text-sm font-semibold text-center">Itinéraire</a>
+              <a data-bind="facebook-link" href="#" target="_blank" rel="noopener" class="btn-ghost rounded-full px-4 py-3 text-sm text-center">Facebook</a>
+            </div>
+          </div>
+
+          <!-- Carte -->
+          <div class="glass rounded-3xl overflow-hidden min-h-[320px] reveal" style="--d:240ms">
+            <iframe id="map-frame" title="Plan d'accès Escal'hop!" class="w-full h-full min-h-[320px] grayscale-[.6] invert-[.9] hue-rotate-180 contrast-[.9]" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
+
+        <!-- Services -->
+        <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="glass rounded-2xl p-5 text-center reveal"><div class="text-2xl">🥡</div><div class="text-white text-sm mt-2 font-medium">À emporter</div><div class="text-neutral-500 text-xs mt-1">Commande par téléphone</div></div>
+          <div class="glass rounded-2xl p-5 text-center reveal" style="--d:80ms"><div class="text-2xl">💳</div><div class="text-white text-sm mt-2 font-medium">Paiements</div><div class="text-neutral-500 text-xs mt-1">Cash · Bancontact · Carte</div></div>
+          <div class="glass rounded-2xl p-5 text-center reveal" style="--d:160ms"><div class="text-2xl">👶</div><div class="text-white text-sm mt-2 font-medium">Enfants</div><div class="text-neutral-500 text-xs mt-1">Menu & chaise bébé</div></div>
+          <div class="glass rounded-2xl p-5 text-center reveal" style="--d:240ms"><div class="text-2xl">🎂</div><div class="text-white text-sm mt-2 font-medium">Événements</div><div class="text-neutral-500 text-xs mt-1">Anniversaires & groupes</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq" class="relative py-24 sm:py-32">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6">
+        <div class="text-center">
+          <p class="eyebrow reveal">Questions fréquentes</p>
+          <h2 class="reveal font-serif text-4xl sm:text-5xl text-white mt-2" style="--d:100ms">Bon à <span class="text-gold-grad italic">savoir</span></h2>
+        </div>
+        <div id="faq-list" class="mt-12 space-y-3"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="relative border-t border-gold/15 pt-16 pb-28 sm:pb-10 bg-night">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-10">
+        <div class="md:col-span-2">
+          <div class="inline-flex flex-col items-center">
+            <span class="logo-script text-5xl">Escal'hop!</span>
+            <span class="logo-sub mt-1">RESTAURANT</span>
+          </div>
+          <p class="text-neutral-400 mt-5 max-w-sm text-sm leading-relaxed font-light">
+            Escalopes maison, plats généreux et desserts gourmands. Une escale savoureuse à Loverval, sur place ou à emporter.
+          </p>
+          <div class="flex gap-3 mt-6">
+            <a data-bind="facebook-link" href="#" target="_blank" rel="noopener" aria-label="Facebook" class="w-11 h-11 rounded-full glass flex items-center justify-center text-gold hover:bg-gold hover:text-night transition">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0022 12z"/></svg>
+            </a>
+            <a data-bind="maps-link" href="#" target="_blank" rel="noopener" aria-label="Google Maps" class="w-11 h-11 rounded-full glass flex items-center justify-center text-gold hover:bg-gold hover:text-night transition">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7c0 5.3 7 13 7 13s7-7.7 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 1112 6a2.5 2.5 0 010 5.5z"/></svg>
+            </a>
+            <a data-bind="phone-link" href="#" aria-label="Téléphone" class="w-11 h-11 rounded-full glass flex items-center justify-center text-gold hover:bg-gold hover:text-night transition">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1z"/></svg>
+            </a>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-gold text-xs uppercase tracking-[.3em] mb-4">Navigation</h4>
+          <ul class="space-y-2 text-sm text-neutral-400">
+            <li><a href="#concept" class="hover:text-gold transition">Concept</a></li>
+            <li><a href="#menu" class="hover:text-gold transition">La Carte</a></li>
+            <li><a href="#avis" class="hover:text-gold transition">Avis clients</a></li>
+            <li><a href="#reservation" class="hover:text-gold transition">Réservation</a></li>
+            <li><a href="#infos" class="hover:text-gold transition">Horaires & Accès</a></li>
+            <li><a href="#faq" class="hover:text-gold transition">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-gold text-xs uppercase tracking-[.3em] mb-4">Contact</h4>
+          <ul class="space-y-2 text-sm text-neutral-400">
+            <li data-bind="address">—</li>
+            <li><a data-bind="phone-link" href="#" class="hover:text-gold transition"><span data-bind="phone">—</span></a></li>
+            <li><a data-bind="email-link" href="#" class="hover:text-gold transition break-all"><span data-bind="email">—</span></a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-14 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-500">
+        <p>© <span id="year"></span> Escal'hop! — Tous droits réservés.</p>
+        <p>Fait avec <span class="text-gold">♥</span> à Loverval</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Barre d'actions mobile -->
+  <div class="sm:hidden fixed bottom-3 inset-x-3 z-40 glass-strong border border-gold/25 rounded-full p-1.5 flex gap-1.5 shadow-2xl">
+    <a data-bind="phone-link" href="#" class="flex-1 text-center rounded-full py-3 text-sm text-gold-light">📞 Appeler</a>
+    <a data-bind="maps-link" href="#" target="_blank" rel="noopener" class="flex-1 text-center rounded-full py-3 text-sm text-gold-light">📍 Y aller</a>
+    <a href="#reservation" class="btn-gold flex-1 text-center rounded-full py-3 text-sm font-semibold">Réserver</a>
+  </div>
+
+  <!-- Retour en haut -->
+  <button id="to-top" class="hidden sm:flex fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full glass text-gold items-center justify-center opacity-0 pointer-events-none transition-all duration-500 hover:bg-gold hover:text-night" aria-label="Retour en haut">↑</button>
+
+  <script>
+    /* =====================================================================
+       CONFIGURATION DU RESTAURANT — MODIFIEZ ICI
+       Toutes les infos (adresse, téléphone, horaires, carte, avis, FAQ)
+       sont centralisées ci-dessous. Les valeurs marquées « À COMPLÉTER »
+       doivent être vérifiées / remplacées par les vraies informations.
+       ===================================================================== */
+    const CONFIG = {
+      name: "Escal'hop!",
+      address: 'À COMPLÉTER — Rue …, 6280 Loverval (Gerpinnes)',
+      mapsQuery: "Escal'hop Loverval",
+      phone: 'À COMPLÉTER',                 // ex : '+32 71 00 00 00'
+      email: 'À COMPLÉTER',                 // ex : 'contact@escalhop.be'
+      access: 'Parking à proximité · Accès PMR (à confirmer)',
+      facebook: 'https://www.facebook.com/p/Escalhop-61581492266239/',
+      googleReviewUrl: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent("Escal'hop Loverval"),
+
+      // Horaires : 0 = dimanche … 6 = samedi. Plusieurs services possibles par jour. [] = fermé.
+      hours: {
+        1: [],                                  // Lundi
+        2: [['11:30', '14:30'], ['18:00', '22:00']],
+        3: [['11:30', '14:30'], ['18:00', '22:00']],
+        4: [['11:30', '14:30'], ['18:00', '22:00']],
+        5: [['11:30', '14:30'], ['18:00', '22:30']],
+        6: [['11:30', '14:30'], ['18:00', '22:30']],
+        0: [['11:30', '15:00']],                // Dimanche
+      },
+
+      menu: {
+        entrees: [
+          { name: 'Croquettes de fromage maison', desc: 'Duo de croquettes au fromage belge, persil frit et citron.', price: 12.5, tag: 'Signature' },
+          { name: 'Croquettes aux crevettes grises', desc: 'Crevettes grises de la mer du Nord, persil frit, citron.', price: 15.5 },
+          { name: 'Soupe du jour', desc: 'Préparée chaque matin avec des légumes de saison, servie avec pain.', price: 7, veg: true },
+          { name: 'Carpaccio de bœuf', desc: 'Copeaux de parmesan, roquette, huile d\'olive et pignons.', price: 14 },
+          { name: 'Salade de chèvre chaud', desc: 'Toasts de chèvre au miel, noix, mesclun et vinaigrette maison.', price: 13, veg: true },
+          { name: 'Scampis à l\'ail', desc: 'Scampis poêlés, beurre à l\'ail et fines herbes, pain grillé.', price: 14.5 },
+        ],
+        plats: [
+          { name: 'Escalope milanaise', desc: 'Escalope de veau panée minute, spaghetti sauce tomate maison.', price: 22, tag: 'Signature' },
+          { name: 'Escalope viennoise', desc: 'Panure dorée au beurre, citron, câpres, frites maison et salade.', price: 22 },
+          { name: 'Cordon bleu maison', desc: 'Jambon & fromage fondant, sauce au choix, frites maison.', price: 21 },
+          { name: 'Escalope à la crème & champignons', desc: 'Escalope de volaille, sauce crème champignons des bois, frites.', price: 20 },
+          { name: 'Pavé de bœuf', desc: 'Sauce au poivre, béarnaise ou champignons, frites et salade.', price: 26 },
+          { name: 'Boulets à la liégeoise', desc: 'Boulets maison, sauce lapin au sirop de Liège, frites.', price: 18.5 },
+          { name: 'Pâtes du moment', desc: 'Selon l\'inspiration du chef — demandez-nous !', price: 17, veg: true },
+          { name: 'Menu enfant', desc: 'Mini-escalope ou boulet, frites, compote + boule de glace.', price: 12 },
+        ],
+        desserts: [
+          { name: 'Dame blanche', desc: 'Glace vanille, chocolat chaud belge et chantilly maison.', price: 8.5, tag: 'Signature' },
+          { name: 'Tiramisu maison', desc: 'Mascarpone, café et cacao, recette de la maison.', price: 8 },
+          { name: 'Mousse au chocolat', desc: 'Chocolat noir belge, légère et intense.', price: 7.5 },
+          { name: 'Crème brûlée', desc: 'Vanille bourbon, caramélisée à la minute.', price: 8 },
+          { name: 'Café gourmand', desc: 'Café ou thé accompagné d\'un assortiment de mignardises.', price: 9.5 },
+          { name: 'Gaufre de Liège', desc: 'Servie tiède, sucre perlé, chantilly ou chocolat.', price: 7 },
+        ],
+      },
+
+      // Avis : À REMPLACER par de vrais extraits d'avis Google (avec l'accord des auteurs).
+      reviews: [
+        { author: 'Client Google', text: 'Une escalope parfaite, croustillante et tendre. Service adorable, on reviendra sans hésiter !', stars: 5 },
+        { author: 'Client Google', text: 'Accueil chaleureux, assiettes généreuses et prix corrects. Le cordon bleu maison est top.', stars: 5 },
+        { author: 'Client Google', text: 'Très belle découverte à Loverval. Tout est fait maison et ça se sent. Mention spéciale pour la dame blanche.', stars: 5 },
+        { author: 'Client Google', text: 'Parfait pour un repas en famille, les enfants ont adoré. Équipe aux petits soins.', stars: 5 },
+        { author: 'Client Google', text: 'Rapport qualité/prix excellent, cadre agréable et service rapide le midi.', stars: 5 },
+        { author: 'Client Google', text: 'Les frites maison sont incroyables et la sauce aux champignons un régal. Bravo !', stars: 5 },
+      ],
+
+      faq: [
+        { q: 'Faut-il réserver ?', a: 'C\'est conseillé, surtout le week-end et le soir. Appelez-nous ou envoyez un message via Facebook.' },
+        { q: 'Proposez-vous la vente à emporter ?', a: 'Oui ! Passez votre commande par téléphone et venez la récupérer à l\'heure convenue.' },
+        { q: 'Avez-vous des options végétariennes ?', a: 'Oui, plusieurs plats sont végétariens (repérés par 🌱 sur la carte) et nous adaptons volontiers certains plats.' },
+        { q: 'Comment gérez-vous les allergies ?', a: 'Signalez-les à la réservation ou à notre équipe : nous vous informons des allergènes présents dans chaque plat.' },
+        { q: 'Peut-on privatiser ou venir en groupe ?', a: 'Avec plaisir ! Anniversaires, repas d\'équipe, communions… contactez-nous pour organiser votre événement.' },
+        { q: 'Quels moyens de paiement acceptez-vous ?', a: 'Espèces, Bancontact et cartes bancaires.' },
+      ],
+    };
+
+    /* ===================================================================== */
+    const $ = (s, c = document) => c.querySelector(s);
+    const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+    const DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const fmtPrice = p => p.toFixed(2).replace('.', ',').replace(',00', '') + ' €';
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    /* ---------- Liaison des infos de contact ---------- */
+    const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(CONFIG.mapsQuery);
+    const phoneOk = /\d/.test(CONFIG.phone);
+    const emailOk = CONFIG.email.includes('@');
+    $$('[data-bind="address"]').forEach(el => el.textContent = CONFIG.address);
+    $$('[data-bind="access"]').forEach(el => el.textContent = CONFIG.access);
+    $$('[data-bind="phone"]').forEach(el => el.textContent = CONFIG.phone);
+    $$('[data-bind="email"]').forEach(el => el.textContent = CONFIG.email);
+    $$('[data-bind="phone-link"]').forEach(el => el.href = phoneOk ? 'tel:' + CONFIG.phone.replace(/\s/g, '') : CONFIG.facebook);
+    $$('[data-bind="email-link"]').forEach(el => el.href = emailOk ? 'mailto:' + CONFIG.email : CONFIG.facebook);
+    $$('[data-bind="facebook-link"]').forEach(el => el.href = CONFIG.facebook);
+    $$('[data-bind="maps-link"]').forEach(el => el.href = mapsUrl);
+    $('#google-review-link').href = CONFIG.googleReviewUrl;
+    $('#map-frame').src = 'https://maps.google.com/maps?q=' + encodeURIComponent(CONFIG.mapsQuery) + '&z=15&output=embed';
+    $('#year').textContent = new Date().getFullYear();
+
+    /* ---------- Header glassmorphism qui se réduit + progression ---------- */
+    const header = $('#header'), headerBg = $('#header-bg'), toTop = $('#to-top'), progress = $('#progress');
+    const onScroll = () => {
+      const y = window.scrollY;
+      const scrolled = y > 40;
+      header.classList.toggle('scrolled', scrolled);
+      headerBg.style.opacity = scrolled ? '1' : '0';
+      const max = document.documentElement.scrollHeight - innerHeight;
+      progress.style.transform = `scaleX(${max > 0 ? y / max : 0})`;
+      toTop.style.opacity = y > 600 ? '1' : '0';
+      toTop.style.pointerEvents = y > 600 ? 'auto' : 'none';
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    toTop.addEventListener('click', () => scrollTo({ top: 0, behavior: 'smooth' }));
+
+    /* Lien actif dans la navigation */
+    const navLinks = $$('.nav-link');
+    const sectionObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    $$('main section[id]').forEach(s => sectionObserver.observe(s));
+
+    /* ---------- Menu mobile ---------- */
+    const burger = $('#burger'), mobileMenu = $('#mobile-menu');
+    const toggleMenu = open => {
+      burger.classList.toggle('open', open);
+      mobileMenu.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+    burger.addEventListener('click', () => toggleMenu(!mobileMenu.classList.contains('open')));
+    $$('#mobile-menu a').forEach(a => a.addEventListener('click', () => toggleMenu(false)));
+    addEventListener('keydown', e => e.key === 'Escape' && toggleMenu(false));
+
+    /* ---------- Éclairage dynamique du hero ---------- */
+    const hero = $('#accueil'), spot = $('#spotlight');
+    hero.addEventListener('pointermove', e => {
+      const r = hero.getBoundingClientRect();
+      spot.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+      spot.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+    });
+    // Sur mobile (pas de souris) : la lumière se balade toute seule
+    if (matchMedia('(hover: none)').matches) {
+      let t = 0;
+      (function drift() {
+        t += 0.008;
+        spot.style.setProperty('--mx', (50 + Math.sin(t) * 30) + '%');
+        spot.style.setProperty('--my', (40 + Math.cos(t * 1.3) * 20) + '%');
+        requestAnimationFrame(drift);
+      })();
+    }
+
+    /* Halo qui suit la souris sur les cartes */
+    document.addEventListener('pointermove', e => {
+      const card = e.target.closest && e.target.closest('.glow-card');
+      if (!card) return;
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--cx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--cy', (e.clientY - r.top) + 'px');
+    });
+
+    /* ---------- Compteurs animés ---------- */
+    const animateCounter = el => {
+      const target = parseFloat(el.dataset.target);
+      const decimals = parseInt(el.dataset.decimals || '0', 10);
+      const suffix = el.dataset.suffix || '';
+      const duration = 2000, start = performance.now();
+      const step = now => {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 4);
+        el.textContent = (target * eased).toFixed(decimals).replace('.', ',') + (p === 1 ? suffix : '');
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
+    /* ---------- Reveal au scroll ---------- */
+    const revealObserver = new IntersectionObserver((entries, obs) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('visible');
+        $$('.counter', e.target).forEach(c => { if (!c.dataset.done) { c.dataset.done = 1; animateCounter(c); } });
+        $$('.bar', e.target).forEach(b => { b.style.transition = 'width 1.6s cubic-bezier(.2,.8,.2,1)'; b.style.width = b.dataset.w + '%'; });
+        obs.unobserve(e.target);
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    $$('.reveal').forEach(el => revealObserver.observe(el));
+
+    /* ---------- Menu interactif (onglets) ---------- */
+    const panel = $('#menu-panel'), indicator = $('#tab-indicator'), tabs = $$('.tab-btn');
+    const renderMenu = key => {
+      panel.innerHTML = CONFIG.menu[key].map((item, i) => `
+        <article class="menu-item menu-card glow-card glass rounded-2xl p-5 sm:p-6" style="--d:${i * 70}ms">
+          <div class="flex items-baseline">
+            <h3 class="font-serif text-lg sm:text-xl text-white">${esc(item.name)}${item.veg ? ' <span title="Végétarien">🌱</span>' : ''}</h3>
+            <span class="dots"></span>
+            <span class="font-serif text-lg text-gold whitespace-nowrap">${fmtPrice(item.price)}</span>
+          </div>
+          <p class="text-neutral-400 text-sm mt-2 font-light leading-relaxed">${esc(item.desc)}</p>
+          ${item.tag ? `<span class="inline-block mt-3 text-[10px] uppercase tracking-[.2em] text-gold border border-gold/40 rounded-full px-2.5 py-1">★ ${esc(item.tag)}</span>` : ''}
+        </article>`).join('');
+    };
+    const moveIndicator = btn => {
+      indicator.style.width = btn.offsetWidth + 'px';
+      indicator.style.transform = `translateX(${btn.offsetLeft}px)`;
+    };
+    let switching = false;
+    tabs.forEach(btn => btn.addEventListener('click', () => {
+      if (btn.classList.contains('active') || switching) return;
+      switching = true;
+      tabs.forEach(t => { const on = t === btn; t.classList.toggle('active', on); t.classList.toggle('text-neutral-300', !on); t.setAttribute('aria-selected', on); });
+      moveIndicator(btn);
+      panel.classList.add('leaving');
+      setTimeout(() => { renderMenu(btn.dataset.tab); panel.classList.remove('leaving'); switching = false; }, 350);
+    }));
+    renderMenu('entrees');
+    const syncIndicator = () => moveIndicator($('.tab-btn.active'));
+    addEventListener('resize', syncIndicator);
+    document.fonts ? document.fonts.ready.then(syncIndicator) : syncIndicator();
+    syncIndicator();
+
+    /* ---------- Carrousel d'avis ---------- */
+    const track = $('#reviews-track'), dotsWrap = $('#rev-dots');
+    track.innerHTML = CONFIG.reviews.map(r => `
+      <div class="px-2">
+        <figure class="glow-card glass rounded-3xl p-7 h-full flex flex-col">
+          <div class="text-gold tracking-widest" aria-label="${r.stars} étoiles sur 5">${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</div>
+          <blockquote class="text-neutral-300 mt-4 leading-relaxed font-light flex-1">“${esc(r.text)}”</blockquote>
+          <figcaption class="mt-6 flex items-center gap-3">
+            <span class="w-10 h-10 rounded-full bg-gradient-to-br from-gold-light to-gold-dark text-night font-semibold flex items-center justify-center">${esc(r.author[0])}</span>
+            <span><span class="block text-white text-sm">${esc(r.author)}</span><span class="block text-neutral-500 text-xs">Avis Google</span></span>
+          </figcaption>
+        </figure>
+      </div>`).join('');
+    let revIndex = 0, revTimer;
+    const perView = () => innerWidth >= 1024 ? 3 : innerWidth >= 768 ? 2 : 1;
+    const maxIndex = () => Math.max(0, CONFIG.reviews.length - perView());
+    const renderDots = () => {
+      dotsWrap.innerHTML = Array.from({ length: maxIndex() + 1 }, (_, i) =>
+        `<button aria-label="Aller à l'avis ${i + 1}" data-i="${i}" class="h-2 rounded-full transition-all duration-500 ${i === revIndex ? 'w-8 bg-gold' : 'w-2 bg-white/20'}"></button>`).join('');
+    };
+    const goTo = i => {
+      revIndex = (i + maxIndex() + 1) % (maxIndex() + 1);
+      track.style.transform = `translateX(-${revIndex * (100 / perView())}%)`;
+      renderDots();
+    };
+    const autoplay = () => { clearInterval(revTimer); revTimer = setInterval(() => goTo(revIndex + 1), 5500); };
+    $('#rev-prev').addEventListener('click', () => { goTo(revIndex - 1); autoplay(); });
+    $('#rev-next').addEventListener('click', () => { goTo(revIndex + 1); autoplay(); });
+    dotsWrap.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { goTo(+b.dataset.i); autoplay(); } });
+    // Swipe tactile
+    let x0 = null;
+    track.addEventListener('touchstart', e => x0 = e.touches[0].clientX, { passive: true });
+    track.addEventListener('touchend', e => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 40) { goTo(revIndex + (dx < 0 ? 1 : -1)); autoplay(); }
+      x0 = null;
+    });
+    addEventListener('resize', () => goTo(Math.min(revIndex, maxIndex())));
+    goTo(0); autoplay();
+
+    /* ---------- Horaires + statut « Ouvert maintenant » ---------- */
+    const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const now = new Date(), today = now.getDay(), nowMin = now.getHours() * 60 + now.getMinutes();
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    $('#hours-list').innerHTML = order.map(d => {
+      const slots = CONFIG.hours[d] || [];
+      const isToday = d === today;
+      return `<li class="flex justify-between items-center py-2.5 px-3 rounded-xl ${isToday ? 'bg-gold/10 border border-gold/30' : 'border border-transparent'}">
+        <span class="${isToday ? 'text-gold font-medium' : 'text-neutral-400'}">${DAYS[d]}${isToday ? ' · aujourd\'hui' : ''}</span>
+        <span class="${slots.length ? 'text-white' : 'text-neutral-600'} text-right">${slots.length ? slots.map(s => s.join(' – ')).join('<br class="sm:hidden"><span class="hidden sm:inline"> · </span>') : 'Fermé'}</span>
+      </li>`;
+    }).join('');
+
+    const computeStatus = () => {
+      const slots = CONFIG.hours[today] || [];
+      const current = slots.find(([a, b]) => nowMin >= toMin(a) && nowMin < toMin(b));
+      if (current) return { open: true, text: 'Ouvert · jusqu\'à ' + current[1] };
+      const next = slots.find(([a]) => toMin(a) > nowMin);
+      if (next) return { open: false, text: 'Fermé · ouvre à ' + next[0] };
+      for (let k = 1; k <= 7; k++) {
+        const d = (today + k) % 7, s = CONFIG.hours[d] || [];
+        if (s.length) return { open: false, text: `Fermé · ouvre ${k === 1 ? 'demain' : DAYS[d].toLowerCase()} à ${s[0][0]}` };
+      }
+      return { open: false, text: 'Fermé' };
+    };
+    const status = computeStatus();
+    ['#open-status', '#open-status-header'].forEach(sel => {
+      const el = $(sel);
+      $('.status-dot', el).className = 'status-dot w-2 h-2 rounded-full ' + (status.open ? 'bg-emerald-400 animate-pulse' : 'bg-red-400');
+      $('.status-text', el).textContent = status.text;
+      el.classList.add(status.open ? 'text-emerald-300' : 'text-red-300');
+    });
+
+    /* ---------- FAQ ---------- */
+    $('#faq-list').innerHTML = CONFIG.faq.map((f, i) => `
+      <details class="glass rounded-2xl group reveal" style="--d:${i * 60}ms">
+        <summary class="cursor-pointer list-none flex items-center justify-between gap-4 p-5 sm:p-6">
+          <span class="text-white font-medium">${esc(f.q)}</span>
+          <span class="faq-icon text-gold text-2xl leading-none">+</span>
+        </summary>
+        <p class="px-5 sm:px-6 pb-6 -mt-2 text-neutral-400 font-light leading-relaxed">${esc(f.a)}</p>
+      </details>`).join('');
+    $$('#faq-list .reveal').forEach(el => revealObserver.observe(el));
+
+    /* ---------- Formulaire de réservation ---------- */
+    const form = $('#resa-form'), feedback = $('#resa-feedback');
+    form.date.min = new Date().toISOString().split('T')[0];
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if (!form.checkValidity()) {
+        feedback.className = 'col-span-2 text-sm text-center min-h-[1.25rem] text-red-300';
+        feedback.textContent = 'Merci de compléter tous les champs obligatoires.';
+        form.reportValidity();
+        return;
+      }
+      const d = Object.fromEntries(new FormData(form));
+      const body = `Bonjour,\n\nJe souhaite réserver une table :\n- Nom : ${d.nom}\n- Date : ${d.date}\n- Heure : ${d.heure}\n- Personnes : ${d.personnes}\n- Téléphone : ${d.tel}\n${d.message ? '- Message : ' + d.message + '\n' : ''}\nMerci !`;
+      if (emailOk) {
+        location.href = `mailto:${CONFIG.email}?subject=${encodeURIComponent('Réservation — ' + d.nom)}&body=${encodeURIComponent(body)}`;
+        feedback.textContent = 'Votre messagerie s\'ouvre avec la demande pré-remplie ✨';
+      } else {
+        navigator.clipboard?.writeText(body).catch(() => {});
+        window.open(CONFIG.facebook, '_blank', 'noopener');
+        feedback.textContent = 'Demande copiée ! Collez-la dans Messenger pour l\'envoyer ✨';
+      }
+      feedback.className = 'col-span-2 text-sm text-center min-h-[1.25rem] text-gold-light';
+    });
+  </script>
+</body>
+</html>
