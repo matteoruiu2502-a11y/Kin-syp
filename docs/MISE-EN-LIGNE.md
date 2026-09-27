@@ -14,8 +14,9 @@ du site Escal'hop! (qui reste à l'adresse racine) :
 - Pages légales : `…/Kin-syp/app/legal/confidentialite.html`, `cgu.html`,
   `mentions-legales.html`
 
-Pour la mettre à jour après une modification du code : `cd web && npm run site`,
-puis enregistrer (commit) le dossier `app/`.
+Publication automatique à chaque modification de la branche principale
+(workflow « Publier le site », qui publie aussi Escal'hop! à la racine).
+Réglage requis une seule fois : **Settings → Pages → Source : GitHub Actions**.
 
 ## 2. Application tablette installable (15 min, gratuit sur Android)
 

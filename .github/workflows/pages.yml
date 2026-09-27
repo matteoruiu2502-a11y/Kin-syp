@@ -1,0 +1,55 @@
+name: Publier le site
+
+# Publie sur GitHub Pages, à chaque modification de la branche principale :
+#   - le site Escal'hop! à la racine (index.html) ;
+#   - l'application web KinéSyP dans /app/ (construite depuis web/).
+# Réglage requis une seule fois : Settings → Pages → Source : « GitHub Actions ».
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json }
+      - name: Construire KinéSyP (version web)
+        working-directory: web
+        env:
+          # Adresse du serveur de comptes (Settings → Secrets and variables → Actions → Variables).
+          # Vide : mode démonstration (comptes locaux, paiement simulé).
+          VITE_API_URL: ${{ vars.KINESYP_API_URL }}
+        run: |
+          npm ci
+          npm run build
+      - name: Assembler le site
+        run: |
+          mkdir -p _site/app
+          cp index.html _site/
+          touch _site/.nojekyll
+          cp -r web/dist/. _site/app/
+          rm -f _site/app/mediapipe/*nosimd*
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

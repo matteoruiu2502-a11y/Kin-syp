@@ -33,8 +33,8 @@ navigateur). `npm run build` produit `dist/`, à servir en HTTPS pour la caméra
 ## Version en ligne
 
 Publiée sur **https://matteoruiu2502-a11y.github.io/Kin-syp/app/** (GitHub
-Pages, dossier `app/` du dépôt). Mise à jour : `npm run site`, puis commit
-du dossier `app/`.
+Pages). Publication automatique par le workflow « Publier le site » à chaque
+modification de la branche principale.
 
 ## Version hébergée (page claude.ai)
 
