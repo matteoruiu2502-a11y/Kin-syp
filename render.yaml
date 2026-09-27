@@ -1,0 +1,28 @@
+# Déploiement « Blueprint » sur Render (render.com → New → Blueprint → ce dépôt).
+# Le disque persistant (base SQLite) nécessite une offre payante (≈ 7 $/mois).
+services:
+  - type: web
+    name: kinesyp-api
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /health
+    disk:
+      name: kinesyp-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: APP_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRICE_ID
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

@@ -1,12 +1,42 @@
 {
-  "cli": { "version": ">= 16.0.0", "appVersionSource": "remote" },
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
   "build": {
+    "base": {
+      "node": "22.18.0",
+      "env": {
+        "EXPO_NO_TELEMETRY": "1"
+      }
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
-      "prebuildCommand": "npm run fetch-model && npx expo prebuild"
+      "android": {
+        "buildType": "apk"
+      }
     },
-    "preview": { "distribution": "internal" },
-    "production": {}
+    "preview": {
+      "extends": "base",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "extends": "base",
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      },
+      "ios": {}
+    }
   }
 }

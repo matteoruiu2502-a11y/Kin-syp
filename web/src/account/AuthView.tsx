@@ -74,6 +74,19 @@ export function AuthView() {
         <button type="submit" className="btn btn-primary btn-lg" disabled={busy}>
           {busy ? '…' : tab === 'signup' ? 'Créer mon compte' : 'Se connecter'}
         </button>
+        {tab === 'signup' && (
+          <p className="muted small">
+            En créant un compte, vous acceptez les{' '}
+            <a href="legal/cgu.html" target="_blank" rel="noreferrer">
+              conditions générales
+            </a>{' '}
+            et la{' '}
+            <a href="legal/confidentialite.html" target="_blank" rel="noreferrer">
+              politique de confidentialité
+            </a>
+            .
+          </p>
+        )}
         {auth.mode === 'local' && (
           <p className="muted small">
             Mode démonstration : les comptes sont enregistrés dans ce navigateur et le paiement est simulé. La version en ligne utilise le serveur KinéSyP et Stripe.

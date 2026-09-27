@@ -285,3 +285,4 @@ fieldset.sex legend { font-size: 13px; color: var(--muted); margin-bottom: 4px; 
   .auth { grid-template-columns: minmax(0, 1fr); padding: 24px 16px; gap: 20px; }
   .patients { grid-template-columns: minmax(0, 1fr); }
 }
+.auth-card a { color: var(--primary); }

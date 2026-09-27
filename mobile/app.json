@@ -10,7 +10,10 @@
     "ios": {
       "supportsTablet": true,
       "requireFullScreen": true,
-      "bundleIdentifier": "com.kinesyp.app"
+      "bundleIdentifier": "com.kinesyp.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.kinesyp.app",
@@ -60,6 +63,7 @@
     ],
     "extra": {
       "apiUrl": ""
-    }
+    },
+    "description": "Mesure d'amplitude articulaire par vision et bilans kinésithérapiques assistés."
   }
 }

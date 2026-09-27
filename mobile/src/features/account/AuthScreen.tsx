@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { FREE_PATIENT_LIMIT, SUBSCRIPTION_LABEL } from '../../core';
 import { BigButton } from '../../ui/BigButton';
 import { colors, font, radius, spacing, TOUCH_TARGET } from '../../ui/theme';
 import { useAuth } from './AuthContext';
+
+/** Pages légales publiées avec la version web (GitHub Pages). */
+const LEGAL_URL = 'https://matteoruiu2502-a11y.github.io/Kin-syp/legal';
 
 /** Création du compte praticien / connexion. */
 export function AuthScreen() {
@@ -73,6 +76,19 @@ export function AuthScreen() {
           />
           {error && <Text style={styles.error}>{error}</Text>}
           <BigButton label={busy ? '…' : tab === 'signup' ? 'Créer mon compte' : 'Se connecter'} variant="primary" onPress={submit} />
+          {tab === 'signup' && (
+            <Text style={styles.muted}>
+              En créant un compte, vous acceptez les{' '}
+              <Text style={styles.link} onPress={() => Linking.openURL(`${LEGAL_URL}/cgu.html`)}>
+                conditions générales
+              </Text>{' '}
+              et la{' '}
+              <Text style={styles.link} onPress={() => Linking.openURL(`${LEGAL_URL}/confidentialite.html`)}>
+                politique de confidentialité
+              </Text>
+              .
+            </Text>
+          )}
           {auth.mode === 'local' && (
             <Text style={styles.muted}>Mode démonstration : comptes enregistrés sur cette tablette et paiement simulé. Configurez l’URL du serveur pour la production.</Text>
           )}
@@ -99,4 +115,5 @@ const styles = StyleSheet.create({
   input: { minHeight: TOUCH_TARGET - 8, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, color: colors.text, fontSize: font.body },
   error: { color: colors.warning, fontSize: font.caption },
   muted: { color: colors.textMuted, fontSize: font.caption - 2 },
+  link: { color: colors.primary, textDecorationLine: 'underline' },
 });

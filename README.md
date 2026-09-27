@@ -1,5 +1,7 @@
 # Kin-syp
 
+**Mise en ligne : voir [`docs/MISE-EN-LIGNE.md`](docs/MISE-EN-LIGNE.md)** (version web, app tablette, paiement, stores).
+
 | Dossier | Contenu |
 |---|---|
 | [`mobile/`](mobile/README.md) | **KinéSyP** — application tablette de mesure d'amplitude et de bilans assistés par IA : vision (MediaPipe Pose), dictée vocale, bilan PDF, modes sport / pédiatrie / posturologie (React Native / Expo). Exemple de bilan : [`mobile/docs/exemple-bilan.pdf`](mobile/docs/exemple-bilan.pdf). |
