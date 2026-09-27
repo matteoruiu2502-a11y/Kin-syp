@@ -1,0 +1,69 @@
+{
+  "expo": {
+    "name": "KinéSyP",
+    "slug": "kinesyp",
+    "version": "0.1.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B1220",
+    "ios": {
+      "supportsTablet": true,
+      "requireFullScreen": true,
+      "bundleIdentifier": "com.kinesyp.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.kinesyp.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "KinéSyP utilise la caméra pour mesurer les amplitudes articulaires. L'analyse est réalisée uniquement sur l'appareil.",
+          "enableMicrophonePermission": false,
+          "enableFrameProcessors": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
+      "./plugins/withPoseModel",
+      "expo-sharing",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "KinéSyP utilise le micro pour la dictée de vos observations cliniques.",
+          "speechRecognitionPermission": "KinéSyP transcrit vos observations dictées pour rédiger le bilan. La transcription est réalisée sur l'appareil lorsque c'est possible.",
+          "androidSpeechServicePackages": [
+            "com.google.android.as",
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
+    "extra": {
+      "apiUrl": ""
+    },
+    "description": "Mesure d'amplitude articulaire par vision et bilans kinésithérapiques assistés."
+  }
+}

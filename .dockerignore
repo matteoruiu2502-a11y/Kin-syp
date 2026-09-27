@@ -1,0 +1,9 @@
+**/node_modules
+**/.expo
+**/dist
+web/artifact
+mobile/assets/models
+mobile/ios
+mobile/android
+**/*.db*
+.git

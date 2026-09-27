@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "private": true,
+  "description": "Cœur de mesure partagé (app tablette, version web, serveur) — TypeScript pur, sans dépendance."
+}
