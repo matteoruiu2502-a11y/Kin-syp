@@ -1,0 +1,15 @@
+{
+  // Configuration autonome du cœur partagé : les outils de la version web et
+  // du serveur la lisent sans dépendre des paquets de l'application tablette.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "isolatedModules": true
+  },
+  "exclude": ["__tests__"]
+}
