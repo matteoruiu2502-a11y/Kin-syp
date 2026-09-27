@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "setup-assets": "node scripts/setup-assets.mjs",
     "postinstall": "node scripts/setup-assets.mjs --optional",
-    "artifact": "node scripts/build-artifact.mjs"
+    "artifact": "node scripts/build-artifact.mjs",
+    "site": "tsc --noEmit && vite build && node scripts/build-site.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.1",

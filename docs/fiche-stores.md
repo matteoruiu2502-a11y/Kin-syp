@@ -12,7 +12,7 @@ entre crochets.
 | Description courte (Google Play) | Mesure d'amplitude par caméra et bilan kiné rédigé automatiquement. | 80 |
 | Catégorie | Médecine (App Store) · Médecine (Google Play) | — |
 | Classification | 4+ / Tout public (aucun contenu sensible) | — |
-| URL de confidentialité | https://matteoruiu2502-a11y.github.io/Kin-syp/legal/confidentialite.html | — |
+| URL de confidentialité | https://matteoruiu2502-a11y.github.io/Kin-syp/app/legal/confidentialite.html | — |
 | URL d'assistance | [URL OU E-MAIL DE SUPPORT] | — |
 | Mots-clés (App Store) | kiné,goniomètre,amplitude,bilan,rééducation,posture,kinésithérapie,articulation,mesure | 100 |
 

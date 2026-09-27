@@ -4,15 +4,18 @@ Tout le code, les automatisations et les textes sont prêts. Les étapes
 ci-dessous demandent **vos comptes et vos paiements** : elles ne peuvent pas
 être faites à votre place. Comptez environ une heure pour les étapes 1 à 3.
 
-## 1. Version web en ligne, avec caméra (5 min, gratuit)
+## 1. Version web en ligne, avec caméra — déjà faite
 
-1. Sur GitHub, fusionnez la pull request (bouton **Merge**).
-2. **Settings → Pages → Source : GitHub Actions**.
-3. Onglet **Actions → « Publier la version web » → Run workflow**.
-4. L'application est en ligne sur
-   **https://matteoruiu2502-a11y.github.io/Kin-syp/** : ouvrez-la sur la
-   tablette, la caméra fonctionne. Pages légales :
-   `…/Kin-syp/legal/confidentialite.html`, `cgu.html`, `mentions-legales.html`.
+La version web est publiée par GitHub Pages dans le dossier `app/`, à côté
+du site Escal'hop! (qui reste à l'adresse racine) :
+
+- Application : **https://matteoruiu2502-a11y.github.io/Kin-syp/app/**
+  (ouvrez-la sur la tablette : la caméra fonctionne)
+- Pages légales : `…/Kin-syp/app/legal/confidentialite.html`, `cgu.html`,
+  `mentions-legales.html`
+
+Pour la mettre à jour après une modification du code : `cd web && npm run site`,
+puis enregistrer (commit) le dossier `app/`.
 
 ## 2. Application tablette installable (15 min, gratuit sur Android)
 

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Politique de confidentialité — KinéSyP</title>
+<link rel="stylesheet" href="legal.css">
+</head>
+<body>
+<main>
+<header><a href="../">KinéSyP</a></header>
+<h1>Politique de confidentialité</h1>
+<p class="updated">Dernière mise à jour : <span class="todo">[DATE]</span></p>
+<p class="note">Modèle rédigé à partir du fonctionnement réel de l’application. Les passages <span class="todo">[entre crochets]</span> sont à compléter, et l’ensemble est à faire relire par un juriste avant publication.</p>
+
+<h2>1. Qui sommes-nous</h2>
+<p>L’application KinéSyP est éditée par <span class="todo">[NOM OU RAISON SOCIALE]</span>, <span class="todo">[FORME JURIDIQUE, SIREN]</span>, <span class="todo">[ADRESSE]</span>. Contact pour toute question relative aux données personnelles : <span class="todo">[ADRESSE E-MAIL]</span>.</p>
+
+<h2>2. Le principe : les données de vos patients restent sur votre appareil</h2>
+<p>KinéSyP est conçue pour que les données de santé ne quittent pas l’appareil du praticien :</p>
+<ul>
+  <li>L’image de la caméra est analysée <strong>sur l’appareil</strong> (modèle MediaPipe Pose embarqué). Aucune vidéo n’est enregistrée ni transmise.</li>
+  <li>Les dossiers patients (identité, date de naissance, sexe, mesures, observations, photos annotées, squelettes enregistrés pour le « mode fantôme ») sont stockés <strong>uniquement sur l’appareil</strong> du praticien. L’éditeur n’y a pas accès.</li>
+  <li>Les bilans PDF sont générés sur l’appareil et ne sont transmis que lorsque le praticien les partage lui-même.</li>
+</ul>
+<p>Pour ces données, <strong>le praticien est responsable du traitement</strong> vis-à-vis de ses patients : information des patients, secret professionnel, conservation du dossier et sauvegarde de l’appareil. KinéSyP est l’outil qu’il utilise.</p>
+
+<h2>3. Les données que nous traitons</h2>
+<div class="table-wrap">
+<table>
+  <tr><th>Données</th><th>Finalité</th><th>Base légale</th><th>Conservation</th></tr>
+  <tr><td>Compte du praticien : nom, adresse e-mail, mot de passe (stocké sous forme d’empreinte, jamais en clair)</td><td>Créer et sécuriser le compte</td><td>Exécution du contrat</td><td>Durée du compte, puis <span class="todo">[3 ans]</span></td></tr>
+  <tr><td>État de l’abonnement, identifiant client Stripe</td><td>Gérer l’offre gratuite et l’abonnement</td><td>Exécution du contrat</td><td>Durée du compte ; pièces comptables 10 ans</td></tr>
+  <tr><td>Identifiants techniques aléatoires des dossiers patients (sans nom ni donnée de santé)</td><td>Décompter les 5 patients de l’offre gratuite</td><td>Exécution du contrat</td><td>Durée du compte</td></tr>
+  <tr><td>Journaux techniques du serveur (adresse IP, horodatage)</td><td>Sécurité, prévention des abus</td><td>Intérêt légitime</td><td><span class="todo">[12 mois]</span></td></tr>
+</table>
+</div>
+
+<h2>4. Dictée vocale</h2>
+<p>La dictée utilise la reconnaissance vocale du système (Apple ou Google). Lorsque l’appareil le permet, la transcription est réalisée <strong>sur l’appareil</strong> ; sinon, l’audio est traité par le service du fournisseur du système, ce que l’application signale à l’écran. La dictée est facultative : les observations peuvent être saisies au clavier.</p>
+
+<h2>5. Paiement</h2>
+<p>Les paiements sont traités par <strong>Stripe Payments Europe Ltd</strong>. Nous ne recevons ni ne stockons les numéros de carte bancaire. Stripe agit en qualité de responsable de traitement pour les données de paiement ; voir la <a href="https://stripe.com/fr/privacy">politique de confidentialité de Stripe</a>.</p>
+
+<h2>6. Destinataires et hébergement</h2>
+<ul>
+  <li>Hébergement du service de comptes : <span class="todo">[HÉBERGEUR, PAYS — de préférence dans l’Union européenne]</span>.</li>
+  <li>Paiement : Stripe (voir ci-dessus).</li>
+</ul>
+<p>Aucune donnée n’est vendue ni utilisée à des fins publicitaires. Lorsque des données sont transférées hors de l’Union européenne, ce transfert est encadré par les clauses contractuelles types de la Commission européenne.</p>
+
+<h2>7. Sécurité</h2>
+<p>Connexions chiffrées (HTTPS), mots de passe protégés par une fonction de hachage lente (scrypt), sessions signées, limitation des tentatives de connexion, session conservée dans le trousseau sécurisé de l’appareil. Nous recommandons d’activer le code de verrouillage et le chiffrement de la tablette.</p>
+
+<h2>8. Vos droits</h2>
+<p>Vous disposez des droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité. Pour les exercer : <span class="todo">[ADRESSE E-MAIL]</span>. Vous pouvez aussi introduire une réclamation auprès de la <a href="https://www.cnil.fr">CNIL</a>.</p>
+<p>Les patients qui souhaitent exercer leurs droits sur leur dossier doivent s’adresser à leur praticien, seul détenteur de ces données.</p>
+
+<h2>9. Cookies et stockage local</h2>
+<p>L’application n’utilise aucun cookie publicitaire ni outil de mesure d’audience. La version web utilise le stockage local du navigateur pour conserver vos données et votre session sur votre appareil.</p>
+
+<nav class="legal"><a href="cgu.html">Conditions générales</a><a href="mentions-legales.html">Mentions légales</a></nav>
+</main>
+</body>
+</html>

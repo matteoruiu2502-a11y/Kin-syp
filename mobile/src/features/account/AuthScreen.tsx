@@ -7,7 +7,7 @@ import { colors, font, radius, spacing, TOUCH_TARGET } from '../../ui/theme';
 import { useAuth } from './AuthContext';
 
 /** Pages légales publiées avec la version web (GitHub Pages). */
-const LEGAL_URL = 'https://matteoruiu2502-a11y.github.io/Kin-syp/legal';
+const LEGAL_URL = 'https://matteoruiu2502-a11y.github.io/Kin-syp/app/legal';
 
 /** Création du compte praticien / connexion. */
 export function AuthScreen() {

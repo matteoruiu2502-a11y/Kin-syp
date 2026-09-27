@@ -30,6 +30,12 @@ npm run dev        # http://localhost:5173
 Chrome ou Edge recommandés (la dictée utilise la reconnaissance vocale du
 navigateur). `npm run build` produit `dist/`, à servir en HTTPS pour la caméra.
 
+## Version en ligne
+
+Publiée sur **https://matteoruiu2502-a11y.github.io/Kin-syp/app/** (GitHub
+Pages, dossier `app/` du dépôt). Mise à jour : `npm run site`, puis commit
+du dossier `app/`.
+
 ## Version hébergée (page claude.ai)
 
 `npm run build && npm run artifact` assemble `artifact/` (page + bundle +
