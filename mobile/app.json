@@ -42,7 +42,19 @@
           }
         }
       ],
-      "./plugins/withPoseModel"
+      "./plugins/withPoseModel",
+      "expo-sharing",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "KinéSyP utilise le micro pour la dictée de vos observations cliniques.",
+          "speechRecognitionPermission": "KinéSyP transcrit vos observations dictées pour rédiger le bilan. La transcription est réalisée sur l'appareil lorsque c'est possible.",
+          "androidSpeechServicePackages": [
+            "com.google.android.as",
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ]
     ]
   }
 }

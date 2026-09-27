@@ -1,5 +1,5 @@
 import { angle2D, angle3D } from './geometry';
-import { JOINTS, type JointDefinition, type JointId, interiorToFlexion } from './joints';
+import { JOINTS, type JointDefinition, type JointId, interiorToClinical } from './joints';
 import { DEFAULT_ANGLE_FILTER, OneEuroFilter, type OneEuroParams } from './oneEuroFilter';
 import type { Point2, PoseFrame } from './types';
 
@@ -7,12 +7,15 @@ export interface JointMeasurement {
   id: JointId;
   /** Les 3 repères de l'articulation sont visibles sur cette image. */
   tracked: boolean;
-  /** Flexion lissée (°), 0 = extension complète. Null si jamais mesurée ou perdue. */
-  flexion: number | null;
-  /** Flexion maximale atteinte depuis la dernière remise à zéro (°). */
-  peakFlexion: number | null;
-  /** Flexion minimale atteinte (= meilleure extension) depuis la remise à zéro (°). */
-  minFlexion: number | null;
+  /**
+   * Valeur clinique lissée (°) selon la convention de l'articulation
+   * (voir `AngleConvention`). Null si jamais mesurée ou perdue.
+   */
+  value: number | null;
+  /** Valeur maximale atteinte depuis la dernière remise à zéro (ex. flexion max). */
+  peak: number | null;
+  /** Valeur minimale atteinte depuis la remise à zéro (ex. meilleure extension). */
+  min: number | null;
   /**
    * Le mouvement sort du plan de la caméra : l'angle projeté 2D diverge
    * de l'estimation 3D. La mesure est alors peu fiable (repositionner la tablette).
@@ -69,9 +72,9 @@ function emptyMeasurement(id: JointId): JointMeasurement {
   return {
     id,
     tracked: false,
-    flexion: null,
-    peakFlexion: null,
-    minFlexion: null,
+    value: null,
+    peak: null,
+    min: null,
     outOfPlane: false,
     vertex: null,
     velocity: 0,
@@ -79,8 +82,8 @@ function emptyMeasurement(id: JointId): JointMeasurement {
 }
 
 /**
- * Transforme un flux de poses en mesures goniométriques stables pour les
- * coudes et genoux : lissage, suivi des amplitudes extrêmes (capture
+ * Transforme un flux de poses en mesures goniométriques stables (épaules,
+ * coudes, hanches, genoux, chevilles) : lissage, suivi des amplitudes extrêmes (capture
  * automatique du pic, "zéro clic") et détection de l'articulation en mouvement.
  */
 export class JointAnalyzer {
@@ -113,8 +116,8 @@ export class JointAnalyzer {
     for (const s of this.states) {
       s.measurement = {
         ...s.measurement,
-        peakFlexion: s.measurement.flexion,
-        minFlexion: s.measurement.flexion,
+        peak: s.measurement.value,
+        min: s.measurement.value,
       };
     }
   }
@@ -167,7 +170,7 @@ export class JointAnalyzer {
       s.measurement = {
         ...s.measurement,
         tracked: false,
-        flexion: lost ? null : s.measurement.flexion,
+        value: lost ? null : s.measurement.value,
         vertex: lost ? null : s.measurement.vertex,
         outOfPlane: lost ? false : s.measurement.outOfPlane,
         velocity: 0,
@@ -176,7 +179,7 @@ export class JointAnalyzer {
     }
 
     s.lastSeenMs = frame.timestampMs;
-    const flexion = s.filter2D.filter(interiorToFlexion(interior), frame.timestampMs);
+    const value = s.filter2D.filter(interiorToClinical(interior, def.convention), frame.timestampMs);
     const velocity = s.filter2D.velocity;
 
     let outOfPlane = false;
@@ -184,8 +187,11 @@ export class JointAnalyzer {
     if (w && w[def.proximal] && w[def.vertex] && w[def.distal]) {
       const interior3D = angle3D(w[def.proximal], w[def.vertex], w[def.distal]);
       if (!Number.isNaN(interior3D)) {
-        const flexion3D = s.filter3D.filter(interiorToFlexion(interior3D), frame.timestampMs);
-        outOfPlane = Math.abs(flexion3D - flexion) > outOfPlaneThresholdDeg;
+        const value3D = s.filter3D.filter(
+          interiorToClinical(interior3D, def.convention),
+          frame.timestampMs,
+        );
+        outOfPlane = Math.abs(value3D - value) > outOfPlaneThresholdDeg;
       }
     }
 
@@ -195,23 +201,23 @@ export class JointAnalyzer {
 
     // Les extrêmes ne sont retenus que sur des mesures fiables (dans le plan).
     const prev = s.measurement;
-    const peakFlexion = outOfPlane
-      ? prev.peakFlexion
-      : prev.peakFlexion === null
-        ? flexion
-        : Math.max(prev.peakFlexion, flexion);
-    const minFlexion = outOfPlane
-      ? prev.minFlexion
-      : prev.minFlexion === null
-        ? flexion
-        : Math.min(prev.minFlexion, flexion);
+    const peak = outOfPlane
+      ? prev.peak
+      : prev.peak === null
+        ? value
+        : Math.max(prev.peak, value);
+    const min = outOfPlane
+      ? prev.min
+      : prev.min === null
+        ? value
+        : Math.min(prev.min, value);
 
     s.measurement = {
       id: def.id,
       tracked: true,
-      flexion,
-      peakFlexion,
-      minFlexion,
+      value,
+      peak,
+      min,
       outOfPlane,
       vertex: { x: b.x, y: b.y },
       velocity,

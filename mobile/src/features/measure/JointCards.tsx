@@ -1,44 +1,53 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { JOINTS, type JointAnalysis, type JointId } from '../../core';
+import { JOINT_KINDS, JOINT_KIND_LABELS, SIDES, jointId, type JointAnalysis, type JointId } from '../../core';
 import { colors, font, radius, spacing, TOUCH_TARGET } from '../../ui/theme';
-import { formatDegrees, measurementColor } from './format';
+import { formatJointValue, measurementColor } from './format';
 
 interface JointCardsProps {
   analysis: JointAnalysis;
-  /** Appui : verrouille le focus ; nouvel appui sur la carte verrouillée : retour en auto. */
+  /** Appui : verrouille le focus ; nouvel appui sur la valeur verrouillée : retour en auto. */
   onSelect: (id: JointId | null) => void;
-  direction: 'row' | 'column';
 }
 
-export function JointCards({ analysis, onSelect, direction }: JointCardsProps) {
+/** Une carte par articulation, gauche et droite côte à côte (asymétrie visible d'un coup d'œil). */
+export function JointCards({ analysis, onSelect }: JointCardsProps) {
   return (
-    <View style={[styles.container, { flexDirection: direction }]}>
-      {JOINTS.map((def) => {
-        const m = analysis.joints[def.id];
-        const isActive = analysis.activeJointId === def.id;
-        const locked = analysis.focusLocked && isActive;
-        const color = measurementColor(m, isActive);
+    <View style={styles.container}>
+      {JOINT_KINDS.map((kind) => {
+        const anyActive = SIDES.some((s) => analysis.activeJointId === jointId(kind, s));
         return (
-          <Pressable
-            key={def.id}
-            accessibilityRole="button"
-            accessibilityState={{ selected: locked }}
-            accessibilityLabel={`${def.label} ${formatDegrees(m.flexion)} degrés`}
-            onPress={() => onSelect(locked ? null : def.id)}
-            style={({ pressed }) => [
-              styles.card,
-              isActive && { borderColor: color },
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.label}>
-              {def.label}
-              {locked ? ' 🔒' : ''}
-            </Text>
-            <Text style={[styles.value, { color }]}>{formatDegrees(m.flexion)}°</Text>
-            <Text style={styles.peak}>max {formatDegrees(m.peakFlexion)}°</Text>
-          </Pressable>
+          <View key={kind} style={[styles.card, anyActive && styles.cardActive]}>
+            <Text style={styles.kind}>{JOINT_KIND_LABELS[kind]}</Text>
+            <View style={styles.sides}>
+              {SIDES.map((side) => {
+                const id = jointId(kind, side);
+                const m = analysis.joints[id];
+                const isActive = analysis.activeJointId === id;
+                const locked = analysis.focusLocked && isActive;
+                return (
+                  <Pressable
+                    key={side}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: locked }}
+                    accessibilityLabel={`${JOINT_KIND_LABELS[kind]} ${side === 'left' ? 'gauche' : 'droit'} ${formatJointValue(id, m.value)} degrés`}
+                    onPress={() => onSelect(locked ? null : id)}
+                    hitSlop={4}
+                    style={({ pressed }) => [styles.side, pressed && styles.pressed, locked && styles.locked]}
+                  >
+                    <Text style={styles.sideLabel}>
+                      {side === 'left' ? 'G' : 'D'}
+                      {locked ? ' 🔒' : ''}
+                    </Text>
+                    <Text style={[styles.value, { color: measurementColor(m, isActive) }]}>
+                      {formatJointValue(id, m.value)}°
+                    </Text>
+                    <Text style={styles.peak}>max {formatJointValue(id, m.peak)}°</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
         );
       })}
     </View>
@@ -46,19 +55,29 @@ export function JointCards({ analysis, onSelect, direction }: JointCardsProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: spacing.sm },
+  container: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
   card: {
-    minHeight: TOUCH_TARGET,
-    minWidth: 128,
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: 'transparent',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.xs,
   },
-  pressed: { opacity: 0.7 },
-  label: { color: colors.textMuted, fontSize: font.caption, fontWeight: '700' },
-  value: { fontSize: 40, fontWeight: '900', fontVariant: ['tabular-nums'] },
-  peak: { color: colors.textMuted, fontSize: font.caption, fontVariant: ['tabular-nums'] },
+  cardActive: { borderColor: colors.active },
+  kind: { color: colors.textMuted, fontSize: font.caption, fontWeight: '700', paddingHorizontal: spacing.xs },
+  sides: { flexDirection: 'row', gap: spacing.xs },
+  side: {
+    minWidth: 84,
+    minHeight: TOUCH_TARGET - 8,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radius.md - 4,
+    justifyContent: 'center',
+  },
+  locked: { backgroundColor: 'rgba(163, 230, 53, 0.15)' },
+  pressed: { opacity: 0.6 },
+  sideLabel: { color: colors.textMuted, fontSize: 13, fontWeight: '800' },
+  value: { fontSize: 30, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  peak: { color: colors.textMuted, fontSize: 13, fontVariant: ['tabular-nums'] },
 });

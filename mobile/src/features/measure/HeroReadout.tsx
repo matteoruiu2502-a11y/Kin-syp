@@ -1,34 +1,40 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { JOINTS_BY_ID, type JointAnalysis } from '../../core';
+import { JOINTS_BY_ID, compareToNorm, type JointAnalysis, type Norm } from '../../core';
 import { colors, font, radius, spacing } from '../../ui/theme';
-import { formatDegrees, measurementColor, referencePercent } from './format';
+import { formatJointValue, measurementColor } from './format';
+
+interface HeroReadoutProps {
+  analysis: JointAnalysis;
+  /** Norme du patient courant pour l'articulation active (si patient connu). */
+  norm: Norm | null;
+}
 
 /** Angle de l'articulation active, en très grand : lisible à 2 m. */
-export function HeroReadout({ analysis }: { analysis: JointAnalysis }) {
+export function HeroReadout({ analysis, norm }: HeroReadoutProps) {
   const id = analysis.activeJointId;
   if (!id) return null;
   const m = analysis.joints[id];
   const def = JOINTS_BY_ID[id];
   const color = measurementColor(m, true);
-  const percent = referencePercent(m);
+  const cmp = norm && m.peak !== null ? compareToNorm(m.peak, norm) : null;
 
   return (
     <View style={styles.container} accessibilityLiveRegion="polite">
       <Text style={styles.label}>
-        Flexion {def.label}
+        {def.label} · {def.movement}
         {analysis.focusLocked ? '  🔒' : ''}
       </Text>
       <View style={styles.valueRow}>
         <Text style={[styles.value, { color }]} adjustsFontSizeToFit numberOfLines={1}>
-          {formatDegrees(m.flexion)}
+          {formatJointValue(id, m.value)}
         </Text>
         <Text style={[styles.unit, { color }]}>°</Text>
       </View>
       <Text style={styles.stats}>
-        Max <Text style={styles.statsStrong}>{formatDegrees(m.peakFlexion)}°</Text>
-        {'   '}Ext. <Text style={styles.statsStrong}>{formatDegrees(m.minFlexion)}°</Text>
-        {percent !== null ? `   ${percent}% réf.` : ''}
+        Max <Text style={styles.statsStrong}>{formatJointValue(id, m.peak)}°</Text>
+        {'   '}Min <Text style={styles.statsStrong}>{formatJointValue(id, m.min)}°</Text>
+        {cmp && norm ? `   ${cmp.percent} % de la norme (${norm.max}°)` : ''}
       </Text>
     </View>
   );
@@ -41,8 +47,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     minWidth: 300,
+    maxWidth: 560,
   },
-  label: { color: colors.text, fontSize: font.title, fontWeight: '700' },
+  label: { color: colors.text, fontSize: font.body, fontWeight: '700' },
   valueRow: { flexDirection: 'row', alignItems: 'flex-start' },
   value: {
     fontSize: font.hero,

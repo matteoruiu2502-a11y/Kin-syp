@@ -4,6 +4,7 @@ import Svg, { Circle, G, Line, Path, Text as SvgText } from 'react-native-svg';
 
 import {
   JOINTS,
+  MIN_MEASURED_RANGE,
   SKELETON_CONNECTIONS,
   SKELETON_POINTS,
   type Compensation,
@@ -12,7 +13,7 @@ import {
   type ScreenLandmark,
 } from '../../core';
 import { colors } from '../../ui/theme';
-import { formatDegrees, measurementColor } from './format';
+import { formatJointValue, measurementColor } from './format';
 
 const MIN_VISIBILITY = 0.5;
 const ARC_RADIUS = 42;
@@ -78,11 +79,14 @@ function SkeletonOverlayImpl({ landmarks, analysis, compensations }: SkeletonOve
 
       {JOINTS.map((def) => {
         const m = analysis.joints[def.id];
-        if (!m.tracked || m.flexion === null) return null;
+        if (!m.tracked || m.value === null) return null;
+        const isActive = analysis.activeJointId === def.id;
+        // Pour la lisibilité : l'articulation active et celles réellement mobilisées.
+        const moved = m.peak !== null && m.min !== null && m.peak - m.min >= MIN_MEASURED_RANGE;
+        if (!isActive && !moved) return null;
         const a = landmarks[def.proximal];
         const b = landmarks[def.vertex];
         const c = landmarks[def.distal];
-        const isActive = analysis.activeJointId === def.id;
         const color = measurementColor(m, isActive);
         const arc = arcPath(a, b, c, ARC_RADIUS);
         const label = labelPosition(a, b, c, ARC_RADIUS + 34);
@@ -102,7 +106,7 @@ function SkeletonOverlayImpl({ landmarks, analysis, compensations }: SkeletonOve
               strokeWidth={1.5}
               textAnchor="middle"
             >
-              {`${formatDegrees(m.flexion)}°`}
+              {`${formatJointValue(def.id, m.value)}°`}
             </SvgText>
           </G>
         );
