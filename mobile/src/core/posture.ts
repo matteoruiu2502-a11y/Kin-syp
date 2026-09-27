@@ -122,10 +122,12 @@ function analyzeFront(lm: ScreenLandmark[]): PostureAnalysis {
     const hMid = midpoint(lh, rh);
     const width = distance(ls, rs);
     const base = vis(la) && vis(ra) ? midpoint(la, ra) : hMid;
-    // Décalage latéral du centre des épaules par rapport à la base d'appui,
-    // projeté sur l'axe droite→gauche du patient (indépendant du miroir caméra).
-    const axis = { x: (ls.x - rs.x) / width, y: (ls.y - rs.y) / width };
-    const shift = (((sMid.x - base.x) * axis.x + (sMid.y - base.y) * axis.y) / width) * 100;
+    // Décalage horizontal du centre des épaules par rapport à la base d'appui.
+    // Le signe suit le côté gauche du patient (indépendant du miroir caméra) ;
+    // on reste sur l'horizontale : projeter sur la ligne des épaules ferait
+    // entrer la hauteur du tronc dans la mesure dès que les épaules sont inclinées.
+    const leftward = Math.sign(ls.x - rs.x) || 1;
+    const shift = (((sMid.x - base.x) * leftward) / width) * 100;
     metrics.push(
       metric(
         'lateral_shift',

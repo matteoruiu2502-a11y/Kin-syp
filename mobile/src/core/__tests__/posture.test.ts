@@ -17,6 +17,14 @@ describe('analyzePosture — vue de face', () => {
     expect(shoulders.detail).toContain('gauche');
   });
 
+  it("ne confond pas une épaule basse avec une translation du tronc", () => {
+    const f = makeFrame();
+    f.landmarks[L.leftShoulder].y -= 10;
+    f.landmarks[L.rightShoulder].y += 10;
+    const shift = analyzePosture(f.landmarks)!.metrics.find((m) => m.key === 'lateral_shift')!;
+    expect(Math.abs(shift.value)).toBeLessThan(1);
+  });
+
   it('trouve un bassin horizontal et un tronc centré sur une posture neutre', () => {
     const res = analyzePosture(makeFrame().landmarks)!;
     expect(res.metrics.find((m) => m.key === 'pelvis')!.status).toBe('ok');
