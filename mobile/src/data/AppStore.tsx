@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import { createSession, localDate, newId, type Patient, type Session } from '../core';
+import { createSession, localDate, type Patient, type Session } from '../core';
 import * as storage from './storage';
 
 interface AppStoreValue {
@@ -12,7 +12,8 @@ interface AppStoreValue {
   sessions: Session[];
   /** Séance du jour du patient courant (créée à la première écriture). */
   todaySession: Session | null;
-  addPatient: (p: Omit<Patient, 'id' | 'createdAt'>) => Patient;
+  /** Ajoute un patient dont la place a déjà été réservée auprès du service de comptes. */
+  addPatient: (p: Patient) => void;
   selectPatient: (id: string | null) => void;
   updateSettings: (patch: Partial<storage.Settings>) => void;
   /** Modifie (ou crée) la séance du jour ; renvoie la séance mise à jour. */
@@ -21,7 +22,9 @@ interface AppStoreValue {
 
 const AppStoreContext = createContext<AppStoreValue | null>(null);
 
-export function AppStoreProvider({ children }: { children: ReactNode }) {
+export function AppStoreProvider({ accountId, practitionerName, children }: { accountId: string; practitionerName: string; children: ReactNode }) {
+  // Monté une fois par compte (clé React) : le dossier de stockage est fixé avant toute lecture.
+  useState(() => storage.setStorageAccount(accountId));
   const [ready, setReady] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [settings, setSettings] = useState<storage.Settings>(storage.DEFAULT_SETTINGS);
@@ -35,7 +38,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     (async () => {
       const [p, s] = await Promise.all([storage.loadPatients(), storage.loadSettings()]);
       setPatients(p);
-      setSettings(s);
+      setSettings(s.practitionerName ? s : { ...s, practitionerName });
       setReady(true);
     })().catch(() => setReady(true));
   }, []);
@@ -74,15 +77,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addPatient = useCallback(
-    (p: Omit<Patient, 'id' | 'createdAt'>) => {
-      const patient: Patient = { ...p, id: newId('p'), createdAt: new Date().toISOString() };
+    (patient: Patient) => {
       setPatients((prev) => {
         const next = [...prev, patient].sort((a, b) => a.lastName.localeCompare(b.lastName));
         storage.savePatients(next);
         return next;
       });
       updateSettings({ currentPatientId: patient.id });
-      return patient;
     },
     [updateSettings],
   );

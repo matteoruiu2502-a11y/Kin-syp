@@ -38,6 +38,15 @@ pas les fichiers `.task`). Dans cette page intégrée, le navigateur bloque la
 caméra, le micro et l'impression : utilisez le patient démo ou une vidéo,
 saisissez les observations au clavier ; l'aperçu du bilan est le PDF exact.
 
+## Comptes et abonnement
+
+Chaque kiné crée son compte (e-mail + mot de passe) et retrouve ses propres
+patients. Offre : **5 patients gratuits, puis 50 € / mois** (paywall à la
+création du 6e). Avec `VITE_API_URL` pointant vers le serveur (`../server`),
+comptes et paiement Stripe sont réels ; sans, un mode démonstration local
+simule le paiement (signalé à l'écran). La page Patients a une barre de
+recherche (nom, prénom, date de naissance ; sans accents, mots dans le désordre).
+
 ## Données
 
 Stockées uniquement dans ce navigateur (localStorage) ; « Patients →

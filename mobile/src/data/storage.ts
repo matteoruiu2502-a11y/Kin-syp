@@ -8,11 +8,11 @@ import type { GhostTrack, Patient, Session } from '../core';
  * (exclu du partage, sauvegardé avec l'appareil). Aucune donnée de santé
  * n'est envoyée sur un serveur.
  *
- *   kinesyp/patients.json
- *   kinesyp/settings.json
- *   kinesyp/sessions/<patientId>.json
- *   kinesyp/ghosts/<id>.json
- *   kinesyp/photos/<id>.jpg
+ *   kinesyp/<compte>/patients.json
+ *   kinesyp/<compte>/settings.json
+ *   kinesyp/<compte>/sessions/<patientId>.json
+ *   kinesyp/<compte>/ghosts/<id>.json
+ *   kinesyp/<compte>/photos/<id>.jpg
  */
 export interface Settings {
   practitionerName: string;
@@ -26,8 +26,14 @@ export const DEFAULT_SETTINGS: Settings = {
   currentPatientId: null,
 };
 
+/** Dossier du compte praticien connecté : chaque kiné a ses propres patients sur la tablette. */
+let accountFolder = 'sans-compte';
+export function setStorageAccount(accountId: string): void {
+  accountFolder = accountId.replace(/[^\w-]/g, '_');
+}
+
 function dir(...parts: string[]): Directory {
-  const d = new Directory(Paths.document, 'kinesyp', ...parts);
+  const d = new Directory(Paths.document, 'kinesyp', accountFolder, ...parts);
   if (!d.exists) d.create({ intermediates: true });
   return d;
 }

@@ -16,3 +16,6 @@ export * from './report/escape';
 export * from './report/chart';
 export * from './report/reportHtml';
 export * from './pediatric';
+export * from './search';
+export * from './billing';
+export * from './account';

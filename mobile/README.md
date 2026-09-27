@@ -33,6 +33,16 @@ les amplitudes sont capturées automatiquement et le bilan se rédige tout seul.
 | 🧸 Pédiatrie | Étoile à attraper placée à l'amplitude cible (90 % de la norme de l'âge), fusée qui monte avec le mouvement, badges et vibration à chaque réussite. |
 | 🧍 Posturologie | Détection automatique vue de face / profil. Face : épaules, bassin, tête, translation du tronc. Profil : antéposition de la tête, inclinaison du tronc, épaule et bassin vs fil à plomb. Lignes colorées à l'écran. |
 
+### Comptes, recherche et abonnement
+| Fonction | Détail |
+|---|---|
+| Compte praticien | Inscription / connexion par e-mail ; session dans le trousseau sécurisé ; données séparées par compte sur la tablette. |
+| Recherche patients | Nom, prénom ou date de naissance ; sans accents ni casse, mots dans n'importe quel ordre. |
+| Offre | 5 patients gratuits, puis abonnement **50 € / mois** (Stripe, via le serveur `../server`). Quota vérifié par le serveur. |
+
+Configurer l'URL du serveur dans `app.json` → `expo.extra.apiUrl`. Vide =
+mode démonstration (comptes locaux, paiement simulé).
+
 ## Architecture
 
 ```

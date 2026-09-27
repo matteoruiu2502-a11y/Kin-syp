@@ -2,7 +2,20 @@ import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ageAt, formatDateFr, localDate, parseFrenchDate, type Sex } from '../../core';
+import {
+  AccountError,
+  FREE_PATIENT_LIMIT,
+  SUBSCRIPTION_LABEL,
+  ageAt,
+  formatDateFr,
+  localDate,
+  newId,
+  parseFrenchDate,
+  planLabel,
+  searchPatients,
+  type Sex,
+} from '../../core';
+import { useAuth } from '../account/AuthContext';
 import { useAppStore } from '../../data/AppStore';
 import { useNavigate } from '../../navigation';
 import { BigButton } from '../../ui/BigButton';
@@ -12,6 +25,8 @@ export function PatientsScreen() {
   const insets = useSafeAreaInsets();
   const navigate = useNavigate();
   const { patients, currentPatient, selectPatient, addPatient, settings, updateSettings } = useAppStore();
+  const auth = useAuth();
+  const [busy, setBusy] = useState(false);
 
   const [lastName, setLastName] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -21,18 +36,29 @@ export function PatientsScreen() {
   const [query, setQuery] = useState('');
 
   const today = localDate(new Date());
-  const filtered = patients.filter((p) =>
-    `${p.lastName} ${p.firstName}`.toLowerCase().includes(query.trim().toLowerCase()),
-  );
+  // Sans accents, mots dans le désordre, ou date de naissance.
+  const filtered = searchPatients(patients, query);
 
-  const create = () => {
+  const create = async () => {
     const birthDate = parseFrenchDate(birth);
     if (!lastName.trim() || !firstName.trim()) return setError('Nom et prénom requis');
     if (!birthDate) return setError('Date de naissance au format JJ/MM/AAAA');
     if (!sex) return setError('Précisez le sexe (normes d’amplitude)');
-    addPatient({ lastName: lastName.trim(), firstName: firstName.trim(), birthDate, sex });
-    navigate('measure');
+    const id = newId('p');
+    setBusy(true);
+    setError(null);
+    try {
+      // Le service de comptes réserve la place (quota) ; le dossier reste sur la tablette.
+      await auth.registerPatient(id);
+      addPatient({ id, lastName: lastName.trim(), firstName: firstName.trim(), birthDate, sex, createdAt: new Date().toISOString() });
+      navigate('measure');
+    } catch (e) {
+      if (!(e instanceof AccountError && e.code === 'quota_exceeded')) setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
   };
+  const ent = auth.view?.entitlement;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + spacing.md, paddingLeft: insets.left + spacing.lg, paddingRight: insets.right + spacing.lg }]}>
@@ -45,7 +71,7 @@ export function PatientsScreen() {
         <View style={styles.column}>
           <TextInput
             style={styles.input}
-            placeholder="Rechercher…"
+            placeholder="🔍 Rechercher : nom, prénom, date de naissance…"
             placeholderTextColor={colors.textMuted}
             value={query}
             onChangeText={setQuery}
@@ -105,7 +131,36 @@ export function PatientsScreen() {
             ))}
           </View>
           {error && <Text style={styles.error}>{error}</Text>}
-          <BigButton label="Créer et mesurer" variant="primary" onPress={create} />
+          <BigButton label={busy ? '…' : 'Créer et mesurer'} variant="primary" onPress={create} />
+
+          {ent && auth.view && (
+            <View style={styles.plan}>
+              <Text style={styles.section}>Mon compte</Text>
+              <Text style={styles.muted}>
+                {auth.view.account.name} · {auth.view.account.email}
+              </Text>
+              <Text style={styles.planText}>{planLabel(ent)}</Text>
+              {!ent.subscribed && (
+                <View style={styles.quota}>
+                  {Array.from({ length: FREE_PATIENT_LIMIT }, (_, i) => (
+                    <View key={i} style={[styles.quotaSlot, i < ent.patientCount && styles.quotaUsed]} />
+                  ))}
+                </View>
+              )}
+              <View style={styles.sexRow}>
+                {ent.subscribed ? (
+                  auth.mode === 'server' ? (
+                    <BigButton label="Gérer l’abonnement" onPress={() => auth.manageSubscription()} />
+                  ) : (
+                    <BigButton label="Résilier (simulation)" onPress={() => auth.simulate('cancel')} />
+                  )
+                ) : (
+                  <BigButton label={`S’abonner — ${SUBSCRIPTION_LABEL}`} variant="primary" onPress={auth.openPaywall} />
+                )}
+                <BigButton label="Se déconnecter" onPress={() => auth.logout()} />
+              </View>
+            </View>
+          )}
 
           <Text style={[styles.section, styles.spaced]}>Praticien (en-tête du bilan)</Text>
           <TextInput
@@ -172,4 +227,9 @@ const styles = StyleSheet.create({
   sexText: { color: colors.text, fontSize: font.body, fontWeight: '700' },
   sexTextSelected: { color: colors.background },
   error: { color: colors.warning, fontSize: font.caption },
+  plan: { gap: spacing.sm, marginTop: spacing.lg, backgroundColor: colors.surfaceStrong, borderRadius: radius.md, padding: spacing.md },
+  planText: { color: colors.text, fontSize: font.body, fontWeight: '700' },
+  quota: { flexDirection: 'row', gap: 6 },
+  quotaSlot: { width: 36, height: 12, borderRadius: 6, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border },
+  quotaUsed: { backgroundColor: colors.primary, borderColor: colors.primary },
 });

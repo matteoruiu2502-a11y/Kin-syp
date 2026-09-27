@@ -32,7 +32,8 @@ interface Data {
   settings: Settings;
 }
 
-const KEY = 'kinesyp:v1';
+/** Données séparées par compte praticien (tablette partagée au cabinet). */
+const dataKey = (accountId: string) => `kinesyp:v1:${accountId}`;
 const GHOST_PREFIX = 'kinesyp:ghost:';
 const memory = new Map<string, string>();
 
@@ -118,8 +119,8 @@ function seedData(): Data {
   };
 }
 
-function load(): Data {
-  const raw = read(KEY);
+function load(accountId: string): Data {
+  const raw = read(dataKey(accountId));
   if (raw) {
     try {
       return JSON.parse(raw) as Data;
@@ -128,7 +129,7 @@ function load(): Data {
     }
   }
   const seeded = seedData();
-  write(KEY, JSON.stringify(seeded));
+  write(dataKey(accountId), JSON.stringify(seeded));
   return seeded;
 }
 
@@ -139,7 +140,8 @@ interface StoreValue extends Data {
   patientSessions: Session[];
   todaySession: Session | null;
   persisted: boolean;
-  addPatient: (p: Omit<Patient, 'id' | 'createdAt'>) => void;
+  /** Ajoute un patient dont la place a déjà été réservée auprès du service de comptes. */
+  addPatient: (p: Patient) => void;
   selectPatient: (id: string) => void;
   updateSettings: (patch: Partial<Settings>) => void;
   updateTodaySession: (fn: (s: Session) => Session) => Session | null;
@@ -148,16 +150,22 @@ interface StoreValue extends Data {
 
 const StoreContext = createContext<StoreValue | null>(null);
 
-export function StoreProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<Data>(load);
+export function StoreProvider({ accountId, practitionerName, children }: { accountId: string; practitionerName: string; children: ReactNode }) {
+  const [data, setData] = useState<Data>(() => {
+    const d = load(accountId);
+    // Nouveau compte : le nom du praticien sert d'en-tête de bilan.
+    return d.settings.practitionerName === 'Cabinet de démonstration' && practitionerName
+      ? { ...d, settings: { ...d.settings, practitionerName } }
+      : d;
+  });
   const [persisted, setPersisted] = useState(true);
   const dataRef = useRef(data);
 
   const commit = useCallback((next: Data) => {
     dataRef.current = next;
     setData(next);
-    setPersisted(write(KEY, JSON.stringify(next)));
-  }, []);
+    setPersisted(write(dataKey(accountId), JSON.stringify(next)));
+  }, [accountId]);
 
   const currentPatient = data.patients.find((p) => p.id === data.settings.currentPatientId) ?? null;
   const patientSessions = useMemo(
@@ -173,8 +181,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     patientSessions,
     todaySession,
     persisted,
-    addPatient: (p) => {
-      const patient: Patient = { ...p, id: newId('p'), createdAt: new Date().toISOString() };
+    addPatient: (patient) => {
       const d = dataRef.current;
       commit({ ...d, patients: [...d.patients, patient], settings: { ...d.settings, currentPatientId: patient.id } });
     },
@@ -198,12 +205,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return updated;
     },
     resetDemo: () => {
-      try {
-        for (const k of Object.keys(localStorage)) if (k.startsWith('kinesyp:')) localStorage.removeItem(k);
-      } catch {
-        /* rien à nettoyer */
-      }
-      memory.clear();
+      // Efface les données de ce compte uniquement (patients, séances) et recharge l'exemple.
       commit(seedData());
     },
   };

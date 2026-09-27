@@ -54,7 +54,12 @@
             "com.google.android.googlequicksearchbox"
           ]
         }
-      ]
-    ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
+    "extra": {
+      "apiUrl": ""
+    }
   }
 }
