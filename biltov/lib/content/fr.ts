@@ -1,0 +1,325 @@
+// Contenu de référence (FR). Les traductions EN / DE suivent exactement la même forme.
+
+export type TradeId = "plombier" | "electricien" | "peintre" | "macon" | "menuisier";
+
+export type QuoteLine = { label: string; qty: number; unit: string; price: number };
+
+export type Trade = {
+  id: TradeId;
+  name: string;
+  voice: string;
+  lines: QuoteLine[];
+  supplies: string[];
+  jargon: string[];
+  vat: string;
+};
+
+export const fr = {
+  meta: {
+    title: "Biltov — L'assistant IA vocal et de facturation pour les artisans du BTP",
+    description:
+      "Dictez vos devis depuis le chantier. Biltov les chiffre, les met en page, les envoie par e-mail et WhatsApp et relance vos impayés automatiquement.",
+  },
+  nav: {
+    features: "Fonctionnalités",
+    trades: "Métiers",
+    pricing: "Tarif",
+    roi: "Calculateur ROI",
+    cta: "Essai Gratuit 14 Jours",
+    language: "Langue",
+    openMenu: "Ouvrir le menu",
+    closeMenu: "Fermer le menu",
+  },
+  hero: {
+    badge: "Nouveau · Dictée vocale IA en 3 langues",
+    titleA: "Posez le stylo.",
+    titleHighlight: "Dictez.",
+    titleB: "Biltov s'occupe de la paperasse.",
+    subtitle:
+      "Le devis se dicte en 30 secondes depuis le chantier. Biltov le chiffre, le met en page à vos couleurs, l'envoie par e-mail et WhatsApp — puis relance vos clients jusqu'au paiement.",
+    ctaPrimary: "Tester la Dictée Vocale",
+    ctaSecondary: "Voir le tarif",
+    reassurance: ["Conforme TVA Europe", "Sans CB requise", "Données hébergées en UE"],
+    stats: [
+      { value: "30 s", label: "pour un devis complet" },
+      { value: "6 h", label: "gagnées chaque semaine" },
+      { value: "-72 %", label: "de retards de paiement" },
+    ],
+    canvasHint: "Bougez la souris pour tourner autour du chantier",
+    scroll: "Défiler",
+  },
+  trades: {
+    eyebrow: "Onboarding métier",
+    title: "Biltov parle votre métier.",
+    subtitle:
+      "Choisissez votre corps d'état : l'interface, le vocabulaire et le catalogue de fournitures s'adaptent instantanément.",
+    labels: {
+      dictation: "Vous dictez",
+      generated: "Biltov génère",
+      supplies: "Catalogue fournitures",
+      jargon: "Jargon compris",
+      vat: "TVA appliquée",
+      total: "Total HT",
+      designation: "Désignation",
+      qty: "Qté",
+      price: "PU HT",
+    },
+    list: [
+      {
+        id: "plombier",
+        name: "Plombier",
+        voice:
+          "Remplacement ballon d'eau chaude 200 litres chez Mme Laurent, avec groupe de sécurité, raccords PER et 3 heures de main d'œuvre.",
+        lines: [
+          { label: "Chauffe-eau électrique 200 L vertical", qty: 1, unit: "u", price: 489 },
+          { label: "Groupe de sécurité + siphon", qty: 1, unit: "u", price: 42 },
+          { label: "Raccords PER Ø16 + colliers", qty: 1, unit: "lot", price: 36 },
+          { label: "Main d'œuvre plombier", qty: 3, unit: "h", price: 55 },
+        ],
+        supplies: ["PER Ø16 / Ø20", "Multicouche", "Raccords laiton", "Mitigeurs", "Siphons", "Vannes 1/4 tour"],
+        jargon: ["groupe de sécu", "PER", "multicouche", "clapet", "té de réglage"],
+        vat: "10 % (rénovation > 2 ans)",
+      },
+      {
+        id: "electricien",
+        name: "Électricien",
+        voice:
+          "Mise aux normes tableau électrique pour M. Girard, tableau 3 rangées, 2 interrupteurs différentiels 30 mA, 12 disjoncteurs et 6 prises.",
+        lines: [
+          { label: "Tableau électrique 3 rangées 39 modules", qty: 1, unit: "u", price: 128 },
+          { label: "Interrupteur différentiel 40 A 30 mA type A", qty: 2, unit: "u", price: 74 },
+          { label: "Disjoncteur phase + neutre 16 A", qty: 12, unit: "u", price: 11.5 },
+          { label: "Prise 2P+T encastrée + pose", qty: 6, unit: "u", price: 38 },
+        ],
+        supplies: ["Disjoncteurs", "ID 30 mA", "Gaine ICTA", "Câble R2V", "Boîtes d'encastrement", "Peignes"],
+        jargon: ["ID type A", "NF C 15-100", "peigne", "ICTA", "PC 2P+T"],
+        vat: "10 % (rénovation)",
+      },
+      {
+        id: "peintre",
+        name: "Peintre",
+        voice:
+          "Chambre de 14 m² chez les Moreau : lessivage, rebouchage, sous-couche et deux couches de velours blanc sur 38 m² de murs, plafond en mat.",
+        lines: [
+          { label: "Lessivage + rebouchage + ponçage murs", qty: 38, unit: "m²", price: 6 },
+          { label: "Sous-couche acrylique", qty: 38, unit: "m²", price: 4.5 },
+          { label: "Peinture velours blanc 2 couches", qty: 38, unit: "m²", price: 14 },
+          { label: "Plafond peinture mate 2 couches", qty: 14, unit: "m²", price: 17 },
+        ],
+        supplies: ["Glycéro / Acrylique", "Enduit de lissage", "Bande à joint", "Rouleaux 180 mm", "Bâches", "Adhésif de masquage"],
+        jargon: ["velours", "impression", "ratissage", "égrenage", "mat profond"],
+        vat: "10 % (travaux d'entretien)",
+      },
+      {
+        id: "macon",
+        name: "Maçon",
+        voice:
+          "Dalle béton de 25 m² pour la terrasse de M. Petit, 12 centimètres, treillis soudé, hérisson de 20 cm et coffrage périphérique.",
+        lines: [
+          { label: "Terrassement + hérisson 20 cm", qty: 25, unit: "m²", price: 28 },
+          { label: "Treillis soudé ST25C", qty: 25, unit: "m²", price: 7.5 },
+          { label: "Béton C25/30 ép. 12 cm coulé", qty: 3, unit: "m³", price: 165 },
+          { label: "Coffrage périphérique", qty: 20, unit: "ml", price: 18 },
+        ],
+        supplies: ["Béton C25/30", "Parpaings 20", "Treillis ST25", "Fers HA", "Mortier", "Polyane"],
+        jargon: ["hérisson", "chaînage", "ferraillage", "ragréage", "linteau"],
+        vat: "20 % (construction neuve)",
+      },
+      {
+        id: "menuisier",
+        name: "Menuisier",
+        voice:
+          "Pose de 3 fenêtres PVC double vitrage 120 par 135 chez Mme Roux, dépose des anciennes en bois, plus habillage et joints.",
+        lines: [
+          { label: "Fenêtre PVC 2 vantaux 120×135 Uw 1,3", qty: 3, unit: "u", price: 540 },
+          { label: "Dépose menuiserie bois existante", qty: 3, unit: "u", price: 65 },
+          { label: "Habillage + couvre-joints PVC", qty: 3, unit: "u", price: 48 },
+          { label: "Mastic + mousse PU + compribande", qty: 1, unit: "lot", price: 45 },
+        ],
+        supplies: ["Fenêtres PVC / Alu", "Compribande", "Mousse PU", "Couvre-joints", "Vis Rapidrive", "Quincaillerie"],
+        jargon: ["dormant", "ouvrant", "rénovation sur dormant", "Uw", "compribande"],
+        vat: "5,5 % (rénovation énergétique)",
+      },
+    ] as Trade[],
+  },
+  features: {
+    eyebrow: "Fonctionnalités",
+    title: "Tout le bureau, dans votre poche.",
+    subtitle: "Cinq modules pensés pour le chantier, pas pour le bureau. Un seul abonnement, tout inclus.",
+    voice: {
+      title: "Dictée vocale & IA texte",
+      desc: "Parlez comme sur le chantier. L'IA structure, chiffre et met en page un devis PDF prêt à signer.",
+      listening: "Écoute…",
+      thinking: "L'IA chiffre…",
+      ready: "PDF prêt",
+      transcript: "« Salle de bain chez Durand, faïence 18 m², pose receveur extra-plat, 2 jours de main d'œuvre »",
+      pdfLines: ["Faïence murale 30×60 — 18 m²", "Receveur extra-plat 90×120", "Main d'œuvre carreleur — 2 j"],
+      quote: "DEVIS N° 2026-142",
+    },
+    channels: {
+      title: "Distribution multi-canal",
+      desc: "Un clic : le devis part en même temps par e-mail, WhatsApp et SMS.",
+      email: "E-mail",
+      whatsapp: "WhatsApp",
+      sms: "SMS",
+      send: "Envoyer le devis",
+      sending: "Envoi…",
+      delivered: "Délivré",
+      reset: "Recommencer",
+      none: "Activez au moins un canal",
+    },
+    reminders: {
+      title: "Relances automatiques impayés",
+      desc: "Biltov relance à votre place, avec le bon ton au bon moment. Vous restez le gentil.",
+      steps: [
+        { day: "J+7", title: "Rappel courtois", msg: "Bonjour M. Durand, petit rappel : la facture F-2026-088 (1 240 €) arrive à échéance. Lien de paiement ci-joint 🙂" },
+        { day: "J+14", title: "Relance ferme", msg: "Bonjour M. Durand, sauf erreur de notre part la facture F-2026-088 reste impayée. Merci de régulariser sous 7 jours." },
+        { day: "J+21", title: "Mise en demeure", msg: "Mise en demeure de payer la facture F-2026-088 sous 8 jours, pénalités de retard et indemnité forfaitaire de 40 € applicables." },
+      ],
+      paid: "Payé à J+9 — relances stoppées",
+      markPaid: "Simuler un paiement",
+    },
+    photo: {
+      title: "Gestion photo & marge",
+      desc: "Photos avant/après horodatées dans le dossier chantier. Scannez vos tickets : la marge se calcule seule.",
+      before: "Avant",
+      after: "Après",
+      scan: "Scanner un ticket",
+      scanning: "Lecture IA…",
+      receipt: "Ticket Point P",
+      items: [
+        { label: "Colle carrelage C2 × 4", value: 86.4 },
+        { label: "Croisillons 3 mm", value: 7.9 },
+        { label: "Joint gris 5 kg", value: 18.5 },
+      ],
+      billed: "Facturé client",
+      costs: "Achats",
+      margin: "Marge chantier",
+    },
+    brand: {
+      title: "Branding & export",
+      desc: "Votre logo, vos couleurs, votre IBAN. TVA multi-pays calculée automatiquement.",
+      upload: "Importer votre logo",
+      color: "Couleur",
+      country: "Pays / TVA",
+      iban: "IBAN",
+      company: "Dupont Rénovation",
+      preview: "Aperçu PDF",
+      subtotal: "Total HT",
+      vat: "TVA",
+      total: "Total TTC",
+    },
+  },
+  demo: {
+    eyebrow: "Démo en direct",
+    title: "Dites-le. Regardez le devis se remplir.",
+    subtitle:
+      "Choisissez une phrase exemple, tapez la vôtre ou utilisez votre micro : le devis se construit ligne par ligne, en temps réel.",
+    examples: [
+      "Pour Mme Martin, pose de 24 m² de parquet chêne à 45 euros, 12 ml de plinthes à 9 euros et 6 heures de main d'œuvre à 50 euros",
+      "Pour M. Bernard, 3 prises électriques à 38 euros, un tableau 2 rangées à 180 euros et 4 heures de main d'œuvre à 55 euros",
+      "Pour la SCI Horizon, peinture de 60 m² de murs à 22 euros et 18 m² de plafond à 25 euros",
+    ],
+    placeholder: "Ex. : Pour M. Dubois, 10 m² de carrelage à 40 euros et 5 heures à 50 euros",
+    simulate: "Lancer la dictée",
+    mic: "Dicter au micro",
+    stop: "Arrêter",
+    micUnsupported: "Micro non disponible dans ce navigateur — utilisez un exemple.",
+    listening: "Biltov écoute…",
+    reset: "Effacer",
+    live: "Transcription en direct",
+    pdf: {
+      quote: "DEVIS",
+      number: "N° 2026-",
+      client: "Client",
+      clientUnknown: "Client à préciser",
+      date: "Date",
+      designation: "Désignation",
+      qty: "Qté",
+      unitPrice: "PU HT",
+      total: "Total HT",
+      subtotal: "Total HT",
+      vat: "TVA 20 %",
+      totalTTC: "Total TTC",
+      validity: "Devis valable 30 jours · Bon pour accord :",
+      empty: "Les lignes apparaîtront ici pendant la dictée…",
+      labour: "Main d'œuvre",
+    },
+  },
+  roi: {
+    eyebrow: "Calculateur ROI",
+    title: "Combien vous rapporte Biltov ?",
+    subtitle: "Ajustez les curseurs à votre activité. Le calcul est volontairement prudent.",
+    quotes: "Devis et factures par mois",
+    minutes: "Temps actuel par document (min)",
+    rate: "Votre taux horaire (€)",
+    unpaid: "Impayés en attente par mois (€)",
+    hoursSaved: "Heures récupérées / mois",
+    moneySaved: "Valeur du temps gagné",
+    recovered: "Trésorerie récupérée plus vite",
+    roi: "Retour sur investissement",
+    perMonth: "/ mois",
+    note: "Hypothèses : 3 min par document avec Biltov, 30 % des impayés encaissés plus tôt grâce aux relances.",
+    cta: "Récupérer ce temps",
+  },
+  pricing: {
+    eyebrow: "Tarif unique",
+    title: "Un prix. Tout compris. Point.",
+    subtitle: "Pas de palier, pas d'option cachée, pas de limite de devis. Toutes les fonctionnalités pour tous.",
+    monthly: "Mensuel",
+    yearly: "Annuel",
+    save: "-20 %",
+    badge: "Tout inclus · Sans engagement",
+    plan: "Biltov Pro",
+    perMonth: "€ HT / mois",
+    billedYearly: "soit 768 € HT facturés une fois par an",
+    billedMonthly: "Résiliable en 1 clic, à tout moment",
+    features: [
+      "Dictée vocale IA illimitée (FR / EN / DE)",
+      "Devis & factures illimités, conformes",
+      "Envoi e-mail + WhatsApp + SMS",
+      "Relances impayés automatiques J+7 / J+14 / J+21",
+      "Scan IA des tickets & suivi de marge",
+      "Photos chantier avant / après",
+      "TVA multi-pays & factur-X",
+      "Votre logo, vos couleurs, votre IBAN",
+      "Support prioritaire humain, 6j/7",
+    ],
+    cta: "Démarrer l'essai gratuit 14 jours",
+    guarantee: "Sans CB · Sans engagement · Export de vos données à tout moment",
+    roiLine: "Rentabilisé dès 1 h 30 de paperasse économisée par mois.",
+  },
+  faq: {
+    eyebrow: "FAQ",
+    title: "Questions fréquentes",
+    items: [
+      { q: "La dictée fonctionne-t-elle sur un chantier bruyant ?", a: "Oui. Le modèle est entraîné sur des environnements bruyants (perceuse, bétonnière, circulation) et reconnaît le vocabulaire du BTP. Vous pouvez toujours corriger une ligne au doigt avant l'envoi." },
+      { q: "Mes devis et factures sont-ils conformes ?", a: "Oui : mentions légales obligatoires, numérotation continue, TVA par taux (5,5 / 10 / 20 % en France, et taux européens), autoliquidation sous-traitance, et format factur-X prêt pour la facturation électronique." },
+      { q: "Faut-il une carte bancaire pour l'essai ?", a: "Non. L'essai de 14 jours donne accès à tout, sans carte bancaire. À la fin, vous choisissez de continuer ou non — rien n'est prélevé automatiquement." },
+      { q: "Mes clients doivent-ils installer quelque chose ?", a: "Non. Ils reçoivent un lien sécurisé par e-mail, WhatsApp ou SMS pour consulter, signer électroniquement et payer." },
+      { q: "Puis-je importer mes clients et mon catalogue ?", a: "Oui, par import CSV / Excel ou depuis votre ancien logiciel. Notre équipe s'en charge gratuitement pendant l'essai si vous le souhaitez." },
+      { q: "Où sont stockées mes données ?", a: "Dans des centres de données situés dans l'Union européenne, chiffrées au repos et en transit. Biltov est conforme RGPD et vous restez propriétaire de vos données." },
+      { q: "Et si je veux arrêter ?", a: "Vous résiliez en un clic depuis votre compte, sans frais. Vous pouvez exporter l'intégralité de vos devis, factures et clients à tout moment." },
+    ],
+  },
+  footer: {
+    tagline: "L'assistant IA vocal et de facturation des artisans du BTP.",
+    product: "Produit",
+    company: "Entreprise",
+    legal: "Légal",
+    links: {
+      product: ["Fonctionnalités", "Métiers", "Tarif", "Calculateur ROI", "Démo"],
+      company: ["À propos", "Blog chantier", "Partenaires négoces", "Contact"],
+      legal: ["Mentions légales", "CGV / CGU", "Politique de confidentialité", "Gestion des cookies", "DPA (sous-traitance RGPD)"],
+    },
+    compliance: ["Conforme RGPD", "TVA UE & factur-X", "Hébergé en UE"],
+    rights: "Tous droits réservés.",
+    made: "Conçu pour les pros du bâtiment, en Europe.",
+    newsletter: "Recevez 1 astuce chantier par mois",
+    email: "votre@email.fr",
+    subscribe: "S'abonner",
+    subscribed: "Merci, c'est noté !",
+  },
+};
+
+export type Dict = typeof fr;

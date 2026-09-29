@@ -2,7 +2,8 @@ name: Publier le site
 
 # Publie sur GitHub Pages, à chaque modification de la branche principale :
 #   - le site Escal'hop! à la racine (index.html) ;
-#   - l'application web KinéSyP dans /app/ (construite depuis web/).
+#   - l'application web KinéSyP dans /app/ (construite depuis web/) ;
+#   - la landing page Biltov dans /biltov/ (construite depuis biltov/).
 # Réglage requis une seule fois : Settings → Pages → Source : « GitHub Actions ».
 on:
   push:
@@ -24,7 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json }
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            biltov/package-lock.json
       - name: Construire KinéSyP (version web)
         working-directory: web
         env:
@@ -34,12 +40,21 @@ jobs:
         run: |
           npm ci
           npm run build
+      - name: Construire la landing page Biltov
+        working-directory: biltov
+        env:
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/biltov
+        run: |
+          npm ci
+          npm run build
       - name: Assembler le site
         run: |
           mkdir -p _site/app
           cp index.html _site/
           touch _site/.nojekyll
           cp -r web/dist/. _site/app/
+          mkdir -p _site/biltov
+          cp -r biltov/out/. _site/biltov/
           rm -f _site/app/mediapipe/*nosimd*
       - uses: actions/upload-pages-artifact@v3
         with: { path: _site }
