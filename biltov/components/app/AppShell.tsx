@@ -53,7 +53,7 @@ function Gate() {
 }
 
 function Shell() {
-  const { data, account, logOut } = useAppData();
+  const { data, account, logOut, isDemo, resetDemo } = useAppData();
   const [route, setRoute] = useState<Route>({ tab: "overview" });
   const [subscribed, setSubscribed] = useState(false);
   const [newJob, setNewJob] = useState(false);
@@ -131,7 +131,22 @@ function Shell() {
       </nav>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {!subscribed && (
+        {isDemo && (
+          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald/40 bg-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-emerald">
+              <strong>Mode démonstration</strong> — entreprise et clients fictifs. Testez tout librement : dictée, devis, signature, factures, relances, photos. Les PDF portent la mention « DÉMONSTRATION ».
+            </p>
+            <div className="flex shrink-0 gap-2">
+              <button onClick={() => window.confirm("Remettre la démo à zéro ?") && void resetDemo()} className="btn-ghost !py-2 text-sm">
+                Réinitialiser
+              </button>
+              <button onClick={logOut} className="btn-primary !py-2 text-sm">
+                Créer mon vrai compte
+              </button>
+            </div>
+          </div>
+        )}
+        {!isDemo && !subscribed && (
           <div className="glow-border mb-6 flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-blue/15 to-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-start gap-3 text-slate-300">
               <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-cyan" />

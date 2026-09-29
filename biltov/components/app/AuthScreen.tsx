@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Lock, Mail } from "lucide-react";
-import { AuthError, logIn, signUp } from "@/lib/app/auth";
+import { ArrowLeft, Loader2, Lock, Mail, PlayCircle } from "lucide-react";
+import { AuthError, enterDemo, logIn, signUp } from "@/lib/app/auth";
 import { useApp } from "@/lib/app/store";
 import { cn } from "@/lib/utils";
 import { BiltovLogo } from "../BiltovLogo";
@@ -26,6 +26,20 @@ export function AuthScreen() {
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const demo = async () => {
+    setBusy(true);
+    await signedIn(enterDemo());
+    setBusy(false);
+  };
+
+  // Lien direct « …/tableau-de-bord/#demo » depuis la page d'accueil
+  useEffect(() => {
+    if (window.location.hash === "#demo") {
+      window.history.replaceState(null, "", window.location.pathname);
+      void demo();
+    }
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +73,19 @@ export function AuthScreen() {
             <ArrowLeft className="h-4 w-4" /> Retour au site
           </Link>
         </div>
+
+        <button
+          type="button"
+          onClick={demo}
+          disabled={busy}
+          className="mb-4 flex w-full items-center gap-4 rounded-2xl border border-emerald/40 bg-gradient-to-r from-emerald/15 to-blue/10 p-4 text-left transition-colors hover:border-emerald disabled:opacity-60"
+        >
+          <PlayCircle className="h-9 w-9 shrink-0 text-emerald" />
+          <span>
+            <span className="block font-display text-lg font-bold text-white">Découvrir sans compte</span>
+            <span className="block text-sm text-slate-300">Espace de démonstration déjà rempli : chantiers, devis, factures, relances, photos. Aucun SIRET demandé.</span>
+          </span>
+        </button>
 
         <div className="card glow-border p-6 sm:p-8">
           <div className="mb-6 grid grid-cols-2 rounded-xl border border-white/10 bg-white/[0.02] p-1">

@@ -25,7 +25,7 @@ export const de: Dict = {
     subtitle:
       "Das Angebot ist in 30 Sekunden auf der Baustelle diktiert. Biltov kalkuliert es, gestaltet es in Ihren Farben, verschickt es per E-Mail und WhatsApp — und erinnert Ihre Kunden bis zur Zahlung.",
     ctaPrimary: "Sprachdiktat testen",
-    ctaSecondary: "Konto erstellen",
+    ctaSecondary: "Demo ansehen",
     reassurance: ["EU-USt-konform", "1 Tag kostenlos testen", "Daten in der EU gehostet"],
     stats: [
       { value: "30 s", label: "für ein komplettes Angebot" },

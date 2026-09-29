@@ -23,9 +23,11 @@ export function jobRevenue(jobId: string, docs: ReturnType<typeof useAppData>["d
   // une facture de solde reprend le total : les acomptes ne s'ajoutent pas en plus
   const hasBalance = mine.some((d) => d.type === "invoice" && d.lockedAt && d.kind === "balance");
   const billed = round2(invoiced + (hasBalance ? 0 : deposits) - credits);
-  if (billed > 0) return { amount: billed, source: "facturé" as const };
+  const finalInvoice = mine.some((d) => d.type === "invoice" && d.lockedAt && d.kind !== "deposit");
   const signed = mine.find((d) => d.type === "quote" && d.status === "accepted");
-  return { amount: signed ? computeTotals(signed).ht : 0, source: "devis signé" as const };
+  // Chantier en cours (acompte seulement) : la référence est le devis signé
+  if (!finalInvoice && signed) return { amount: computeTotals(signed).ht, source: "devis signé" as const };
+  return { amount: billed, source: "facturé" as const };
 }
 
 function ExpenseForm({ jobId, expense, onClose }: { jobId: string; expense: Expense | null; onClose: () => void }) {

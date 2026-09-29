@@ -39,7 +39,7 @@ export const fr = {
     subtitle:
       "Le devis se dicte en 30 secondes depuis le chantier. Biltov le chiffre, le met en page à vos couleurs, l'envoie par e-mail et WhatsApp — puis relance vos clients jusqu'au paiement.",
     ctaPrimary: "Tester la Dictée Vocale",
-    ctaSecondary: "Créer mon compte",
+    ctaSecondary: "Voir la démo",
     reassurance: ["Conforme TVA Europe", "Essai gratuit 1 jour", "Données hébergées en UE"],
     stats: [
       { value: "30 s", label: "pour un devis complet" },
