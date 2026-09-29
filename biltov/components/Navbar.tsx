@@ -43,7 +43,7 @@ export function Navbar() {
           <BiltovLogo size={34} />
         </a>
 
-        <ul className="hidden items-center gap-1 lg:flex">
+        <ul className="hidden items-center gap-1 xl:flex">
           {links.map((l) => (
             <li key={l.href}>
               <a href={l.href} className="group relative rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white">
@@ -54,17 +54,17 @@ export function Navbar() {
           ))}
         </ul>
 
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-3 xl:flex">
           {langSwitch}
-          <Link href={DASHBOARD_PATH} className="btn-ghost !px-4 !py-2.5 text-sm" aria-label={t.nav.dashboard} title={t.nav.dashboard}>
-            <LayoutDashboard className="h-4 w-4" /> <span className="hidden xl:inline">{t.nav.dashboard}</span>
+          <Link href={DASHBOARD_PATH} className="btn-ghost whitespace-nowrap !px-4 !py-2.5 text-sm" aria-label={t.nav.dashboard} title={t.nav.dashboard}>
+            <LayoutDashboard className="h-4 w-4" /> {t.nav.dashboard}
           </Link>
-          <a href={trialHref()} className="btn-primary !py-2.5 text-sm">
+          <a href={trialHref()} className="btn-primary whitespace-nowrap !py-2.5 text-sm">
             {t.nav.cta}
           </a>
         </div>
 
-        <button className="rounded-xl p-2 text-slate-200 lg:hidden" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={open ? t.nav.closeMenu : t.nav.openMenu}>
+        <button className="rounded-xl p-2 text-slate-200 xl:hidden" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={open ? t.nav.closeMenu : t.nav.openMenu}>
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </nav>
@@ -75,7 +75,7 @@ export function Navbar() {
             initial={{ opacity: 0, y: -12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.98 }}
-            className="card mx-auto mt-2 max-w-7xl p-4 lg:hidden"
+            className="card mx-auto mt-2 max-w-7xl p-4 xl:hidden"
           >
             <ul className="flex flex-col">
               {links.map((l) => (

@@ -1,8 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { DASHBOARD_PATH } from "@/lib/checkout";
 import { motion } from "framer-motion";
-import { ArrowRight, BadgeCheck, CreditCard, Mic, MousePointer2, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeCheck, CreditCard, Mic, MousePointer2, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 const HeroScene = dynamic(() => import("./hero/HeroScene"), {
@@ -73,9 +75,9 @@ export function Hero() {
               {h.ctaPrimary}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </a>
-            <a href="#tarif" className="btn-ghost text-base">
-              {h.ctaSecondary}
-            </a>
+            <Link href={DASHBOARD_PATH} className="btn-ghost text-base">
+              <UserPlus className="h-4 w-4" /> {h.ctaSecondary}
+            </Link>
           </motion.div>
 
           <motion.ul
