@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Dashboard } from "@/components/dashboard/Dashboard";
+import { App } from "@/components/app/AppShell";
 
-export const metadata: Metadata = { title: "Biltov — Tableau de bord", robots: { index: false } };
+export const metadata: Metadata = { title: "Biltov — Mon espace", robots: { index: false } };
 
 export default function DashboardPage() {
-  return <Dashboard />;
+  return <App />;
 }
