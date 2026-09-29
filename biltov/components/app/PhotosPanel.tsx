@@ -71,7 +71,7 @@ function Compare({ before, after }: { before: Photo; after: Photo }) {
 
 /** Photos du chantier : avant / pendant / après, horodatées, comparaison et rapport PDF. */
 export function PhotosPanel({ job }: { job: Job }) {
-  const { data, addPhotos, updatePhoto, removePhoto } = useAppData();
+  const { data, addPhotos, updatePhoto, removePhoto, isDemo } = useAppData();
   const photos = useMemo(() => data.photos.filter((p) => p.jobId === job.id), [data.photos, job.id]);
   const [phase, setPhase] = useState<PhotoPhase>("avant");
   const [busy, setBusy] = useState(false);
@@ -95,7 +95,7 @@ export function PhotosPanel({ job }: { job: Job }) {
   const report = async () => {
     setBusy(true);
     try {
-      const pdf = await buildPhotoReport(job, photos, data, (id) => idbGet<Blob>(`photo:${id}`));
+      const pdf = await buildPhotoReport(job, photos, data, (id) => idbGet<Blob>(`photo:${id}`), isDemo ? "DÉMONSTRATION" : undefined);
       downloadBlob(pdf.output("blob"), `rapport-photo-${job.name}.pdf`.replace(/[^\w.-]+/g, "-"));
     } finally {
       setBusy(false);

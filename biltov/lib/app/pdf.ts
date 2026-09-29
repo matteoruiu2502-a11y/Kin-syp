@@ -79,7 +79,7 @@ function box(pdf: jsPDF, x: number, y: number, w: number, label: string, lines: 
   return h;
 }
 
-function footer(pdf: jsPDF, data: AccountData) {
+function footer(pdf: jsPDF, data: AccountData, watermark?: string) {
   const pages = pdf.getNumberOfPages();
   const legal = companyLegalLine(data.company);
   for (let i = 1; i <= pages; i++) {
@@ -88,6 +88,14 @@ function footer(pdf: jsPDF, data: AccountData) {
     pdf.setFont("helvetica", "normal").setFontSize(7).setTextColor(...MUTED);
     pdf.text(pdf.splitTextToSize(`${data.company.name} — ${legal}`, W - 2 * M - 20), M, 288);
     pdf.text(`${i} / ${pages}`, W - M, 288, { align: "right" });
+    if (watermark) {
+      // Filigrane semi-transparent : le document reste lisible
+      pdf.saveGraphicsState();
+      pdf.setGState(new (pdf as unknown as { GState: new (o: { opacity: number }) => unknown }).GState({ opacity: 0.1 }) as never);
+      pdf.setFont("helvetica", "bold").setFontSize(64).setTextColor(100, 116, 139);
+      pdf.text(watermark, W / 2, 175, { align: "center", angle: 35 });
+      pdf.restoreGraphicsState();
+    }
   }
 }
 
@@ -100,7 +108,7 @@ function ensureSpace(pdf: jsPDF, y: number, needed: number) {
 }
 
 /** Devis, facture ou avoir conforme, prêt à envoyer. */
-export function buildDocumentPdf(doc: Doc, job: Job, data: AccountData, source?: Doc | null): jsPDF {
+export function buildDocumentPdf(doc: Doc, job: Job, data: AccountData, source?: Doc | null, watermark?: string): jsPDF {
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
   const c = data.company;
   const brand = hexToRgb(data.branding.color);
@@ -212,7 +220,7 @@ export function buildDocumentPdf(doc: Doc, job: Job, data: AccountData, source?:
     pdf.setFont("helvetica", "normal").setFontSize(8).text([c.owner, c.name].filter(Boolean), M, y + 10.5);
   }
 
-  footer(pdf, data);
+  footer(pdf, data, watermark);
   pdf.setProperties({ title: `${docTitle(doc)} ${doc.number ?? ""}`, author: c.name, creator: "Biltov" });
   return pdf;
 }
@@ -228,7 +236,7 @@ const blobToDataUrl = (blob: Blob) =>
   });
 
 /** Rapport photo horodaté du chantier (avant / pendant / après). */
-export async function buildPhotoReport(job: Job, photos: Photo[], data: AccountData, getBlob: (id: string) => Promise<Blob | undefined>) {
+export async function buildPhotoReport(job: Job, photos: Photo[], data: AccountData, getBlob: (id: string) => Promise<Blob | undefined>, watermark?: string) {
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
   let y = header(pdf, data, "RAPPORT PHOTO", [
     ["Chantier", job.name],
@@ -289,7 +297,7 @@ export async function buildPhotoReport(job: Job, photos: Photo[], data: AccountD
     }
     y += 2;
   }
-  footer(pdf, data);
+  footer(pdf, data, watermark);
   pdf.setProperties({ title: `Rapport photo — ${job.name}`, author: data.company.name, creator: "Biltov" });
   return pdf;
 }

@@ -3,6 +3,7 @@
 
 import { idbGet, idbSet } from "./db";
 import type { Account } from "./types";
+import { DEMO_ID, demoAccount } from "./demo";
 
 const ACCOUNTS_KEY = "accounts";
 const SESSION_KEY = "biltov.session";
@@ -61,5 +62,12 @@ export async function currentAccount(): Promise<Account | null> {
     id = localStorage.getItem(SESSION_KEY);
   } catch {}
   if (!id) return null;
+  if (id === DEMO_ID) return demoAccount;
   return (await listAccounts()).find((a) => a.id === id) ?? null;
+}
+
+/** Entre dans l'espace de démonstration (aucun compte nécessaire). */
+export function enterDemo() {
+  setSession(DEMO_ID);
+  return demoAccount;
 }

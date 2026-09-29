@@ -5,6 +5,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { idbDel, idbGet, idbSet } from "./db";
 import { currentAccount, setSession } from "./auth";
+import { DEMO_ID, buildDemoData } from "./demo";
 import { addDays, emptyAccountData, newDoc, nextNumber, todayIso, uid } from "./defaults";
 import { computeTotals } from "./money";
 import type { Account, AccountData, Branding, Company, Doc, Expense, Job, Line, Photo, PhotoPhase, SendLog, Settings } from "./types";
@@ -15,6 +16,8 @@ type Ctx = {
   loading: boolean;
   signedIn: (a: Account) => Promise<void>;
   logOut: () => void;
+  isDemo: boolean;
+  resetDemo: () => Promise<void>;
   updateCompany: (c: Company) => void;
   updateBranding: (b: Branding) => void;
   updateSettings: (s: Partial<Settings>) => void;
@@ -61,7 +64,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const urlCache = useRef(new Map<string, string>());
 
   const load = useCallback(async (a: Account) => {
-    const stored = await idbGet<AccountData>(dataKey(a.id));
+    let stored = await idbGet<AccountData>(dataKey(a.id));
+    if (!stored && a.id === DEMO_ID) {
+      stored = await buildDemoData();
+      await idbSet(dataKey(a.id), stored);
+    }
     const base = emptyAccountData(a.email);
     // Fusion avec les valeurs par défaut : les anciens comptes récupèrent les nouveaux champs
     setData(stored ? { ...base, ...stored, company: { ...base.company, ...stored.company }, settings: { ...base.settings, ...stored.settings } } : base);
@@ -89,6 +96,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       data,
       loading,
       signedIn: load,
+      isDemo: account?.id === DEMO_ID,
+      resetDemo: async () => {
+        const fresh = await buildDemoData();
+        await idbSet(dataKey(DEMO_ID), fresh);
+        setData(fresh);
+      },
       logOut: () => {
         setSession(null);
         setAccount(null);
