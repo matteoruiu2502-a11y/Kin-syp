@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Globe, Menu, X } from "lucide-react";
+import Link from "next/link";
+import { LayoutDashboard, Menu, X } from "lucide-react";
 import { BiltovLogo } from "./BiltovLogo";
-import { LANGS, useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
+import { DASHBOARD_PATH, trialHref } from "@/lib/checkout";
+import { LangSwitch } from "./LangSwitch";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
-  const { t, lang, setLang } = useI18n();
+  const { t } = useI18n();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -26,27 +29,7 @@ export function Navbar() {
     { href: "#roi", label: t.nav.roi },
   ];
 
-  const langSwitch = (
-    <div role="group" aria-label={t.nav.language} className="flex items-center gap-0.5 rounded-full border border-white/10 bg-white/[0.03] p-0.5">
-      <Globe className="mx-1.5 h-3.5 w-3.5 text-slate-500" aria-hidden />
-      {LANGS.map((l) => (
-        <button
-          key={l.id}
-          onClick={() => setLang(l.id)}
-          aria-pressed={lang === l.id}
-          className={cn(
-            "relative rounded-full px-2.5 py-1 text-xs font-semibold transition-colors",
-            lang === l.id ? "text-white" : "text-slate-400 hover:text-white",
-          )}
-        >
-          {lang === l.id && (
-            <motion.span layoutId="lang-pill" className="absolute inset-0 rounded-full bg-gradient-to-r from-blue to-emerald" transition={{ type: "spring", stiffness: 400, damping: 30 }} />
-          )}
-          <span className="relative">{l.label}</span>
-        </button>
-      ))}
-    </div>
-  );
+  const langSwitch = <LangSwitch />;
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
@@ -73,7 +56,10 @@ export function Navbar() {
 
         <div className="hidden items-center gap-3 lg:flex">
           {langSwitch}
-          <a href="#tarif" className="btn-primary !py-2.5 text-sm">
+          <Link href={DASHBOARD_PATH} className="btn-ghost !px-4 !py-2.5 text-sm" aria-label={t.nav.dashboard} title={t.nav.dashboard}>
+            <LayoutDashboard className="h-4 w-4" /> <span className="hidden xl:inline">{t.nav.dashboard}</span>
+          </Link>
+          <a href={trialHref()} className="btn-primary !py-2.5 text-sm">
             {t.nav.cta}
           </a>
         </div>
@@ -102,7 +88,10 @@ export function Navbar() {
             </ul>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
               {langSwitch}
-              <a href="#tarif" onClick={() => setOpen(false)} className="btn-primary text-sm">
+              <Link href={DASHBOARD_PATH} className="btn-ghost text-sm">
+                <LayoutDashboard className="h-4 w-4" /> {t.nav.dashboard}
+              </Link>
+              <a href={trialHref()} onClick={() => setOpen(false)} className="btn-primary text-sm">
                 {t.nav.cta}
               </a>
             </div>

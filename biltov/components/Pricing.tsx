@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, Infinity as InfinityIcon, ShieldCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { trialHref } from "@/lib/checkout";
 import { SectionHeading } from "./SectionHeading";
 import { Reveal } from "./Reveal";
 
@@ -75,7 +76,7 @@ export function Pricing() {
                 </p>
                 <p className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-sm text-slate-300">💡 {p.roiLine}</p>
 
-                <a href="#top" className="btn-primary group mt-8 text-base">
+                <a href={trialHref(yearly)} className="btn-primary group mt-8 text-base">
                   {p.cta}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </a>
