@@ -26,7 +26,7 @@ export const fr = {
     pricing: "Tarif",
     roi: "Calculateur ROI",
     cta: "Essai Gratuit 1 Jour",
-    dashboard: "Tableau de bord",
+    dashboard: "Mon espace",
     language: "Langue",
     openMenu: "Ouvrir le menu",
     closeMenu: "Fermer le menu",
@@ -39,7 +39,7 @@ export const fr = {
     subtitle:
       "Le devis se dicte en 30 secondes depuis le chantier. Biltov le chiffre, le met en page à vos couleurs, l'envoie par e-mail et WhatsApp — puis relance vos clients jusqu'au paiement.",
     ctaPrimary: "Tester la Dictée Vocale",
-    ctaSecondary: "Voir le tarif",
+    ctaSecondary: "Créer mon compte",
     reassurance: ["Conforme TVA Europe", "Essai gratuit 1 jour", "Données hébergées en UE"],
     stats: [
       { value: "30 s", label: "pour un devis complet" },

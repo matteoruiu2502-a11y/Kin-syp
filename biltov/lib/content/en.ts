@@ -12,7 +12,7 @@ export const en: Dict = {
     pricing: "Pricing",
     roi: "ROI Calculator",
     cta: "1-Day Free Trial",
-    dashboard: "Dashboard",
+    dashboard: "My account",
     language: "Language",
     openMenu: "Open menu",
     closeMenu: "Close menu",
@@ -25,7 +25,7 @@ export const en: Dict = {
     subtitle:
       "Dictate a quote in 30 seconds from the job site. Biltov prices it, brands it with your colours, sends it by email and WhatsApp — then chases your clients until they pay.",
     ctaPrimary: "Try Voice Dictation",
-    ctaSecondary: "See pricing",
+    ctaSecondary: "Create my account",
     reassurance: ["EU VAT compliant", "1-day free trial", "Data hosted in the EU"],
     stats: [
       { value: "30 s", label: "for a complete quote" },

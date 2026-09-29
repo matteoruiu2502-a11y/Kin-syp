@@ -12,7 +12,7 @@ export const de: Dict = {
     pricing: "Preis",
     roi: "ROI-Rechner",
     cta: "1 Tag kostenlos testen",
-    dashboard: "Dashboard",
+    dashboard: "Mein Konto",
     language: "Sprache",
     openMenu: "Menü öffnen",
     closeMenu: "Menü schließen",
@@ -25,7 +25,7 @@ export const de: Dict = {
     subtitle:
       "Das Angebot ist in 30 Sekunden auf der Baustelle diktiert. Biltov kalkuliert es, gestaltet es in Ihren Farben, verschickt es per E-Mail und WhatsApp — und erinnert Ihre Kunden bis zur Zahlung.",
     ctaPrimary: "Sprachdiktat testen",
-    ctaSecondary: "Zum Preis",
+    ctaSecondary: "Konto erstellen",
     reassurance: ["EU-USt-konform", "1 Tag kostenlos testen", "Daten in der EU gehostet"],
     stats: [
       { value: "30 s", label: "für ein komplettes Angebot" },
