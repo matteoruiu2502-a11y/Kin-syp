@@ -138,6 +138,7 @@ const CHECKLIST: Record<Report["kind"], string[]> = {
 
 export function ReportForm({ report, job, onClose }: { report: Report | null; job: Job; onClose: () => void }) {
   const { t } = useTr();
+  const f = useFmt();
   const { data, upsert, getBlob, isDemo } = useAppData();
   const [r, setR] = useState<Report>(report ?? { id: uid(), jobId: job.id, kind: "intervention", date: todayIso(), memberIds: job.memberIds, checklist: CHECKLIST.intervention.map((label) => ({ label: t(label), done: false })), notes: "", photoIds: [], hours: 0, materials: [], signature: null, sentAt: null });
   const [sigName, setSigName] = useState(data.clients.find((c) => c.id === job.clientId)?.name ?? "");
@@ -212,7 +213,7 @@ export function ReportForm({ report, job, onClose }: { report: Report | null; jo
               {photos.map((p) => (
                 <label key={p.id} className={cn("rounded-lg border px-2 py-1 text-xs", r.photoIds.includes(p.id) ? "border-cyan text-cyan" : "border-white/10 text-slate-400")}>
                   <input type="checkbox" className="mr-1 accent-emerald-500" checked={r.photoIds.includes(p.id)} onChange={(e) => set("photoIds", e.target.checked ? [...r.photoIds, p.id] : r.photoIds.filter((x) => x !== p.id))} />
-                  {t(p.phase)} · {p.caption || new Date(p.takenAt).toLocaleDateString()}
+                  {t(p.phase)} · {p.caption || f.date(p.takenAt.slice(0, 10))}
                 </label>
               ))}
             </div>

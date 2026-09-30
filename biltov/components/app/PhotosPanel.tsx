@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Camera, FileDown, Loader2, MoveHorizontal, Trash2, Upload } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
+import { useFmt } from "@/lib/app/format";
 import { buildPhotoReport } from "@/lib/app/pdf";
 import { downloadBlob } from "@/lib/app/send";
 import type { Job, Photo, PhotoPhase } from "@/lib/app/types";
@@ -33,11 +34,12 @@ function useBlobUrl(key: string | null) {
 function Thumb({ photo, onRemove, onCaption, selected, onSelect }: { photo: Photo; onRemove: () => void; onCaption: (c: string) => void; selected: boolean; onSelect: () => void }) {
   const url = useBlobUrl(`photo:${photo.id}`);
   const { t } = useTr();
+  const f = useFmt();
   return (
     <figure className={cn("group overflow-hidden rounded-xl border bg-ink/60 transition-colors", selected ? "border-cyan" : "border-white/10")}>
       <button type="button" onClick={onSelect} className="relative block aspect-[4/3] w-full bg-white/5" aria-label={t("Choisir pour la comparaison")}>
         {url && <img src={url} alt={photo.caption || t("Photo du chantier")} className="h-full w-full object-cover" />}
-        <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] text-white">{new Date(photo.takenAt).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}</span>
+        <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] text-white">{new Date(photo.takenAt).toLocaleString(f.locale, { dateStyle: "short", timeStyle: "short" })}</span>
       </button>
       <figcaption className="flex items-center gap-1 p-1.5">
         <input className="min-w-0 flex-1 bg-transparent px-1 text-xs text-slate-300 outline-none placeholder:text-slate-600" placeholder={t("Légende…")} defaultValue={photo.caption} onBlur={(e) => onCaption(e.target.value)} />
@@ -51,6 +53,7 @@ function Thumb({ photo, onRemove, onCaption, selected, onSelect }: { photo: Phot
 
 function Compare({ before, after }: { before: Photo; after: Photo }) {
   const { t } = useTr();
+  const f = useFmt();
   const a = useBlobUrl(`photo:${before.id}`);
   const b = useBlobUrl(`photo:${after.id}`);
   const [split, setSplit] = useState(50);
@@ -59,8 +62,8 @@ function Compare({ before, after }: { before: Photo; after: Photo }) {
     <div className="relative aspect-[16/10] w-full select-none overflow-hidden rounded-2xl border border-white/10 bg-black">
       <img src={b} alt="Après" className="absolute inset-0 h-full w-full object-cover" />
       <img src={a} alt="Avant" className="absolute inset-0 h-full w-full object-cover" style={{ clipPath: `inset(0 ${100 - split}% 0 0)` }} />
-      <span className="absolute left-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">{t("Avant")} · {new Date(before.takenAt).toLocaleDateString()}</span>
-      <span className="absolute right-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">{t("Après")} · {new Date(after.takenAt).toLocaleDateString()}</span>
+      <span className="absolute left-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">{t("Avant")} · {f.date(before.takenAt.slice(0, 10))}</span>
+      <span className="absolute right-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">{t("Après")} · {f.date(after.takenAt.slice(0, 10))}</span>
       <div className="pointer-events-none absolute inset-y-0 w-0.5 bg-white shadow-[0_0_12px_white]" style={{ left: `${split}%` }}>
         <span className="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-900">
           <MoveHorizontal className="h-4 w-4" />

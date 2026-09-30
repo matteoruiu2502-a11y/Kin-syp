@@ -74,7 +74,16 @@ const ROLE_PAGES: Record<Exclude<Role, "worker">, Page[] | "all"> = {
 
 const MEMBER_KEY = "biltov.member";
 
+/** Installation sur l'écran d'accueil et fonctionnement hors ligne (production uniquement). */
+function useServiceWorker() {
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register(`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/sw.js`).catch(() => {});
+  }, []);
+}
+
 export function App() {
+  useServiceWorker();
   return (
     <TrProvider>
       <AppProvider>
@@ -190,7 +199,7 @@ function Shell() {
       window.removeEventListener("hashchange", sync);
       window.removeEventListener("popstate", sync);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const go = useCallback((r: Route) => {
     window.history.pushState(null, "", toHash(r));
@@ -275,7 +284,7 @@ function Shell() {
             <button onClick={() => setDrawer(true)} className="rounded-lg p-1.5 text-slate-300 md:hidden" aria-label={t("Menu")}>
               <Menu className="h-5 w-5" />
             </button>
-            <Link href="/" aria-label="Biltov">
+            <Link href="/" aria-label="Biltov" className="hidden min-[440px]:block">
               <BiltovLogo size={30} />
             </Link>
             <span className="hidden h-6 w-px bg-white/10 sm:block" />

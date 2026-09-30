@@ -258,7 +258,7 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
           )}
           {client && requiresPeppol(client) && (doc.type === "invoice" || doc.type === "credit") && (
             <Notice>
-              {t("Client assujetti belge : la facture doit être transmise via Peppol (format UBL).")} {doc.peppol.status !== "none" && `${t("Statut Peppol")} : ${doc.peppol.status}.`}
+              {t("Client assujetti belge : la facture doit être transmise via Peppol (format UBL).")} {doc.peppol.status !== "none" && `${t("Statut Peppol")} : ${t(({ ready: "à transmettre", sent: "transmise", delivered: "délivrée", error: "erreur" } as Record<string, string>)[doc.peppol.status] ?? doc.peppol.status)}.`}
             </Notice>
           )}
 
@@ -393,7 +393,7 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
           )}
 
           <div className="overflow-x-auto rounded-2xl border border-white/10">
-            <table className="w-full min-w-[1080px] text-sm">
+            <table className={cn("w-full table-fixed text-sm", locked ? "min-w-[1100px]" : "min-w-[1200px]")}>
               <thead>
                 <tr className="bg-white/[0.03] text-left text-xs uppercase tracking-wider text-slate-500">
                   {!locked && <th className="w-14" />}
@@ -402,8 +402,8 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
                   <th className="w-24 px-2 py-2.5 font-semibold">{t("Unité")}</th>
                   <th className="w-28 px-2 py-2.5 text-right font-semibold">{t("PU HTVA")}</th>
                   <th className="w-20 px-2 py-2.5 text-right font-semibold">{t("Rem. %")}</th>
-                  <th className="w-40 px-2 py-2.5 font-semibold">{t("Nature")}</th>
-                  <th className="w-32 px-2 py-2.5 font-semibold">{t("TVA")}</th>
+                  <th className="w-36 px-2 py-2.5 font-semibold">{t("Nature")}</th>
+                  <th className="w-36 px-2 py-2.5 font-semibold">{t("TVA")}</th>
                   <th className="w-28 px-3 py-2.5 text-right font-semibold">{t("Total HTVA")}</th>
                   {doc.type === "quote" && <th className="w-16 px-2 py-2.5 text-center font-semibold">{t("Option")}</th>}
                   {!locked && <th className="w-10" />}

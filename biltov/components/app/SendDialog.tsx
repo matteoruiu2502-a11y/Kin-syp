@@ -41,14 +41,14 @@ export function SendDialog({ doc, reminder, onClose }: { doc: Doc; reminder?: bo
     const tt = computeTotals(doc);
     const extra = doc.type === "quote" ? `${dt(lang, "validity", { d: fmtDate(doc.validUntil, lang) })}` : doc.type === "invoice" ? dt(lang, "payBy", { d: fmtDate(doc.dueDate, lang), iban: c.iban, c: doc.structuredComm || doc.number || "" }) : "";
     return { subject: `${docTitle(doc, lang)} ${doc.number} — ${job.name}`, body: `${GREET[lang](client?.contactName || client?.name || "")}\n\n${BODY[lang](docTitle(doc, lang).toLowerCase(), doc.number ?? "", eur(doc.type === "invoice" ? tt.due : tt.tvac, LOCALE[lang]), job.name, extra)}\n${c.owner || c.name}\n${c.name}` };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
   const [subject, setSubject] = useState(initial.subject);
   const [body, setBody] = useState(initial.body);
   const [done, setDone] = useState<string[]>([]);
   const [pdf, setPdf] = useState<Awaited<ReturnType<typeof make>> | null>(null);
   useEffect(() => {
     void make(doc).then(setPdf);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
   const peppol = !reminder && client && requiresPeppol(client) && (doc.type === "invoice" || doc.type === "credit");
 
   const record = (channel: SendLog["channel"]) => {

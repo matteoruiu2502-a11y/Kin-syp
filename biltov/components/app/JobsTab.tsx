@@ -31,7 +31,7 @@ export function JobsTab({ onOpen, onAdd }: { onOpen: (id: string) => void; onAdd
     return data.jobs.filter(
       (j) => (status === "all" || j.status === status) && (trade === "all" || j.trade === trade) && (rep === "all" || j.salesRep === rep) && (!s || [j.name, client(j.clientId)?.name ?? "", j.siteAddress, client(j.clientId)?.billing.city ?? "", j.notes].some((x) => x.toLowerCase().includes(s))),
     );
-  }, [data.jobs, data.clients, q, status, trade, rep]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [data.jobs, data.clients, q, status, trade, rep]);
 
   const decided = data.jobs.filter((j) => ["accepted", "in_progress", "done", "refused", "lost"].includes(j.status));
   const won = decided.filter((j) => ["accepted", "in_progress", "done"].includes(j.status));
