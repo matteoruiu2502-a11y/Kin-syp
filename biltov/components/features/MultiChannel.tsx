@@ -32,7 +32,7 @@ export function MultiChannel() {
         <motion.span
           animate={status === "sending" ? { scale: [1, 1.08, 1], rotate: [0, -4, 4, 0] } : { scale: 1 }}
           transition={{ duration: 0.7, repeat: status === "sending" ? Infinity : 0 }}
-          className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-blue shadow-[0_0_40px_-6px_rgba(0,102,255,0.9)]"
+          className="flex h-14 w-14 items-center justify-center theme-fixed rounded-2xl bg-white text-blue shadow-[0_0_40px_-6px_rgba(0,102,255,0.9)]"
         >
           <FileText className="h-6 w-6" />
         </motion.span>
@@ -70,7 +70,7 @@ export function MultiChannel() {
                   onClick={() => setEnabled((e) => ({ ...e, [id]: !e[id] }))}
                   className={cn("relative h-6 w-11 rounded-full transition-colors", on ? "bg-gradient-to-r from-blue to-emerald" : "bg-white/10")}
                 >
-                  <motion.span layout className={cn("absolute top-1 h-4 w-4 rounded-full bg-white", on ? "right-1" : "left-1")} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
+                  <motion.span layout className={cn("absolute top-1 theme-fixed h-4 w-4 rounded-full bg-white", on ? "right-1" : "left-1")} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
                 </button>
               )}
             </AnimatePresence>

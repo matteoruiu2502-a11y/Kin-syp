@@ -5,10 +5,11 @@ import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { ArrowRight, Clock, PiggyBank, TrendingUp, Wallet } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
+import { PRICE_MONTHLY } from "@/lib/checkout";
 import { SectionHeading } from "./SectionHeading";
 import { Reveal } from "./Reveal";
 
-const PRICE = 80;
+const PRICE = PRICE_MONTHLY;
 const MINUTES_WITH_BILTOV = 3;
 const RECOVERY_SHARE = 0.3;
 
@@ -98,7 +99,7 @@ export function RoiCalculator() {
                 <p className="relative font-display text-5xl font-extrabold tabular-nums sm:text-6xl">
                   <AnimatedNumber value={roi} format={(n) => `× ${n.toLocaleString(locale, { maximumFractionDigits: 1 })}`} />
                 </p>
-                <a href="#tarif" className="relative mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-transform hover:translate-x-1">
+                <a href="#tarif" className="relative mt-4 inline-flex items-center gap-2 theme-fixed rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-transform hover:translate-x-1">
                   {r.cta} <ArrowRight className="h-4 w-4" />
                 </a>
               </div>

@@ -64,7 +64,7 @@ function Compare({ before, after }: { before: Photo; after: Photo }) {
       <img src={a} alt="Avant" className="absolute inset-0 h-full w-full object-cover" style={{ clipPath: `inset(0 ${100 - split}% 0 0)` }} />
       <span className="absolute left-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">{t("Avant")} · {f.date(before.takenAt.slice(0, 10))}</span>
       <span className="absolute right-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">{t("Après")} · {f.date(after.takenAt.slice(0, 10))}</span>
-      <div className="pointer-events-none absolute inset-y-0 w-0.5 bg-white shadow-[0_0_12px_white]" style={{ left: `${split}%` }}>
+      <div className="pointer-events-none absolute inset-y-0 theme-fixed w-0.5 bg-white shadow-[0_0_12px_white]" style={{ left: `${split}%` }}>
         <span className="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-900">
           <MoveHorizontal className="h-4 w-4" />
         </span>

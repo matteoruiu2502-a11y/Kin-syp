@@ -46,7 +46,7 @@ export function PhotoMargin() {
         <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">{p.before}</span>
         <span className="absolute right-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">{p.after}</span>
         <span className="absolute bottom-3 left-3 rounded bg-black/60 px-2 py-0.5 font-mono text-[10px] text-slate-300">📍 14/03 08:12 → 21/03 17:40</span>
-        <div className="pointer-events-none absolute inset-y-0 w-0.5 bg-white shadow-[0_0_12px_white]" style={{ left: `${split}%` }}>
+        <div className="pointer-events-none absolute inset-y-0 theme-fixed w-0.5 bg-white shadow-[0_0_12px_white]" style={{ left: `${split}%` }}>
           <span className="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-900 shadow-lg">
             <MoveHorizontal className="h-4 w-4" />
           </span>
@@ -64,7 +64,7 @@ export function PhotoMargin() {
 
       {/* Scan de ticket + marge */}
       <div className="flex flex-col gap-3">
-        <div className="relative overflow-hidden rounded-2xl bg-[#f8f5ee] p-4 font-mono text-[11px] text-slate-700">
+        <div className="relative overflow-hidden theme-fixed rounded-2xl bg-[#f8f5ee] p-4 font-mono text-[11px] text-slate-700">
           <p className="mb-2 text-center font-bold tracking-widest">{p.receipt.toUpperCase()}</p>
           {p.items.map((item, i) => (
             <div key={item.label} className="flex justify-between border-b border-dashed border-slate-300 py-1">

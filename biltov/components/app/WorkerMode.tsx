@@ -42,7 +42,7 @@ export function WorkerLogin({ onEnter, onCancel }: { onEnter: (m: Member) => voi
         <div className="grid gap-2">
           {members.map((m) => (
             <button key={m.id} onClick={() => (m.pin ? setWho(m) : onEnter(m))} className="flex items-center gap-3 rounded-xl border border-white/10 p-3 text-left hover:border-cyan/50">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full font-bold text-white" style={{ background: m.color }}>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full font-bold text-white theme-fixed" style={{ background: m.color }}>
                 {m.name.slice(0, 1)}
               </span>
               <span className="font-semibold text-white">{m.name}</span>

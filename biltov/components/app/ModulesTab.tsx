@@ -530,7 +530,7 @@ export function ModulesTab({ module, onOpen, onBack, go, onOpenJob }: { module: 
                 <label className="relative inline-flex cursor-pointer items-center">
                   <input type="checkbox" className="peer sr-only" checked={!!mods[m]} onChange={(e) => toggle(m, e.target.checked)} aria-label={t(MODULES[m].label)} />
                   <span className="h-6 w-11 rounded-full bg-white/10 transition-colors peer-checked:bg-emerald" />
-                  <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
+                  <span className="absolute left-0.5 top-0.5 theme-fixed h-5 w-5 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
                 </label>
               </div>
               {mods[m] && (

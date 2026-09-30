@@ -121,6 +121,9 @@ Activables dans *Modules* : SAV / helpdesk, location de matériel, maintenance d
 
 ## Interface
 
+- Mode jour / nuit sur tout le site (suit l'appareil par défaut, choix mémorisé). ✅
+- Essai gratuit de 5 jours dès la création du compte, sans carte ; ensuite abonnement 99 € HTVA / mois via Stripe. 🟡 Contrôle dans le navigateur ; ⏳ vérification côté serveur.
+
 - Espace artisan entièrement traduit en français, néerlandais et allemand (`lib/app/tr-dict.ts`, contrôlé par un test).
 - Page d'accueil en français, néerlandais et allemand.
 - Mode démonstration sans compte ni numéro d'entreprise : `/tableau-de-bord/#demo`.

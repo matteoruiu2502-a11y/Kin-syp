@@ -145,7 +145,7 @@ export function TeamTab() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data.members.map((m) => (
               <button key={m.id} onClick={() => setEditing(m)} className={cn("card flex items-start gap-4 p-5 text-left", !m.active && "opacity-50")}>
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-lg font-bold text-white" style={{ background: m.color }}>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-lg font-bold text-white theme-fixed" style={{ background: m.color }}>
                   {m.name.slice(0, 1).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1">

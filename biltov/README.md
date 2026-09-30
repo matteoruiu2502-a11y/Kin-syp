@@ -49,25 +49,30 @@ Tous les taux, seuils et délais sont dans `lib/tax/belgium/config.ts`, avec leu
 et leur source. Ceux qui ne sont pas confirmés portent `verified: false` et apparaissent « à vérifier »
 dans *Paramètres → Valeurs légales* : faites-les valider par un comptable avant la mise en service commerciale.
 
-## Paiement : essai d'1 jour, carte obligatoire, prélèvement automatique
+## Abonnement : essai de 5 jours sans carte, puis 99 € HTVA / mois
 
-Le site n'a pas de serveur : le paiement passe par des **liens de paiement Stripe** (Payment Links).
-Stripe gère la carte, l'essai et les prélèvements.
+- **Essai** : 5 jours gratuits à partir de la création du compte (compte obligatoire, **aucune carte demandée**).
+  Un bandeau indique les jours restants. À la fin de l'essai, l'espace affiche l'écran d'abonnement
+  (les données restent exportables depuis *Paramètres → Sauvegarde*).
+- **Abonnement** : 99 € HTVA / mois ou 948 € HTVA / an (79 € / mois), via des **liens de paiement Stripe**.
+  Prix et durée : `lib/checkout.ts` (`PRICE_MONTHLY`, `PRICE_YEARLY`, `TRIAL_DAYS`).
 
-1. **Stripe → Catalogue de produits** : créer le produit « Biltov Pro » avec deux prix récurrents,
-   **80 € / mois** et **768 € / an**.
-2. **Stripe → Liens de paiement → Nouveau** (un lien par prix) :
-   - cocher **« Inclure une période d'essai gratuit »** et saisir **1 jour** ;
-   - laisser la collecte du moyen de paiement sur **« toujours »** (carte exigée même pendant l'essai) :
-     à la fin de l'essai, Stripe prélève automatiquement, puis chaque mois / an ;
-   - onglet **Après le paiement** → « Ne pas afficher la page de confirmation » → rediriger vers
-     `https://matteoruiu2502-a11y.github.io/Kin-syp/biltov/tableau-de-bord/?paiement=ok`.
-3. **GitHub → Settings → Secrets and variables → Actions → Variables** : ajouter
-   `BILTOV_STRIPE_LINK_MONTHLY` et `BILTOV_STRIPE_LINK_YEARLY` (les URL `https://buy.stripe.com/…`),
-   puis relancer « Publier le site » (onglet Actions).
+Réglage Stripe (une fois) :
+
+1. **Stripe → Catalogue de produits** : produit « Biltov Pro » avec deux prix récurrents, **99 € / mois** et **948 € / an**.
+2. **Stripe → Liens de paiement → Nouveau** (un lien par prix), **sans période d'essai** (l'essai est géré par Biltov) ;
+   onglet **Après le paiement** → rediriger vers
+   `https://matteoruiu2502-a11y.github.io/Kin-syp/biltov/tableau-de-bord/?paiement=ok`.
+3. **GitHub → Settings → Secrets and variables → Actions → Variables** : `BILTOV_STRIPE_LINK_MONTHLY` et
+   `BILTOV_STRIPE_LINK_YEARLY` (les URL `https://buy.stripe.com/…`), puis relancer « Publier le site ».
 4. **Stripe → Portail client** : l'activer pour que vos clients puissent résilier eux-mêmes.
 
-En local : `NEXT_PUBLIC_STRIPE_LINK_MONTHLY=https://buy.stripe.com/… npm run dev`.
+Tant que les liens ne sont pas configurés, l'accès reste ouvert après l'essai (avec un avertissement).
+
+## Mode jour / nuit
+
+Bouton soleil / lune dans l'en-tête du site et de l'espace artisan. Par défaut, le thème suit le réglage
+de l'appareil ; le choix est mémorisé. Les couleurs du mode jour sont dans `app/globals.css`.
 
 **Limites de la version sans serveur**
 - Comptes et données sont enregistrés dans le navigateur de l'appareil (IndexedDB) : pas de synchronisation
@@ -75,4 +80,4 @@ En local : `NEXT_PUBLIC_STRIPE_LINK_MONTHLY=https://buy.stripe.com/… npm run d
 - Les envois partent depuis les applications de l'artisan (Mail, WhatsApp, SMS) ; la facture Peppol (UBL)
   se dépose chez le prestataire Peppol de l'artisan.
 - Les rôles limitent l'affichage sur l'appareil, ce n'est pas un contrôle d'accès.
-- L'abonnement n'est pas vérifié côté serveur : un site statique ne peut pas bloquer l'accès.
+- L'essai et l'abonnement sont contrôlés dans le navigateur (date de création du compte, retour de Stripe) : sans serveur, ce contrôle n'est pas infalsifiable.
