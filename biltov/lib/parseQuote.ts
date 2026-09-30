@@ -1,4 +1,4 @@
-// Mini-analyseur de dictée : transforme une phrase libre (FR / EN / DE) en lignes de devis.
+// Mini-analyseur de dictée : transforme une phrase libre (FR / NL / DE) en lignes de devis.
 // Volontairement simple et déterministe — il illustre ce que fait le moteur IA de Biltov.
 
 export type ParsedLine = { label: string; qty: number; unit: string; price: number; priceGiven: boolean };

@@ -17,7 +17,7 @@ const ICONS: Record<TradeId, LucideIcon> = {
   menuisier: Hammer,
 };
 
-const QUOTES = { fr: ["« ", " »"], en: ["“", "”"], de: ["„", "“"] } as const;
+const QUOTES = { fr: ["« ", " »"], nl: ["“", "”"], de: ["„", "“"] } as const;
 
 export function TradeOnboarding() {
   const { t, lang, locale } = useI18n();

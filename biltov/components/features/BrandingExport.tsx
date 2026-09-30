@@ -8,14 +8,12 @@ import { cn, formatMoney } from "@/lib/utils";
 
 const COLORS = ["#0066FF", "#10B981", "#F97316", "#E11D48", "#7C3AED", "#0F172A"];
 
+// Taux belges : 6 % (rénovation de logements de plus de 10 ans), 12 %, 21 %, autoliquidation (cocontractant assujetti)
 const COUNTRIES = [
-  { code: "FR", flag: "🇫🇷", rate: 20 },
-  { code: "BE", flag: "🇧🇪", rate: 21 },
-  { code: "DE", flag: "🇩🇪", rate: 19 },
-  { code: "LU", flag: "🇱🇺", rate: 17 },
-  { code: "CH", flag: "🇨🇭", rate: 8.1 },
-  { code: "ES", flag: "🇪🇸", rate: 21 },
-  { code: "IT", flag: "🇮🇹", rate: 22 },
+  { code: "6 %", flag: "🏠", rate: 6 },
+  { code: "12 %", flag: "🏢", rate: 12 },
+  { code: "21 %", flag: "🧱", rate: 21 },
+  { code: "0 %", flag: "↩︎", rate: 0 },
 ];
 
 const LINES = [
@@ -37,7 +35,7 @@ export function BrandingExport() {
   const b = t.features.brand;
   const [color, setColor] = useState(COLORS[0]);
   const [country, setCountry] = useState(COUNTRIES[0]);
-  const [iban, setIban] = useState("FR76 3000 6000 0112 3456 7890 189");
+  const [iban, setIban] = useState("BE68 5390 0754 7034");
   const [logo, setLogo] = useState<string | null>(null);
 
   useEffect(() => () => {
@@ -98,7 +96,7 @@ export function BrandingExport() {
                 aria-pressed={country.code === c.code}
                 className={cn("rounded-xl border px-3 py-1.5 text-sm transition-colors", country.code === c.code ? "border-cyan bg-blue/20 text-white" : "border-white/10 text-slate-400 hover:text-white")}
               >
-                {c.flag} {c.code} <span className="text-xs text-slate-500">{c.rate.toLocaleString(locale)} %</span>
+                {c.flag} {c.code}
               </button>
             ))}
           </div>
@@ -149,7 +147,7 @@ export function BrandingExport() {
                 {b.subtotal} : {formatMoney(subtotal, locale)}
               </span>
               <span className="text-slate-500">
-                {b.vat} {country.rate.toLocaleString(locale)} % ({country.code}) : {formatMoney(vat, locale)}
+                {b.vat} {country.code} : {formatMoney(vat, locale)}
               </span>
               <motion.span animate={{ color }} className="mt-1 font-display text-base font-bold">
                 {b.total} : {formatMoney(subtotal + vat, locale)}

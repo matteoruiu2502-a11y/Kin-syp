@@ -15,7 +15,8 @@ export function TrProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("fr");
   useEffect(() => {
     try {
-      const l = localStorage.getItem(KEY) as Lang | null;
+      // à défaut de choix dans l'espace, reprendre la langue choisie sur la page d'accueil
+      const l = (localStorage.getItem(KEY) ?? localStorage.getItem("biltov.lang")) as Lang | null;
       if (l === "nl" || l === "de" || l === "fr") setLangState(l);
     } catch {}
   }, []);
