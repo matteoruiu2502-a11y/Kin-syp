@@ -2,19 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Eraser } from "lucide-react";
-import type { Doc, Job } from "@/lib/app/types";
-import { computeTotals, eur } from "@/lib/app/money";
+import { useTr } from "@/lib/app/tr";
+import { useFmt } from "@/lib/app/format";
+import { computeTotals } from "@/lib/app/money";
+import type { Doc } from "@/lib/app/types";
 import { Field, Modal, Notice, inputClass } from "./ui";
 
-/** Signature du devis sur l'écran (tablette / téléphone), avec la mention « Bon pour accord ». */
-export function SignDialog({ doc, job, onClose, onSigned }: { doc: Doc; job: Job; onClose: () => void; onSigned: (sig: NonNullable<Doc["signature"]>) => void }) {
+export function SignaturePad({ onChange }: { onChange: (dataUrl: string | null) => void }) {
+  const { t } = useTr();
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [name, setName] = useState(job.client);
-  const [agree, setAgree] = useState(false);
-  const [vatCert, setVatCert] = useState(false);
-  const [drawn, setDrawn] = useState(false);
-  const needsVatCert = doc.lines.some((l) => l.vat === 10 || l.vat === 5.5);
-
   useEffect(() => {
     const c = canvas.current!;
     const ctx = c.getContext("2d")!;
@@ -40,9 +36,11 @@ export function SignDialog({ doc, job, onClose, onSigned }: { doc: Doc; job: Job
       if (!drawing) return;
       ctx.lineTo(...pos(e));
       ctx.stroke();
-      setDrawn(true);
     };
-    const up = () => (drawing = false);
+    const up = () => {
+      if (drawing) onChange(c.toDataURL("image/png"));
+      drawing = false;
+    };
     c.addEventListener("pointerdown", down);
     c.addEventListener("pointermove", move);
     c.addEventListener("pointerup", up);
@@ -51,57 +49,63 @@ export function SignDialog({ doc, job, onClose, onSigned }: { doc: Doc; job: Job
       c.removeEventListener("pointermove", move);
       c.removeEventListener("pointerup", up);
     };
-  }, []);
+  }, [onChange]);
+  return (
+    <div>
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("Signature")}</span>
+        <button
+          type="button"
+          onClick={() => {
+            const c = canvas.current!;
+            c.getContext("2d")!.clearRect(0, 0, c.width, c.height);
+            onChange(null);
+          }}
+          className="flex items-center gap-1 text-xs text-slate-400 hover:text-white"
+        >
+          <Eraser className="h-3.5 w-3.5" /> {t("Effacer")}
+        </button>
+      </div>
+      <canvas ref={canvas} className="h-44 w-full touch-none rounded-xl bg-white" />
+    </div>
+  );
+}
 
-  const clear = () => {
-    const c = canvas.current!;
-    c.getContext("2d")!.clearRect(0, 0, c.width, c.height);
-    setDrawn(false);
-  };
-
-  const ok = drawn && agree && name.trim() && (!needsVatCert || vatCert);
-
+/** Signature du devis sur l'appareil (tablette / téléphone), au domicile ou au bureau. */
+export function SignDialog({ doc, clientName, onClose, onSigned }: { doc: Doc; clientName: string; onClose: () => void; onSigned: (sig: NonNullable<Doc["signature"]>) => void }) {
+  const { t } = useTr();
+  const f = useFmt();
+  const [name, setName] = useState(clientName);
+  const [agree, setAgree] = useState(false);
+  const [image, setImage] = useState<string | null>(null);
+  const ok = image && agree && name.trim();
   return (
     <Modal
-      title={`Signature du devis ${doc.number}`}
+      title={t("Signature du devis {n}", { n: doc.number ?? "" })}
       onClose={onClose}
       footer={
         <>
           <button onClick={onClose} className="btn-ghost text-sm">
-            Annuler
+            {t("Annuler")}
           </button>
-          <button disabled={!ok} onClick={() => onSigned({ image: canvas.current!.toDataURL("image/png"), name: name.trim(), at: new Date().toISOString() })} className="btn-primary text-sm disabled:opacity-40">
-            Valider la signature
+          <button disabled={!ok} onClick={() => onSigned({ image: image!, name: name.trim(), at: new Date().toISOString() })} className="btn-primary text-sm disabled:opacity-40">
+            {t("Valider la signature")}
           </button>
         </>
       }
     >
       <div className="space-y-4">
         <Notice>
-          Montant du devis : <strong>{eur(computeTotals(doc).ttc)} TTC</strong>. Tendez l&apos;appareil au client pour qu&apos;il signe ci-dessous.
+          {t("Montant")} : <strong>{f.money(computeTotals(doc).tvac)} TVAC</strong>. {t("Tendez l'appareil au client pour qu'il signe.")}
         </Notice>
-        <Field label="Nom du signataire">
+        <Field label={t("Nom du signataire")}>
           <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
-        <div>
-          <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Signature</span>
-            <button type="button" onClick={clear} className="flex items-center gap-1 text-xs text-slate-400 hover:text-white">
-              <Eraser className="h-3.5 w-3.5" /> Effacer
-            </button>
-          </div>
-          <canvas ref={canvas} className="h-44 w-full touch-none rounded-xl bg-white" />
-        </div>
+        <SignaturePad onChange={setImage} />
         <label className="flex items-start gap-2.5 text-sm text-slate-300">
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-500" />
-          « Bon pour accord, devis reçu avant l&apos;exécution des travaux. »
+          {t("« Lu et approuvé, bon pour accord. »")}
         </label>
-        {needsVatCert && (
-          <label className="flex items-start gap-2.5 text-sm text-slate-300">
-            <input type="checkbox" checked={vatCert} onChange={(e) => setVatCert(e.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-500" />
-            Je certifie que les travaux portent sur un local à usage d&apos;habitation achevé depuis plus de deux ans (taux réduit de TVA).
-          </label>
-        )}
       </div>
     </Modal>
   );

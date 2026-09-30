@@ -76,6 +76,12 @@ export function duplicateQuote(d: AccountData, quoteId: string, jobId?: string):
   return createQuote(d, target.id, q.lines.map((l) => ({ ...l, id: uid(), vatOverridden: false })), { notes: q.notes, globalDiscountPercent: q.globalDiscountPercent, billingMode: q.billingMode, milestones: q.milestones.map((m) => ({ ...m, id: uid(), invoiced: false })) });
 }
 
+/** Avenant / travaux supplémentaires : nouveau devis rattaché au chantier et au devis d'origine. */
+export function createAmendment(d: AccountData, quoteId: string): Op<Doc> {
+  const q = d.docs.find((x) => x.id === quoteId)!;
+  return createQuote(d, q.jobId, [], { isAmendment: true, sourceId: q.id, notes: `Avenant au devis ${q.number}.` });
+}
+
 export function signQuote(d: AccountData, quoteId: string, signature: NonNullable<Doc["signature"]>): AccountData {
   const q = d.docs.find((x) => x.id === quoteId)!;
   let next = replaceDoc(d, { ...q, signature, status: "accepted" });

@@ -2,6 +2,7 @@
 
 import { ImageUp, Palette, Trash2 } from "lucide-react";
 import type { Branding } from "@/lib/app/types";
+import { useTr } from "@/lib/app/tr";
 import { cn } from "@/lib/utils";
 
 const COLORS = ["#0066FF", "#10B981", "#F97316", "#E11D48", "#7C3AED", "#0F172A", "#B45309"];
@@ -16,10 +17,11 @@ async function resizeLogo(file: File) {
 }
 
 export function BrandingForm({ value, onChange }: { value: Branding; onChange: (b: Branding) => void }) {
+  const { t } = useTr();
   return (
     <section className="space-y-4">
       <h3 className="flex items-center gap-2 font-display text-base font-bold text-white">
-        <Palette className="h-4 w-4 text-cyan" /> Personnalisation des PDF
+        <Palette className="h-4 w-4 text-cyan" /> {t("Personnalisation des PDF")}
       </h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex items-center gap-3">
@@ -27,17 +29,17 @@ export function BrandingForm({ value, onChange }: { value: Branding; onChange: (
             <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white">
               {value.logo ? <img src={value.logo} alt="Logo" className="h-full w-full object-contain" /> : <ImageUp className="h-5 w-5 text-slate-400" />}
             </span>
-            <span className="text-sm font-semibold text-slate-200">{value.logo ? "Changer le logo" : "Importer votre logo"}</span>
+            <span className="text-sm font-semibold text-slate-200">{value.logo ? t("Changer le logo") : t("Importer votre logo")}</span>
             <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={async (e) => e.target.files?.[0] && onChange({ ...value, logo: await resizeLogo(e.target.files[0]) })} />
           </label>
           {value.logo && (
-            <button type="button" onClick={() => onChange({ ...value, logo: null })} className="rounded-lg p-2 text-slate-400 hover:text-rose-400" aria-label="Retirer le logo">
+            <button type="button" onClick={() => onChange({ ...value, logo: null })} className="rounded-lg p-2 text-slate-400 hover:text-rose-400" aria-label={t("Retirer le logo")}>
               <Trash2 className="h-4 w-4" />
             </button>
           )}
         </div>
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Couleur des documents</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("Couleur des documents")}</p>
           <div className="flex flex-wrap items-center gap-2">
             {COLORS.map((c) => (
               <button
@@ -50,7 +52,7 @@ export function BrandingForm({ value, onChange }: { value: Branding; onChange: (
                 style={{ background: c }}
               />
             ))}
-            <input type="color" value={value.color} onChange={(e) => onChange({ ...value, color: e.target.value })} className="h-8 w-10 cursor-pointer rounded bg-transparent" aria-label="Couleur personnalisée" />
+            <input type="color" value={value.color} onChange={(e) => onChange({ ...value, color: e.target.value })} className="h-8 w-10 cursor-pointer rounded bg-transparent" aria-label={t("Couleur personnalisée")} />
           </div>
         </div>
       </div>

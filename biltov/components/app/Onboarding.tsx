@@ -2,29 +2,29 @@
 
 import { useState } from "react";
 import { ArrowRight, LogOut } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import { useAppData } from "@/lib/app/store";
-import { missingCompanyFields } from "@/lib/app/legal";
+import { useTr } from "@/lib/app/tr";
+import { starterCatalog } from "@/lib/app/catalog/starter";
 import { BiltovLogo } from "../BiltovLogo";
-import { CompanyForm } from "./CompanyForm";
+import { CompanyForm, companyMissing } from "./CompanyForm";
 import { BrandingForm } from "./BrandingForm";
-import { Notice } from "./ui";
+import { Notice, Toggle } from "./ui";
 
-/** Première connexion : informations légales obligatoires avant de pouvoir établir un devis. */
+/** Première connexion : identité de l'entreprise (obligatoire pour émettre) + catalogue de démarrage. */
 export function Onboarding() {
-  const { data, updateCompany, updateBranding, logOut, account } = useAppData();
+  const { t } = useTr();
+  const { t: land } = useI18n();
+  const { data, update, logOut, account } = useAppData();
   const [company, setCompany] = useState(data.company);
   const [branding, setBranding] = useState(data.branding);
+  const [starter, setStarter] = useState(true);
   const [showErrors, setShowErrors] = useState(false);
-  const missing = missingCompanyFields(company);
 
   const save = () => {
     setShowErrors(true);
-    if (missing.length) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-    updateBranding(branding);
-    updateCompany(company);
+    if (companyMissing(company)) return window.scrollTo({ top: 0, behavior: "smooth" });
+    update((d) => ({ ...d, company, branding, articles: starter && !d.articles.length ? starterCatalog(company.trade) : d.articles }));
   };
 
   return (
@@ -37,22 +37,21 @@ export function Onboarding() {
             <LogOut className="h-4 w-4" /> {account?.email}
           </button>
         </div>
-        <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">Votre entreprise</h1>
-        <p className="mt-2 text-slate-400">
-          Ces informations figurent obligatoirement sur vos devis et factures (Code de commerce, Code de la consommation, loi Pinel pour l&apos;assurance décennale). Vous pourrez les modifier dans les paramètres.
-        </p>
-        {showErrors && missing.length > 0 && (
+        <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">{t("Votre entreprise")}</h1>
+        <p className="mt-2 text-slate-400">{t("Ces informations figurent sur vos devis et factures. Vous pourrez les modifier dans les paramètres.")}</p>
+        {showErrors && companyMissing(company) && (
           <div className="mt-6">
-            <Notice tone="warn">Complétez les champs signalés en rouge pour continuer.</Notice>
+            <Notice tone="warn">{t("Complétez les champs signalés en rouge pour continuer.")}</Notice>
           </div>
         )}
         <div className="card mt-8 space-y-10 p-6 sm:p-8">
           <CompanyForm value={company} onChange={setCompany} showErrors={showErrors} />
           <BrandingForm value={branding} onChange={setBranding} />
+          <Toggle checked={starter} onChange={setStarter} label={t("Charger le catalogue de démarrage de mon métier")} hint={`${land.trades.list.find((x) => x.id === company.trade)?.name ?? ""} — ${t("articles et main-d'œuvre FR/NL/DE, prix modifiables")}`} />
         </div>
         <div className="mt-6 flex justify-end">
           <button onClick={save} className="btn-primary">
-            Accéder à mon tableau de bord <ArrowRight className="h-4 w-4" />
+            {t("Accéder à mon espace")} <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>
