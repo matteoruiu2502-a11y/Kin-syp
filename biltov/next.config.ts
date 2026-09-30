@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   images: { unoptimized: true },
   reactStrictMode: true,
+  // Date de publication affichée en pied de page : permet de vérifier qu'on voit la dernière version.
+  env: { NEXT_PUBLIC_BUILD: new Date().toISOString().slice(0, 16).replace("T", " ") },
 };
 
 export default nextConfig;

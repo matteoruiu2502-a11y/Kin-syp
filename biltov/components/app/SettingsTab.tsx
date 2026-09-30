@@ -279,6 +279,7 @@ export function SettingsTab() {
             </div>
           )}
           <div className="sm:col-span-2">
+            <p className="mb-3 text-xs text-slate-500">Biltov v {process.env.NEXT_PUBLIC_BUILD} UTC</p>
             <Notice>{t("Obligation de conservation : gardez vos factures et pièces pendant la durée légale. La synchronisation entre appareils et l'archivage à valeur probante nécessiteront le serveur.")}</Notice>
           </div>
         </div>

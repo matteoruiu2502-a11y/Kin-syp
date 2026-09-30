@@ -66,7 +66,7 @@ export function Footer() {
 
         <div className="mt-8 flex flex-col gap-3 border-t border-white/5 pt-8 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {new Date().getFullYear()} Biltov SAS. {f.rights}
+            © {new Date().getFullYear()} Biltov. {f.rights} <span className="text-slate-600">· v {process.env.NEXT_PUBLIC_BUILD} UTC</span>
           </p>
           <p>{f.made}</p>
         </div>
