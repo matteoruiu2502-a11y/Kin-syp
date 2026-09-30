@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowUpRight, BadgeCheck, Check, Lock, Server } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, Lock, Server } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { BiltovLogo } from "./BiltovLogo";
 
@@ -19,7 +18,6 @@ const COMPLIANCE_ICONS = [Lock, BadgeCheck, Server];
 export function Footer() {
   const { t } = useI18n();
   const f = t.footer;
-  const [subscribed, setSubscribed] = useState(false);
 
   return (
     <footer className="relative mt-10 border-t border-white/10 bg-night">
@@ -31,29 +29,6 @@ export function Footer() {
             <BiltovLogo size={44} />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">{f.tagline}</p>
 
-            <form
-              className="mt-6 max-w-sm"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSubscribed(true);
-              }}
-            >
-              <label htmlFor="newsletter" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-500">
-                {f.newsletter}
-              </label>
-              {subscribed ? (
-                <p className="flex items-center gap-2 rounded-full border border-emerald/30 bg-emerald/10 px-4 py-2.5 text-sm text-emerald">
-                  <Check className="h-4 w-4" /> {f.subscribed}
-                </p>
-              ) : (
-                <div className="flex rounded-full border border-white/10 bg-ink p-1 focus-within:border-cyan/60">
-                  <input id="newsletter" type="email" required placeholder={f.email} className="min-w-0 flex-1 bg-transparent px-3 text-sm text-slate-200 outline-none placeholder:text-slate-600" />
-                  <button type="submit" className="rounded-full bg-gradient-to-r from-blue to-emerald px-4 py-2 text-sm font-semibold text-white">
-                    {f.subscribe}
-                  </button>
-                </div>
-              )}
-            </form>
 
             <div className="mt-6 flex gap-2">
               {SOCIALS.map((s) => (

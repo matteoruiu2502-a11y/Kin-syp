@@ -2,164 +2,201 @@
 
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { ArrowLeft, FilePlus2, FileText, Mail, MapPin, Pencil, Phone, Trash2 } from "lucide-react";
+import { ArrowLeft, CloudSun, FilePlus2, FileText, Mail, MapPin, Pencil, Phone, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useAppData } from "@/lib/app/store";
-import { computeTotals, eur } from "@/lib/app/money";
-import { fmtDate } from "@/lib/app/legal";
-import { DOC_STATUS, JOB_STATUS, JOB_STATUSES } from "@/lib/app/labels";
+import { useTr } from "@/lib/app/tr";
+import { useFmt } from "@/lib/app/format";
+import { computeTotals } from "@/lib/app/money";
+import { audit, createQuote, jobFinance } from "@/lib/app/ops";
+import { CLIENT_KIND, DOC_STATUS, JOB_STATUS, JOB_STATUSES } from "@/lib/app/labels";
 import { docTitle } from "@/lib/app/pdf";
 import type { Job } from "@/lib/app/types";
-import { Badge } from "./Badge";
-import { Empty, SubTabs, inputClass } from "./ui";
+import { Badge, Empty, Stat, SubTabs } from "./ui";
 import { JobForm } from "./JobForm";
 import { PhotosPanel } from "./PhotosPanel";
-import { ExpensesPanel } from "./ExpensesPanel";
+import { ExpensesList } from "./ExpensesPanel";
+import { ChatPanel, FilesPanel, ReportsPanel, TimePanel } from "./FieldPanels";
 
-type Tab = "docs" | "photos" | "costs" | "info";
+type Tab = "docs" | "finance" | "time" | "reports" | "photos" | "costs" | "files" | "chat";
 
-export function JobDetail({ job, onBack, onOpenDoc }: { job: Job; onBack: () => void; onOpenDoc: (id: string) => void }) {
-  const { t } = useI18n();
-  const { data, createQuote, saveJob, removeJob } = useAppData();
+export function JobDetail({ job, onBack, onOpenDoc, onOpenClient }: { job: Job; onBack: () => void; onOpenDoc: (id: string) => void; onOpenClient: (id: string) => void }) {
+  const { t } = useTr();
+  const f = useFmt();
+  const { t: land } = useI18n();
+  const { data, update, run } = useAppData();
   const [tab, setTab] = useState<Tab>("docs");
   const [editing, setEditing] = useState(false);
-  const docs = data.docs.filter((d) => d.jobId === job.id).sort((a, b) => (b.number ?? "~").localeCompare(a.number ?? "~"));
-  const photos = data.photos.filter((p) => p.jobId === job.id).length;
-  const costs = data.expenses.filter((e) => e.jobId === job.id).length;
+  const client = data.clients.find((c) => c.id === job.clientId);
+  const docs = data.docs.filter((d) => d.jobId === job.id).sort((a, b) => b.issueDate.localeCompare(a.issueDate) || (b.number ?? "~").localeCompare(a.number ?? "~"));
+  const fin = jobFinance(data, job.id);
+  const site = client?.sites.find((s) => s.id === job.siteId);
+  const address = site ? `${site.street}, ${site.postcode} ${site.city}` : job.siteAddress || (client ? `${client.billing.street}, ${client.billing.postcode} ${client.billing.city}` : "");
+  const m = data.settings.modules;
 
   const remove = () => {
-    if (!window.confirm(`Supprimer le chantier « ${job.name} » et ses brouillons, photos et dépenses ?`)) return;
-    const res = removeJob(job.id);
-    if (!res.ok) window.alert(res.reason);
-    else onBack();
+    if (docs.some((d) => d.lockedAt)) return window.alert(t("Ce chantier contient des documents émis : ils doivent être conservés. Archivez-le plutôt (statut « Terminé »)."));
+    if (!window.confirm(t("Supprimer le chantier « {n} » et ses brouillons ?", { n: job.name }))) return;
+    update((d) => audit({ ...d, jobs: d.jobs.filter((j) => j.id !== job.id), docs: d.docs.filter((x) => x.jobId !== job.id), photos: d.photos.filter((p) => p.jobId !== job.id), timeEntries: d.timeEntries.filter((x) => x.jobId !== job.id), reports: d.reports.filter((r) => r.jobId !== job.id) }, "delete", "job", job.id, job.name));
+    onBack();
   };
+
+  const tabs: { id: Tab; label: string; count?: number; on?: boolean }[] = [
+    { id: "docs", label: t("Devis & factures"), count: docs.length },
+    { id: "finance", label: t("Rentabilité") },
+    { id: "time", label: t("Heures"), count: data.timeEntries.filter((x) => x.jobId === job.id).length, on: m.time },
+    { id: "reports", label: t("Rapports"), count: data.reports.filter((r) => r.jobId === job.id).length, on: m.reports },
+    { id: "photos", label: t("Photos"), count: data.photos.filter((p) => p.jobId === job.id).length },
+    { id: "costs", label: t("Dépenses"), count: data.expenses.filter((e) => e.jobId === job.id).length },
+    { id: "files", label: t("Documents"), on: m.documents },
+    { id: "chat", label: t("Discussion"), count: data.records.filter((r) => r.module === "chat" && r.jobId === job.id).length, on: m.chat },
+  ];
 
   return (
     <div className="space-y-6">
       <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white">
-        <ArrowLeft className="h-4 w-4" /> Tous les chantiers
+        <ArrowLeft className="h-4 w-4" /> {t("Tous les chantiers")}
       </button>
-
       <div className="card flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="font-display text-2xl font-bold text-white sm:text-3xl">{job.name}</h1>
             <label className="relative">
-              <Badge {...JOB_STATUS[job.status]} />
-              <select value={job.status} onChange={(e) => saveJob({ ...job, status: e.target.value as Job["status"] })} className="absolute inset-0 cursor-pointer opacity-0" aria-label="Statut">
+              <Badge label={t(JOB_STATUS[job.status].label)} style={JOB_STATUS[job.status].style} />
+              <select value={job.status} onChange={(e) => update((d) => ({ ...d, jobs: d.jobs.map((j) => (j.id === job.id ? { ...j, status: e.target.value as Job["status"] } : j)) }))} className="absolute inset-0 cursor-pointer opacity-0" aria-label={t("Statut")}>
                 {JOB_STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {JOB_STATUS[s].label}
+                    {t(JOB_STATUS[s].label)}
                   </option>
                 ))}
               </select>
             </label>
           </div>
-          <p className="mt-1 text-slate-300">
-            {job.client} <span className="text-slate-500">· {job.clientType === "professionnel" ? "Professionnel" : "Particulier"} · {t.trades.list.find((x) => x.id === job.trade)?.name}</span>
-          </p>
+          {client && (
+            <button onClick={() => onOpenClient(client.id)} className="mt-1 text-left text-slate-300 hover:text-cyan">
+              {client.name} <span className="text-slate-500">· {t(CLIENT_KIND[client.kind]).split(" (")[0]} · {land.trades.list.find((x) => x.id === job.trade)?.name}</span>
+            </button>
+          )}
           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-slate-400">
-            {(job.siteAddress || job.clientAddress) && (
-              <span className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" /> {job.siteAddress || job.clientAddress}
+            {address && (
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-white">
+                <MapPin className="h-3.5 w-3.5" /> {address}
+              </a>
+            )}
+            {client?.phone && (
+              <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-white">
+                <Phone className="h-3.5 w-3.5" /> {client.phone}
+              </a>
+            )}
+            {client?.email && (
+              <a href={`mailto:${client.email}`} className="flex items-center gap-1.5 hover:text-white">
+                <Mail className="h-3.5 w-3.5" /> {client.email}
+              </a>
+            )}
+            {job.weatherSensitive && (
+              <span className="flex items-center gap-1.5 text-amber-300">
+                <CloudSun className="h-3.5 w-3.5" /> {t("Travaux extérieurs")}
               </span>
             )}
-            {job.clientPhone && (
-              <a href={`tel:${job.clientPhone}`} className="flex items-center gap-1.5 hover:text-white">
-                <Phone className="h-3.5 w-3.5" /> {job.clientPhone}
-              </a>
-            )}
-            {job.clientEmail && (
-              <a href={`mailto:${job.clientEmail}`} className="flex items-center gap-1.5 hover:text-white">
-                <Mail className="h-3.5 w-3.5" /> {job.clientEmail}
-              </a>
-            )}
           </div>
+          <p className="mt-2 text-xs text-slate-500">
+            {t("TVA")} : {job.workKind === "immobilier" ? t("travaux immobiliers") : t("livraison")} · {job.privateHousing ? t("logement privé") : t("non résidentiel")} · {t("1re occupation")} {job.firstOccupationYear ?? "?"}
+          </p>
         </div>
         <div className="flex shrink-0 gap-2">
           <button onClick={() => setEditing(true)} className="btn-ghost !px-3 text-sm">
-            <Pencil className="h-4 w-4" /> Modifier
+            <Pencil className="h-4 w-4" /> {t("Modifier")}
           </button>
-          <button onClick={remove} className="btn-ghost !px-3 text-sm text-rose-300" aria-label="Supprimer le chantier">
+          <button onClick={remove} className="btn-ghost !px-3 text-sm text-rose-300" aria-label={t("Supprimer")}>
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      <SubTabs<Tab>
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: "docs", label: "Devis & factures", count: docs.length },
-          { id: "photos", label: "Photos", count: photos },
-          { id: "costs", label: "Dépenses & marge", count: costs },
-          { id: "info", label: "Infos" },
-        ]}
-      />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <Stat label={t("Devis signé (HTVA)")} value={f.money0(fin.quoted)} />
+        <Stat label={t("Facturé (HTVA)")} value={f.money0(fin.invoiced)} />
+        <Stat label={t("Reste à facturer")} value={f.money0(fin.toInvoice)} tone={fin.toInvoice > 0 ? "warn" : undefined} />
+        <Stat label={t("Reste à encaisser")} value={f.money0(fin.toCash)} tone={fin.toCash > 0 ? "warn" : undefined} />
+        <Stat label={t("Marge réelle")} value={`${f.money0(fin.margin)}`} sub={`${fin.marginRate} %`} tone={fin.margin >= 0 ? "ok" : "danger"} />
+      </div>
+
+      <SubTabs<Tab> value={tab} onChange={setTab} tabs={tabs.filter((x) => x.on !== false)} />
 
       {tab === "docs" && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button onClick={() => onOpenDoc(createQuote(job.id).id)} className="btn-primary !py-2 text-sm">
-              <FilePlus2 className="h-4 w-4" /> Nouveau devis
+            <button onClick={() => onOpenDoc(run((d) => createQuote(d, job.id)).id)} className="btn-primary !py-2 text-sm">
+              <FilePlus2 className="h-4 w-4" /> {t("Nouveau devis")}
             </button>
           </div>
-          {docs.length === 0 ? (
-            <Empty icon={FileText} text="Aucun devis pour ce chantier. Créez-en un : vous pourrez le dicter." />
+          {!docs.length ? (
+            <Empty icon={FileText} text={t("Aucun devis pour ce chantier. Créez-en un : vous pourrez le dicter.")} />
           ) : (
             <ul className="divide-y divide-white/5 rounded-2xl border border-white/10">
-              {docs.map((d) => {
-                const tt = computeTotals(d, data.company.vatMode === "normal" && !job.reverseCharge);
-                return (
-                  <li key={d.id}>
-                    <button onClick={() => onOpenDoc(d.id)} className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-white/[0.03]">
-                      <FileText className="h-5 w-5 shrink-0 text-cyan" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-slate-100">
-                          {docTitle(d).charAt(0) + docTitle(d).slice(1).toLowerCase()} {d.number ?? "(brouillon)"}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {fmtDate(d.issueDate)} · {d.lines.length} ligne(s)
-                          {d.type === "invoice" && d.lockedAt && d.status === "issued" ? ` · échéance ${fmtDate(d.dueDate)}` : ""}
-                        </p>
-                      </div>
-                      <Badge {...DOC_STATUS[d.status]} className="hidden sm:inline-flex" />
-                      <span className="w-28 text-right font-semibold tabular-nums text-white">{eur(tt.ttc)}</span>
-                    </button>
-                  </li>
-                );
-              })}
+              {docs.map((d) => (
+                <li key={d.id}>
+                  <button onClick={() => onOpenDoc(d.id)} className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-white/[0.03]">
+                    <FileText className="h-5 w-5 shrink-0 text-cyan" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-100">
+                        {docTitle(d, "fr").charAt(0) + docTitle(d, "fr").slice(1).toLowerCase()} {d.number ?? t("(brouillon)")} {d.isAmendment && <span className="text-xs text-violet-300">({t("avenant")})</span>}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {f.date(d.issueDate)} · {d.lines.filter((l) => l.kind === "item").length} {t("ligne(s)")} · {d.lang.toUpperCase()}
+                      </p>
+                    </div>
+                    <Badge label={t(DOC_STATUS[d.status].label)} style={DOC_STATUS[d.status].style} className="hidden sm:inline-flex" />
+                    <span className="w-28 text-right font-semibold tabular-nums text-white">{f.money(computeTotals(d).tvac)}</span>
+                  </button>
+                </li>
+              ))}
             </ul>
           )}
         </div>
       )}
-      {tab === "photos" && <PhotosPanel job={job} />}
-      {tab === "costs" && <ExpensesPanel job={job} />}
-      {tab === "info" && (
-        <dl className="card grid gap-4 p-6 text-sm sm:grid-cols-2">
-          {[
-            ["Adresse du client", job.clientAddress],
-            ["Adresse du chantier", job.siteAddress || "Identique"],
-            ["SIREN du client", job.clientSiren],
-            ["Début prévu", job.startDate ? fmtDate(job.startDate) : ""],
-            ["Durée estimée", job.duration],
-            ["Hors établissement", job.offPremises ? "Oui (rétractation 14 j)" : "Non"],
-            ["TVA réduite possible", job.reducedVatEligible ? "Oui (logement > 2 ans)" : "Non"],
-            ["Autoliquidation", job.reverseCharge ? "Oui" : "Non"],
-            ["Notes", job.notes],
-          ].map(([k, v]) => (
-            <div key={k}>
-              <dt className="text-xs uppercase tracking-wider text-slate-500">{k}</dt>
-              <dd className="mt-0.5 whitespace-pre-line text-slate-200">{v || "—"}</dd>
-            </div>
-          ))}
-          <div className="sm:col-span-2">
-            <button onClick={() => setEditing(true)} className={`${inputClass} !w-auto cursor-pointer`}>
-              Modifier ces informations
-            </button>
-          </div>
-        </dl>
+      {tab === "finance" && (
+        <div className="card overflow-x-auto p-5">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wider text-slate-500">
+                <th className="py-2">{t("Poste")}</th>
+                <th className="py-2 text-right">{t("Prévu (devis)")}</th>
+                <th className="py-2 text-right">{t("Réel")}</th>
+                <th className="py-2 text-right">{t("Écart")}</th>
+              </tr>
+            </thead>
+            <tbody className="tabular-nums">
+              {[
+                [t("Chiffre d'affaires HTVA"), fin.quoted, Math.max(fin.quoted, fin.invoiced)],
+                [t("Achats matériaux et sous-traitance"), fin.plannedCost, fin.purchases],
+                [t("Tickets et dépenses"), 0, fin.expenses],
+                [t("Main-d'œuvre (heures × coût horaire)"), 0, fin.labour],
+              ].map(([k, a, b]) => (
+                <tr key={k as string} className="border-t border-white/5">
+                  <td className="py-2 text-slate-300">{k}</td>
+                  <td className="py-2 text-right">{f.money(a as number)}</td>
+                  <td className="py-2 text-right">{f.money(b as number)}</td>
+                  <td className={`py-2 text-right ${(b as number) - (a as number) > 0 ? "text-amber-300" : "text-slate-400"}`}>{f.money((b as number) - (a as number))}</td>
+                </tr>
+              ))}
+              <tr className="border-t border-white/10 font-bold text-white">
+                <td className="py-2">{t("Marge")}</td>
+                <td className="py-2 text-right">{f.money(fin.quoted - fin.plannedCost)}</td>
+                <td className="py-2 text-right text-emerald">{f.money(fin.margin)}</td>
+                <td className="py-2 text-right">{fin.marginRate} %</td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="mt-3 text-xs text-slate-500">{t("Le réel additionne les factures d'achat imputées au chantier, les tickets et les heures pointées.")}</p>
+        </div>
       )}
+      {tab === "time" && <TimePanel job={job} />}
+      {tab === "reports" && <ReportsPanel job={job} />}
+      {tab === "photos" && <PhotosPanel job={job} />}
+      {tab === "costs" && <ExpensesList jobId={job.id} />}
+      {tab === "files" && <FilesPanel jobId={job.id} clientId={job.clientId} />}
+      {tab === "chat" && <ChatPanel jobId={job.id} />}
 
       <AnimatePresence>{editing && <JobForm job={job} onClose={() => setEditing(false)} onSaved={() => setEditing(false)} />}</AnimatePresence>
     </div>

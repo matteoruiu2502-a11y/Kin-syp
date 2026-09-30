@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, Lock, Mail, PlayCircle } from "lucide-react";
 import { AuthError, enterDemo, logIn, signUp } from "@/lib/app/auth";
 import { useApp } from "@/lib/app/store";
+import { useTr } from "@/lib/app/tr";
 import { cn } from "@/lib/utils";
 import { BiltovLogo } from "../BiltovLogo";
 import { Field, Notice, inputClass } from "./ui";
@@ -19,6 +20,7 @@ const MESSAGES: Record<AuthError["code"], string> = {
 /** Création de compte obligatoire avant tout accès à l'espace artisan. */
 export function AuthScreen() {
   const { signedIn } = useApp();
+  const { t } = useTr();
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,15 +47,15 @@ export function AuthScreen() {
     e.preventDefault();
     setError(null);
     if (mode === "signup") {
-      if (password !== confirm) return setError("Les deux mots de passe ne correspondent pas.");
-      if (!terms) return setError("Vous devez accepter les conditions d'utilisation.");
+      if (password !== confirm) return setError(t("Les deux mots de passe ne correspondent pas."));
+      if (!terms) return setError(t("Vous devez accepter les conditions d'utilisation."));
     }
     setBusy(true);
     try {
       const account = mode === "signup" ? await signUp(email, password) : await logIn(email, password);
       await signedIn(account);
     } catch (err) {
-      setError(err instanceof AuthError ? MESSAGES[err.code] : "Une erreur est survenue. Réessayez.");
+      setError(err instanceof AuthError ? t(MESSAGES[err.code]) : t("Une erreur est survenue. Réessayez."));
     } finally {
       setBusy(false);
     }
@@ -70,7 +72,7 @@ export function AuthScreen() {
             <BiltovLogo size={34} />
           </Link>
           <Link href="/" className="flex items-center gap-1 text-sm text-slate-400 hover:text-white">
-            <ArrowLeft className="h-4 w-4" /> Retour au site
+            <ArrowLeft className="h-4 w-4" /> {t("Retour au site")}
           </Link>
         </div>
 
@@ -82,8 +84,8 @@ export function AuthScreen() {
         >
           <PlayCircle className="h-9 w-9 shrink-0 text-emerald" />
           <span>
-            <span className="block font-display text-lg font-bold text-white">Découvrir sans compte</span>
-            <span className="block text-sm text-slate-300">Espace de démonstration déjà rempli : chantiers, devis, factures, relances, photos. Aucun SIRET demandé.</span>
+            <span className="block font-display text-lg font-bold text-white">{t("Découvrir sans compte")}</span>
+            <span className="block text-sm text-slate-300">{t("Espace de démonstration déjà rempli : chantiers, devis, factures, catalogue, planning. Aucun numéro d'entreprise demandé.")}</span>
           </span>
         </button>
 
@@ -99,24 +101,24 @@ export function AuthScreen() {
                 }}
                 className={cn("rounded-lg py-2 text-sm font-semibold transition-colors", mode === m ? "bg-gradient-to-r from-blue to-emerald text-white" : "text-slate-400 hover:text-white")}
               >
-                {m === "signup" ? "Créer un compte" : "Se connecter"}
+                {m === "signup" ? t("Créer un compte") : t("Se connecter")}
               </button>
             ))}
           </div>
 
-          <h1 className="font-display text-2xl font-bold text-white">{mode === "signup" ? "Créez votre espace Biltov" : "Bon retour sur Biltov"}</h1>
+          <h1 className="font-display text-2xl font-bold text-white">{mode === "signup" ? t("Créez votre espace Biltov") : t("Bon retour sur Biltov")}</h1>
           <p className="mt-1 text-sm text-slate-400">
-            {mode === "signup" ? "Un compte est nécessaire pour créer vos chantiers, devis et factures." : "Connectez-vous pour retrouver vos chantiers."}
+            {mode === "signup" ? t("Un compte est nécessaire pour créer vos chantiers, devis et factures.") : t("Connectez-vous pour retrouver vos chantiers.")}
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">
-            <Field label="E-mail">
+            <Field label={t("E-mail")}>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input className={cn(inputClass, "pl-9")} type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
             </Field>
-            <Field label="Mot de passe" hint={mode === "signup" ? "8 caractères minimum" : undefined}>
+            <Field label={t("Mot de passe")} hint={mode === "signup" ? t("8 caractères minimum") : undefined}>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input className={cn(inputClass, "pl-9")} type="password" required minLength={mode === "signup" ? 8 : undefined} autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -124,23 +126,23 @@ export function AuthScreen() {
             </Field>
             {mode === "signup" && (
               <>
-                <Field label="Confirmer le mot de passe">
+                <Field label={t("Confirmer le mot de passe")}>
                   <input className={inputClass} type="password" required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
                 </Field>
                 <label className="flex items-start gap-2.5 text-xs text-slate-400">
                   <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-500" />
-                  <span>J&apos;accepte les conditions générales d&apos;utilisation et la politique de confidentialité de Biltov.</span>
+                  <span>{t("J'accepte les conditions générales d'utilisation et la politique de confidentialité de Biltov.")}</span>
                 </label>
               </>
             )}
             {error && <Notice tone="warn">{error}</Notice>}
             <button type="submit" disabled={busy} className="btn-primary w-full text-sm disabled:opacity-60">
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-              {mode === "signup" ? "Créer mon compte" : "Se connecter"}
+              {mode === "signup" ? t("Créer mon compte") : t("Se connecter")}
             </button>
           </form>
 
-          <p className="mt-5 text-center text-xs text-slate-500">Votre compte et vos données sont enregistrés sur cet appareil. Mot de passe chiffré (PBKDF2).</p>
+          <p className="mt-5 text-center text-xs text-slate-500">{t("Votre compte et vos données sont enregistrés sur cet appareil. Mot de passe chiffré (PBKDF2).")}</p>
         </div>
       </motion.div>
     </div>

@@ -8,5 +8,5 @@
 | [`web/`](web/README.md) | **Version web** (React + Vite) de KinéSyP : même cœur de mesure, patient démo, import vidéo ou webcam, à tester dans le navigateur. |
 | [`server/`](server/README.md) | **Service de comptes et d'abonnement** : comptes praticiens, 5 patients gratuits puis 50 €/mois (Stripe). Aucune donnée de santé côté serveur. |
 | `app/` | Version web construite, publiée par GitHub Pages (généré par `web/`, `npm run site`). |
-| [`biltov/`](biltov/README.md) | **Biltov** — landing page (Next.js, Tailwind, Framer Motion, React Three Fiber) de l'assistant IA vocal et de facturation pour les artisans du BTP. Publiée dans `/biltov/`. |
+| [`biltov/`](biltov/README.md) | **Biltov** — logiciel des artisans du bâtiment en Belgique (FR / NL / DE) : page d'accueil et espace artisan (devis, factures Peppol, TVA belge, chantiers, planning, achats, stock). Publié dans `/biltov/`. |
 | `index.html` | Site vitrine Escal'hop! (projet existant, indépendant). |

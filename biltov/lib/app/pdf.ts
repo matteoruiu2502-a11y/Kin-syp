@@ -1,12 +1,14 @@
-// Génération des PDF (devis, factures, avoirs, rapport photo) côté navigateur, avec jsPDF.
+// PDF belges (devis, factures, notes de crédit, pro forma, rapports), dans la langue du client.
 
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { buildMentions, companyLegalLine, fmtDate } from "./legal";
-import { computeTotals, eur, lineTotal, num } from "./money";
-import type { AccountData, Doc, Job, Photo, PhotoPhase } from "./types";
+import { formatBce, legal, mentionsFor, normalizeBce, type VatCode } from "../tax/belgium";
+import { dt, fmtDate, LOCALE } from "./docText";
+import { epcPayload, epcQrDataUrl } from "./epc";
+import { computeTotals, countsInTotal, eur, lineTotal, num } from "./money";
+import type { AccountData, Address, Client, Doc, Job, Lang, Photo, PhotoPhase, Report } from "./types";
 
-const M = 15; // marge (mm)
+const M = 15;
 const W = 210;
 const INK: [number, number, number] = [15, 23, 42];
 const MUTED: [number, number, number] = [100, 116, 139];
@@ -16,53 +18,46 @@ const hexToRgb = (hex: string): [number, number, number] => {
   const n = parseInt(h.length === 3 ? h.replace(/./g, "$&$&") : h, 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 };
+const addr = (a: Address) => [a.street, `${a.postcode} ${a.city}`.trim()].filter(Boolean);
 
-export function docTitle(doc: Doc) {
-  if (doc.type === "quote") return "DEVIS";
-  if (doc.type === "credit") return "AVOIR";
-  return doc.kind === "deposit" ? "FACTURE D'ACOMPTE" : doc.kind === "balance" ? "FACTURE DE SOLDE" : "FACTURE";
+export function docTitle(doc: Doc, lang: Lang = doc.lang) {
+  if (doc.type === "quote") return dt(lang, "quote");
+  if (doc.type === "credit") return dt(lang, "credit");
+  if (doc.type === "proforma") return dt(lang, "proforma");
+  return dt(lang, doc.kind === "deposit" ? "deposit" : doc.kind === "situation" ? "situation" : doc.kind === "final" ? "final" : "invoice");
 }
 
-export const docFileName = (doc: Doc, job: Job) =>
-  `${docTitle(doc).toLowerCase().replace(/[^a-z]+/g, "-")}-${doc.number ?? "brouillon"}-${job.client}`.replace(/[^\w-]+/g, "-").replace(/-+/g, "-") + ".pdf";
+export const docFileName = (doc: Doc, client?: Client) => `${docTitle(doc, "fr").toLowerCase()}-${doc.number ?? "brouillon"}-${client?.name ?? ""}`.normalize("NFD").replace(/[^\w-]+/g, "-").replace(/-+/g, "-") + ".pdf";
 
-function imageFormat(dataUrl: string) {
-  return dataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
-}
+export const vatLabel = (code: VatCode, lang: Lang) => (code === "reverse" ? dt(lang, "reverse") : code === "franchise" ? dt(lang, "franchise") : code === "exempt" ? dt(lang, "exempt") : `${code} %`);
 
-/** En-tête : logo + émetteur à gauche, titre et références à droite. Renvoie la hauteur utilisée. */
-function header(pdf: jsPDF, data: AccountData, title: string, refs: [string, string][]) {
+function header(pdf: jsPDF, data: AccountData, title: string, refs: [string, string][], lang: Lang) {
   const c = data.company;
   const brand = hexToRgb(data.branding.color);
-  pdf.setFillColor(...brand);
-  pdf.rect(0, 0, W, 4, "F");
-
+  pdf.setFillColor(...brand).rect(0, 0, W, 4, "F");
   let x = M;
   if (data.branding.logo) {
-    const props = pdf.getImageProperties(data.branding.logo);
-    const scale = Math.min(40 / props.width, 18 / props.height);
-    const w = props.width * scale;
-    pdf.addImage(data.branding.logo, imageFormat(data.branding.logo), M, 10, w, props.height * scale);
-    x = M + w + 5;
+    const p = pdf.getImageProperties(data.branding.logo);
+    const s = Math.min(40 / p.width, 18 / p.height);
+    pdf.addImage(data.branding.logo, data.branding.logo.startsWith("data:image/png") ? "PNG" : "JPEG", M, 10, p.width * s, p.height * s);
+    x = M + p.width * s + 5;
   }
-  pdf.setTextColor(...INK);
-  pdf.setFont("helvetica", "bold").setFontSize(13).text(c.name || "—", x, 16);
+  pdf.setTextColor(...INK).setFont("helvetica", "bold").setFontSize(13).text(c.name || "—", x, 16);
   pdf.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...MUTED);
-  const lines = [c.address, `${c.postcode} ${c.city}`.trim(), [c.phone, c.email].filter(Boolean).join(" · ")].filter(Boolean);
-  pdf.text(lines, x, 21);
+  const bce = normalizeBce(c.bce);
+  const idLine = c.vatRegime === "normal" && bce ? `${dt(lang, "vatNo")} BE ${formatBce(bce)}` : bce ? `${dt(lang, "bce")} ${formatBce(bce)}` : "";
+  pdf.text([...addr(c.address), [c.phone, c.email].filter(Boolean).join(" · "), [idLine, c.rpm].filter(Boolean).join(" · ")].filter(Boolean), x, 21);
 
-  pdf.setFont("helvetica", "bold").setFontSize(18).setTextColor(...brand);
-  pdf.text(title, W - M, 17, { align: "right" });
-  pdf.setFontSize(8.5).setTextColor(...INK);
+  pdf.setFont("helvetica", "bold").setFontSize(17).setTextColor(...brand).text(title, W - M, 17, { align: "right" });
   let y = 23;
   for (const [k, v] of refs) {
-    pdf.setFont("helvetica", "bold");
+    pdf.setFont("helvetica", "bold").setFontSize(8.5);
     const vw = pdf.getTextWidth(v);
     pdf.setTextColor(...INK).text(v, W - M, y, { align: "right" });
     pdf.setFont("helvetica", "normal").setTextColor(...MUTED).text(`${k}  `, W - M - vw, y, { align: "right" });
     y += 4.5;
   }
-  return Math.max(y, 36) + 4;
+  return Math.max(y, 38) + 4;
 }
 
 function box(pdf: jsPDF, x: number, y: number, w: number, label: string, lines: string[]) {
@@ -70,162 +65,205 @@ function box(pdf: jsPDF, x: number, y: number, w: number, label: string, lines: 
   const h = 10 + wrapped.length * 4.2;
   pdf.setDrawColor(226, 232, 240).setFillColor(248, 250, 252).roundedRect(x, y, w, h, 2, 2, "FD");
   pdf.setFont("helvetica", "bold").setFontSize(7.5).setTextColor(...MUTED).text(label.toUpperCase(), x + 4, y + 5.5);
-  pdf.setFont("helvetica", "normal").setFontSize(9).setTextColor(...INK);
-  wrapped.forEach((l, i) => {
-    if (i === 0) pdf.setFont("helvetica", "bold");
-    pdf.text(l, x + 4, y + 10.5 + i * 4.2);
-    if (i === 0) pdf.setFont("helvetica", "normal");
-  });
+  pdf.setFontSize(9).setTextColor(...INK);
+  wrapped.forEach((l, i) => pdf.setFont("helvetica", i === 0 ? "bold" : "normal").text(l, x + 4, y + 10.5 + i * 4.2));
   return h;
 }
 
-function footer(pdf: jsPDF, data: AccountData, watermark?: string) {
+function footer(pdf: jsPDF, data: AccountData, lang: Lang, watermark?: string) {
+  const c = data.company;
   const pages = pdf.getNumberOfPages();
-  const legal = companyLegalLine(data.company);
+  const bce = normalizeBce(c.bce);
+  const line = [c.name, addr(c.address).join(", "), bce ? `${dt(lang, "bce")} ${formatBce(bce)}` : "", c.iban ? `IBAN ${c.iban}` : "", c.bic ? `BIC ${c.bic}` : ""].filter(Boolean).join(" · ");
   for (let i = 1; i <= pages; i++) {
     pdf.setPage(i);
     pdf.setDrawColor(226, 232, 240).line(M, 284, W - M, 284);
     pdf.setFont("helvetica", "normal").setFontSize(7).setTextColor(...MUTED);
-    pdf.text(pdf.splitTextToSize(`${data.company.name} — ${legal}`, W - 2 * M - 20), M, 288);
+    pdf.text(pdf.splitTextToSize(line, W - 2 * M - 20), M, 288);
     pdf.text(`${i} / ${pages}`, W - M, 288, { align: "right" });
     if (watermark) {
-      // Filigrane semi-transparent : le document reste lisible
       pdf.saveGraphicsState();
       pdf.setGState(new (pdf as unknown as { GState: new (o: { opacity: number }) => unknown }).GState({ opacity: 0.1 }) as never);
-      pdf.setFont("helvetica", "bold").setFontSize(64).setTextColor(100, 116, 139);
-      pdf.text(watermark, W / 2, 175, { align: "center", angle: 35 });
+      pdf.setFont("helvetica", "bold").setFontSize(60).setTextColor(100, 116, 139).text(watermark, W / 2, 175, { align: "center", angle: 35 });
       pdf.restoreGraphicsState();
     }
   }
 }
 
-function ensureSpace(pdf: jsPDF, y: number, needed: number) {
-  if (y + needed > 280) {
-    pdf.addPage();
-    return 20;
+const ensure = (pdf: jsPDF, y: number, need: number) => (y + need > 278 ? (pdf.addPage(), 20) : y);
+
+function paragraphs(pdf: jsPDF, y: number, title: string, items: string[]) {
+  if (!items.length) return y;
+  pdf.setFont("helvetica", "normal").setFontSize(7.5);
+  const text = items.flatMap((i) => pdf.splitTextToSize(`• ${i}`, W - 2 * M) as string[]);
+  y = ensure(pdf, y, Math.min(text.length, 12) * 3.4 + 8);
+  pdf.setFont("helvetica", "bold").setFontSize(8).setTextColor(...INK).text(title.toUpperCase(), M, y);
+  pdf.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...MUTED);
+  y += 4;
+  for (const t of text) {
+    y = ensure(pdf, y, 4);
+    pdf.text(t, M, y);
+    y += 3.4;
   }
-  return y;
+  return y + 4;
 }
 
-/** Devis, facture ou avoir conforme, prêt à envoyer. */
-export function buildDocumentPdf(doc: Doc, job: Job, data: AccountData, source?: Doc | null, watermark?: string): jsPDF {
+export async function buildDocumentPdf(doc: Doc, data: AccountData, opts: { watermark?: string; source?: Doc | null } = {}): Promise<jsPDF> {
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
+  const lang = doc.lang;
+  const loc = LOCALE[lang];
   const c = data.company;
+  const job = data.jobs.find((j) => j.id === doc.jobId) as Job | undefined;
+  const client = data.clients.find((x) => x.id === doc.clientId);
   const brand = hexToRgb(data.branding.color);
-  const vatApplies = c.vatMode === "normal" && !job.reverseCharge;
-  const totals = computeTotals(doc, vatApplies);
-  const usesReducedVat = vatApplies && doc.lines.some((l) => l.vat === 10 || l.vat === 5.5);
+  const t = computeTotals(doc);
 
-  const refs: [string, string][] = [["N°", doc.number ?? "BROUILLON"], ["Date", fmtDate(doc.issueDate)]];
-  if (doc.type === "quote") refs.push(["Valable jusqu'au", fmtDate(doc.validUntil)]);
-  if (doc.type === "invoice") {
-    refs.push(["Date d'exécution", fmtDate(doc.workDate)], ["Échéance", fmtDate(doc.dueDate)]);
-    if (source?.number) refs.push(["Devis", source.number]);
-  }
-  if (doc.type === "credit" && source?.number) refs.push(["Facture annulée", source.number]);
-
-  let y = header(pdf, data, docTitle(doc), refs);
-
-  // Client et chantier
-  const half = (W - 2 * M - 6) / 2;
-  const clientLines = [
-    job.client,
-    job.clientAddress,
-    [job.clientEmail, job.clientPhone].filter(Boolean).join(" · "),
-    job.clientType === "professionnel" && job.clientSiren ? `SIREN ${job.clientSiren}` : "",
+  const refs: [string, string][] = [
+    [dt(lang, "number"), doc.number ?? "—"],
+    [dt(lang, "date"), fmtDate(doc.issueDate, lang)],
   ];
-  const siteLines = [job.name, job.siteAddress || job.clientAddress, job.startDate ? `Début prévu : ${fmtDate(job.startDate)}` : "", job.duration ? `Durée estimée : ${job.duration}` : ""];
-  const h1 = box(pdf, M, y, half, "Client", clientLines);
-  const h2 = box(pdf, M + half + 6, y, half, "Chantier / lieu d'exécution", siteLines);
-  y += Math.max(h1, h2) + 6;
+  if (doc.type === "quote") refs.push([dt(lang, "validUntil"), fmtDate(doc.validUntil, lang)]);
+  if (doc.type === "invoice" || doc.type === "proforma") {
+    if (doc.workDate && doc.workDate !== doc.issueDate) refs.push([dt(lang, "workDate"), fmtDate(doc.workDate, lang)]);
+    refs.push([dt(lang, "dueDate"), fmtDate(doc.dueDate, lang)]);
+  }
+  if (opts.source?.number) refs.push([dt(lang, "ref"), opts.source.number]);
 
-  // Lignes
+  let y = header(pdf, data, docTitle(doc), refs, lang);
+  const half = (W - 2 * M - 6) / 2;
+  const clientLines = client ? [client.name, client.contactName, ...addr(client.billing), client.vatNumber ? `${dt(lang, "vatNo")} ${client.vatNumber}` : ""] : ["—"];
+  const site = client?.sites.find((s) => s.id === job?.siteId);
+  const siteLines = [job?.name ?? "", ...(site ? addr(site) : job?.siteAddress ? [job.siteAddress] : client ? addr(client.billing) : [])];
+  y += Math.max(box(pdf, M, y, half, dt(lang, "client"), clientLines), box(pdf, M + half + 6, y, half, dt(lang, "site"), siteLines)) + 6;
+
+  // Lignes (sections, textes, options)
+  const body: (string | { content: string; colSpan?: number; styles?: object })[][] = [];
+  for (const l of doc.lines) {
+    if (l.kind === "section") body.push([{ content: l.label.toUpperCase(), colSpan: 7, styles: { fontStyle: "bold", fillColor: [241, 245, 249] } }]);
+    else if (l.kind === "text") body.push([{ content: l.label, colSpan: 7, styles: { fontStyle: "italic", textColor: MUTED } }]);
+    else {
+      const opt = l.optional ? ` (${dt(lang, "option")}${l.selected ? "" : ` — ${dt(lang, "notSelected")}`})` : "";
+      body.push([l.label + opt, num(l.qty, 3, loc), l.unit, eur(l.unitPrice, loc), l.discountPercent ? `${num(l.discountPercent, 2, loc)} %` : "", vatLabel(l.vat, lang), countsInTotal(l) ? eur(lineTotal(l), loc) : "—"]);
+    }
+  }
   autoTable(pdf, {
     startY: y,
     margin: { left: M, right: M, bottom: 20 },
-    head: [["Désignation", "Qté", "Unité", "PU HT", ...(vatApplies ? ["TVA"] : []), "Total HT"]],
-    body: doc.lines.map((l) => [l.label, num(l.qty), l.unit, eur(l.unitPrice), ...(vatApplies ? [`${num(l.vat, 1)} %`] : []), eur(lineTotal(l))]),
-    styles: { font: "helvetica", fontSize: 8.5, cellPadding: 2.2, textColor: INK, lineColor: [226, 232, 240], lineWidth: 0.1 },
+    head: [[dt(lang, "designation"), dt(lang, "qty"), dt(lang, "unit"), dt(lang, "unitPrice"), dt(lang, "discount"), dt(lang, "vat"), dt(lang, "total")]],
+    body,
+    styles: { font: "helvetica", fontSize: 8.2, cellPadding: 2, textColor: INK, lineColor: [226, 232, 240], lineWidth: 0.1 },
     headStyles: { fillColor: brand, textColor: 255, fontStyle: "bold" },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
-    columnStyles: vatApplies
-      ? { 1: { halign: "right", cellWidth: 14 }, 2: { cellWidth: 16 }, 3: { halign: "right", cellWidth: 24 }, 4: { halign: "right", cellWidth: 15 }, 5: { halign: "right", cellWidth: 26 } }
-      : { 1: { halign: "right", cellWidth: 14 }, 2: { cellWidth: 16 }, 3: { halign: "right", cellWidth: 26 }, 4: { halign: "right", cellWidth: 28 } },
+    columnStyles: { 1: { halign: "right", cellWidth: 14 }, 2: { cellWidth: 13 }, 3: { halign: "right", cellWidth: 22 }, 4: { halign: "right", cellWidth: 13 }, 5: { halign: "right", cellWidth: 17 }, 6: { halign: "right", cellWidth: 24 } },
   });
-  y = (pdf as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+  y = (pdf as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 5;
 
-  // Totaux
-  const rows: [string, string, boolean?][] = [["Total HT", eur(totals.ht)]];
-  if (vatApplies) for (const v of totals.vatByRate) rows.push([`TVA ${num(v.rate, 1)} % sur ${eur(v.base)}`, eur(v.vat)]);
-  else rows.push([c.vatMode === "franchise" ? "TVA non applicable" : "TVA autoliquidée", eur(0)]);
-  rows.push([doc.type === "credit" ? "Total TTC à déduire" : "Total TTC", eur(totals.ttc), true]);
-  if (doc.type === "quote" && doc.depositPercent > 0) rows.push([`Acompte (${doc.depositPercent} %)`, eur(totals.deposit)]);
-  if (doc.type === "invoice" && doc.paidBefore > 0) {
-    rows.push(["Acomptes déjà réglés", `- ${eur(doc.paidBefore)}`]);
-    rows.push(["Net à payer", eur(totals.due), true]);
-  }
-  if (doc.status === "paid" && doc.paidAt) rows.push([`Réglé le ${fmtDate(doc.paidAt)}${doc.paymentMethod ? ` (${doc.paymentMethod})` : ""}`, "", false]);
-
-  y = ensureSpace(pdf, y, rows.length * 6 + 6);
-  const tx = W - M - 80;
+  // Récapitulatif TVA par taux + totaux
+  y = ensure(pdf, y, 40 + t.vatRows.length * 5);
+  const recap = autoTable(pdf, {
+    startY: y,
+    margin: { left: M, right: W - M - 95 },
+    head: [[dt(lang, "vat"), dt(lang, "base"), dt(lang, "vatAmount")]],
+    body: t.vatRows.map((r) => [vatLabel(r.code, lang), eur(r.base, loc), eur(r.vat, loc)]),
+    styles: { fontSize: 7.8, cellPadding: 1.6, textColor: INK },
+    headStyles: { fillColor: [241, 245, 249], textColor: INK },
+    columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } },
+  });
+  void recap;
+  const rows: [string, string, boolean?][] = [];
+  if (t.discount) rows.push([`${dt(lang, "globalDiscount")} ${num(doc.globalDiscountPercent, 2, loc)} %`, `- ${eur(t.discount, loc)}`]);
+  for (const d of doc.deductions) rows.push([d.label, `- ${eur(d.amount, loc)}`]);
+  rows.push([dt(lang, "subtotal"), eur(t.htva, loc)], [dt(lang, "vatAmount"), eur(t.vat, loc)], [dt(lang, "totalTvac"), eur(t.tvac, loc), true]);
+  if (doc.type === "quote" && doc.depositPercent) rows.push([`${dt(lang, "depositAsked")} (${doc.depositPercent} %)`, eur(t.deposit, loc)]);
+  if (t.retention) rows.push([`${dt(lang, "retention")} (${doc.retentionPercent} %)`, `- ${eur(t.retention, loc)}`]);
+  if (t.paid) rows.push([dt(lang, "paid"), `- ${eur(t.paid, loc)}`]);
+  if (doc.type === "invoice" && (t.retention || t.paid)) rows.push([dt(lang, "toPay"), eur(t.due, loc), true]);
+  const tx = W - M - 82;
   rows.forEach(([k, v, strong], i) => {
-    const ry = y + i * 6;
+    const ry = y + 4 + i * 5.6;
     if (strong) {
-      pdf.setFillColor(...brand).roundedRect(tx, ry - 4.2, 80, 6.4, 1.2, 1.2, "F");
-      pdf.setTextColor(255, 255, 255).setFont("helvetica", "bold").setFontSize(10);
-    } else pdf.setTextColor(...INK).setFont("helvetica", "normal").setFontSize(9);
+      pdf.setFillColor(...brand).roundedRect(tx, ry - 4, 82, 6, 1, 1, "F");
+      pdf.setTextColor(255, 255, 255).setFont("helvetica", "bold").setFontSize(9.5);
+    } else pdf.setTextColor(...INK).setFont("helvetica", "normal").setFontSize(8.5);
     pdf.text(k, tx + 3, ry);
     pdf.text(v, W - M - 3, ry, { align: "right" });
   });
-  y += rows.length * 6 + 4;
+  y = Math.max((pdf as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY, y + 4 + rows.length * 5.6) + 6;
+
+  // Paiement : IBAN, communication structurée, QR EPC
+  if ((doc.type === "invoice" || doc.type === "proforma") && c.iban && t.due > 0) {
+    y = ensure(pdf, y, 34);
+    const comm = doc.structuredComm || "";
+    const qr = await epcQrDataUrl(epcPayload({ name: c.name, iban: c.iban, bic: c.bic, amount: t.due, communication: comm || doc.number || "" }));
+    pdf.setDrawColor(226, 232, 240).roundedRect(M, y, W - 2 * M, 30, 2, 2);
+    pdf.addImage(qr, "PNG", M + 2, y + 2, 26, 26);
+    pdf.setFont("helvetica", "bold").setFontSize(9).setTextColor(...INK).text(dt(lang, "payment"), M + 32, y + 7);
+    pdf.setFont("helvetica", "normal").setFontSize(8.5);
+    pdf.text([`${dt(lang, "payTo")} ${c.iban}${c.bic ? ` (BIC ${c.bic})` : ""} — ${c.name}`, comm ? `${dt(lang, "communication")} : ${comm}` : "", `${dt(lang, "toPay")} : ${eur(t.due, loc)} — ${dt(lang, "dueDate")} ${fmtDate(doc.dueDate, lang)}`].filter(Boolean), M + 32, y + 13);
+    pdf.setFontSize(7).setTextColor(...MUTED).text(dt(lang, "scan"), M + 2, y + 29.5);
+    y += 36;
+  }
 
   if (doc.notes) {
     pdf.setFont("helvetica", "italic").setFontSize(8.5).setTextColor(...MUTED);
     const n = pdf.splitTextToSize(doc.notes, W - 2 * M) as string[];
-    y = ensureSpace(pdf, y, n.length * 4 + 2);
+    y = ensure(pdf, y, n.length * 4 + 2);
     pdf.text(n, M, y);
     y += n.length * 4 + 3;
   }
 
-  // Conditions, règlement et mentions légales
-  const mentions = buildMentions(doc, job, c, { depositPercent: doc.depositPercent, paymentTermsDays: data.settings.paymentTermsDays, freeQuote: data.settings.freeQuote, usesReducedVat });
-  const payment = doc.type !== "credit" && c.iban ? [`Règlement par virement : IBAN ${c.iban}${c.bic ? ` · BIC ${c.bic}` : ""} — titulaire ${c.name}. Référence à indiquer : ${doc.number ?? ""}.`] : [];
-  const blocks: [string, string[]][] = [
-    ["Conditions", [...mentions.conditions, ...payment]],
-    ["Mentions légales", mentions.legal],
-  ];
-  for (const [title, items] of blocks) {
-    if (!items.length) continue;
-    pdf.setFont("helvetica", "normal").setFontSize(7.5);
-    const text = items.flatMap((i) => pdf.splitTextToSize(`• ${i}`, W - 2 * M) as string[]);
-    y = ensureSpace(pdf, y, text.length * 3.4 + 8);
-    pdf.setFont("helvetica", "bold").setFontSize(8).setTextColor(...INK).text(title.toUpperCase(), M, y);
-    pdf.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...MUTED).text(text, M, y + 4);
-    y += text.length * 3.4 + 7;
-  }
-
-  // Bon pour accord (devis)
+  // Conditions et mentions TVA
+  const b2c = !client || client.kind === "particulier";
+  const conditions: string[] = [];
   if (doc.type === "quote") {
-    y = ensureSpace(pdf, y, 42);
+    conditions.push(dt(lang, "validity", { d: fmtDate(doc.validUntil, lang) }));
+    if (doc.depositPercent) conditions.push(dt(lang, "depositCond", { p: doc.depositPercent }));
+    if (b2c && job?.offPremises) conditions.push(dt(lang, "offPremises"));
+  } else if (doc.type === "invoice" && c.iban) {
+    conditions.push(dt(lang, "payBy", { d: fmtDate(doc.dueDate, lang), iban: c.iban, c: doc.structuredComm || doc.number || "" }));
+    if (!b2c) conditions.push(dt(lang, "lateB2b", { f: legal("b2b.flatIndemnity") }));
+  }
+  y = paragraphs(pdf, y, dt(lang, "conditions"), conditions);
+  y = paragraphs(pdf, y, dt(lang, "mentions"), mentionsFor(doc.lines.filter(countsInTotal).map((l) => l.vat), lang));
+
+  if (doc.type === "quote") {
+    y = ensure(pdf, y, 42);
     const bw = 88;
     pdf.setDrawColor(203, 213, 225).roundedRect(W - M - bw, y, bw, 38, 2, 2);
-    pdf.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...INK).text("BON POUR ACCORD", W - M - bw + 4, y + 5.5);
-    pdf.setFont("helvetica", "normal").setFontSize(7).setTextColor(...MUTED);
-    pdf.text(pdf.splitTextToSize("Date et signature du client, précédées de la mention « Bon pour accord, devis reçu avant l'exécution des travaux »", bw - 8), W - M - bw + 4, y + 9.5);
+    pdf.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...INK).text(dt(lang, "agreement"), W - M - bw + 4, y + 5.5);
+    pdf.setFont("helvetica", "normal").setFontSize(7).setTextColor(...MUTED).text(dt(lang, "agreementHint"), W - M - bw + 4, y + 9.5);
     if (doc.signature) {
-      pdf.addImage(doc.signature.image, "PNG", W - M - bw + 4, y + 15, 50, 16);
-      pdf.setFontSize(7.5).setTextColor(...INK).text(`${doc.signature.name} — signé le ${new Date(doc.signature.at).toLocaleString("fr-FR")}`, W - M - bw + 4, y + 35);
+      pdf.addImage(doc.signature.image, "PNG", W - M - bw + 4, y + 13, 50, 16);
+      pdf.setFontSize(7.5).setTextColor(...INK).text(`${dt(lang, "signedBy")} ${doc.signature.name} — ${new Date(doc.signature.at).toLocaleString(loc)}`, W - M - bw + 4, y + 35);
     }
-    pdf.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...INK).text("L'ENTREPRISE", M, y + 5.5);
+    pdf.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...INK).text(dt(lang, "company"), M, y + 5.5);
     pdf.setFont("helvetica", "normal").setFontSize(8).text([c.owner, c.name].filter(Boolean), M, y + 10.5);
+    y += 44;
   }
 
-  footer(pdf, data, watermark);
+  // Conditions générales rédigées par l'artisan (facultatives)
+  const terms = b2c ? data.settings.terms.b2c : data.settings.terms.b2b;
+  if (terms.trim() && doc.type === "quote") {
+    pdf.addPage();
+    pdf.setFont("helvetica", "bold").setFontSize(10).setTextColor(...INK).text(dt(lang, "conditions").toUpperCase(), M, 20);
+    pdf.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...MUTED);
+    let ty = 27;
+    for (const line of pdf.splitTextToSize(terms, W - 2 * M) as string[]) {
+      ty = ensure(pdf, ty, 4);
+      pdf.text(line, M, ty);
+      ty += 3.4;
+    }
+  }
+
+  footer(pdf, data, lang, opts.watermark);
   pdf.setProperties({ title: `${docTitle(doc)} ${doc.number ?? ""}`, author: c.name, creator: "Biltov" });
   return pdf;
 }
 
-const PHASE_LABEL: Record<PhotoPhase, string> = { avant: "Avant travaux", pendant: "Pendant les travaux", apres: "Après travaux" };
+const PHASES: [PhotoPhase, "before" | "during" | "after"][] = [
+  ["avant", "before"],
+  ["pendant", "during"],
+  ["apres", "after"],
+];
 
 const blobToDataUrl = (blob: Blob) =>
   new Promise<string>((res, rej) => {
@@ -235,70 +273,73 @@ const blobToDataUrl = (blob: Blob) =>
     r.readAsDataURL(blob);
   });
 
-/** Rapport photo horodaté du chantier (avant / pendant / après). */
-export async function buildPhotoReport(job: Job, photos: Photo[], data: AccountData, getBlob: (id: string) => Promise<Blob | undefined>, watermark?: string) {
-  const pdf = new jsPDF({ unit: "mm", format: "a4" });
-  let y = header(pdf, data, "RAPPORT PHOTO", [
-    ["Chantier", job.name],
-    ["Date", fmtDate(new Date().toISOString())],
-  ]);
-  y += box(pdf, M, y, W - 2 * M, "Client et lieu", [job.client, job.siteAddress || job.clientAddress]) + 6;
-
+async function photoGrid(pdf: jsPDF, y: number, photos: Photo[], getBlob: (id: string) => Promise<Blob | undefined>, lang: Lang) {
   const colW = (W - 2 * M - 6) / 2;
-
-  // Planche comparative : première photo « avant » et dernière photo « après », côte à côte
-  const sorted = [...photos].sort((a, b) => a.takenAt.localeCompare(b.takenAt));
-  const firstBefore = sorted.find((p) => p.phase === "avant");
-  const lastAfter = [...sorted].reverse().find((p) => p.phase === "apres");
-  if (firstBefore && lastAfter) {
-    pdf.setFont("helvetica", "bold").setFontSize(11).setTextColor(...hexToRgb(data.branding.color)).text("Comparatif avant / après", M, y);
-    y += 4;
-    const h = 62;
-    for (const [k, p] of [firstBefore, lastAfter].entries()) {
-      const blob = await getBlob(p.id);
-      if (!blob) continue;
-      const x = M + k * (colW + 6);
-      // recadrage centré dans un cadre fixe pour aligner les deux vues
-      const img = await blobToDataUrl(blob);
-      const ratio = Math.min(colW / p.width, h / p.height);
-      const w = p.width * ratio;
-      const hh = p.height * ratio;
-      pdf.setFillColor(241, 245, 249).rect(x, y, colW, h, "F");
-      pdf.addImage(img, "JPEG", x + (colW - w) / 2, y + (h - hh) / 2, w, hh);
-      pdf.setFont("helvetica", "bold").setFontSize(8).setTextColor(...INK).text(k === 0 ? "AVANT" : "APRÈS", x, y + h + 4.5);
-      pdf.setFont("helvetica", "normal").setTextColor(...MUTED).text(new Date(p.takenAt).toLocaleString("fr-FR"), x + colW, y + h + 4.5, { align: "right" });
+  for (let i = 0; i < photos.length; i += 2) {
+    const pair = photos.slice(i, i + 2);
+    const hs = pair.map((p) => Math.min(70, (colW / p.width) * p.height));
+    y = ensure(pdf, y, Math.max(...hs) + 10);
+    for (let k = 0; k < pair.length; k++) {
+      const p = pair[k];
+      const b = await getBlob(p.id);
+      if (!b) continue;
+      const w = Math.min(colW, (hs[k] / p.height) * p.width);
+      pdf.addImage(await blobToDataUrl(b), "JPEG", M + k * (colW + 6), y, w, hs[k]);
+      pdf.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...MUTED).text(`${new Date(p.takenAt).toLocaleString(LOCALE[lang])}${p.caption ? ` — ${p.caption}` : ""}`, M + k * (colW + 6), y + hs[k] + 4, { maxWidth: colW });
     }
-    y += h + 12;
+    y += Math.max(...hs) + 10;
   }
+  return y;
+}
 
-  for (const phase of ["avant", "pendant", "apres"] as PhotoPhase[]) {
+export async function buildPhotoReport(job: Job, client: Client | undefined, photos: Photo[], data: AccountData, getBlob: (id: string) => Promise<Blob | undefined>, watermark?: string) {
+  const lang = client?.lang ?? data.company.lang;
+  const pdf = new jsPDF({ unit: "mm", format: "a4" });
+  let y = header(pdf, data, dt(lang, "photoReport"), [[dt(lang, "site"), job.name], [dt(lang, "date"), fmtDate(new Date().toISOString(), lang)]], lang);
+  y += box(pdf, M, y, W - 2 * M, dt(lang, "client"), [client?.name ?? "", job.siteAddress || (client ? addr(client.billing).join(", ") : "")]) + 6;
+  for (const [phase, key] of PHASES) {
     const list = photos.filter((p) => p.phase === phase).sort((a, b) => a.takenAt.localeCompare(b.takenAt));
     if (!list.length) continue;
-    y = ensureSpace(pdf, y, 20);
-    pdf.setFont("helvetica", "bold").setFontSize(11).setTextColor(...hexToRgb(data.branding.color)).text(PHASE_LABEL[phase], M, y);
-    y += 4;
-    for (let i = 0; i < list.length; i += 2) {
-      const pair = list.slice(i, i + 2);
-      const heights = pair.map((p) => Math.min(75, (colW / p.width) * p.height));
-      const rowH = Math.max(...heights) + 11;
-      y = ensureSpace(pdf, y, rowH);
-      for (let k = 0; k < pair.length; k++) {
-        const p = pair[k];
-        const blob = await getBlob(p.id);
-        if (!blob) continue;
-        const x = M + k * (colW + 6);
-        const h = heights[k];
-        const w = Math.min(colW, (h / p.height) * p.width);
-        pdf.addImage(await blobToDataUrl(blob), "JPEG", x, y, w, h);
-        pdf.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...MUTED);
-        pdf.text(`${new Date(p.takenAt).toLocaleString("fr-FR")}${p.caption ? ` — ${p.caption}` : ""}`, x, y + h + 4, { maxWidth: colW });
-      }
-      y += rowH;
-    }
-    y += 2;
+    y = ensure(pdf, y, 20);
+    pdf.setFont("helvetica", "bold").setFontSize(11).setTextColor(...hexToRgb(data.branding.color)).text(dt(lang, key), M, y);
+    y = await photoGrid(pdf, y + 4, list, getBlob, lang);
   }
-  footer(pdf, data, watermark);
-  pdf.setProperties({ title: `Rapport photo — ${job.name}`, author: data.company.name, creator: "Biltov" });
+  footer(pdf, data, lang, watermark);
   return pdf;
 }
 
+/** Bon d'intervention / rapport de chantier signé sur place. */
+export async function buildReportPdf(report: Report, job: Job, client: Client | undefined, photos: Photo[], data: AccountData, getBlob: (id: string) => Promise<Blob | undefined>, watermark?: string) {
+  const lang = client?.lang ?? data.company.lang;
+  const pdf = new jsPDF({ unit: "mm", format: "a4" });
+  let y = header(pdf, data, dt(lang, "intervention"), [[dt(lang, "date"), fmtDate(report.date, lang)], [dt(lang, "site"), job.name]], lang);
+  y += box(pdf, M, y, W - 2 * M, dt(lang, "client"), [client?.name ?? "", job.siteAddress || (client ? addr(client.billing).join(", ") : "")]) + 6;
+  const members = report.memberIds.map((id) => data.members.find((m) => m.id === id)?.name).filter(Boolean).join(", ");
+  autoTable(pdf, {
+    startY: y,
+    margin: { left: M, right: M },
+    body: [
+      ...(members ? [["Équipe", members]] : []),
+      ["Heures", num(report.hours)],
+      ...report.checklist.map((c) => [c.done ? "☑" : "☐", c.label]),
+      ...report.materials.map((m) => ["Matériel", `${m.qty} ${m.unit} — ${m.label}`]),
+    ],
+    styles: { fontSize: 8.5 },
+    columnStyles: { 0: { cellWidth: 28, fontStyle: "bold" } },
+  });
+  y = (pdf as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+  if (report.notes) {
+    const n = pdf.splitTextToSize(report.notes, W - 2 * M) as string[];
+    pdf.setFont("helvetica", "normal").setFontSize(9).setTextColor(...INK).text(n, M, y);
+    y += n.length * 4.5 + 4;
+  }
+  const pics = photos.filter((p) => report.photoIds.includes(p.id));
+  if (pics.length) y = await photoGrid(pdf, y, pics, getBlob, lang);
+  if (report.signature) {
+    y = ensure(pdf, y, 30);
+    pdf.addImage(report.signature.image, "PNG", M, y, 50, 16);
+    pdf.setFont("helvetica", "normal").setFontSize(8).setTextColor(...INK).text(`${dt(lang, "signedBy")} ${report.signature.name} — ${new Date(report.signature.at).toLocaleString(LOCALE[lang])}`, M, y + 21);
+  }
+  footer(pdf, data, lang, watermark);
+  return pdf;
+}

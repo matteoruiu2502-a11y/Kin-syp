@@ -22,15 +22,14 @@ type Recognition = {
 };
 type RecognitionCtor = new () => Recognition;
 
-const SEPARATOR = /(?:[,;]|\s(?:et|puis|plus|and|then|und|dann|sowie)\s)(?!.*(?:[,;]|\s(?:et|puis|plus|and|then|und|dann|sowie)\s))/i;
-const VAT_RATE = 0.2;
+const SEPARATOR = /(?:[,;]|\s(?:et|puis|plus|en|dan|und|dann|sowie)\s)(?!.*(?:[,;]|\s(?:et|puis|plus|en|dan|und|dann|sowie)\s))/i;
 
 /** Sépare la partie « validée » de la phrase (jusqu'au dernier séparateur) du fragment en cours. */
 function splitCommitted(text: string, done: boolean) {
   if (done) return { committed: text, pending: "" };
   const m = text.match(SEPARATOR);
   if (!m || m.index === undefined) {
-    const clientOnly = text.match(/^(?:pour|for|für)\s+[^,;:]+[,;:]/i);
+    const clientOnly = text.match(/^(?:pour|voor|für)\s+[^,;:]+[,;:]/i);
     return clientOnly ? { committed: clientOnly[0], pending: text.slice(clientOnly[0].length) } : { committed: "", pending: text };
   }
   return { committed: text.slice(0, m.index), pending: text.slice(m.index + m[0].length) };
@@ -134,7 +133,7 @@ export function LiveQuoteDemo() {
   const { committed, pending } = splitCommitted(transcript, mode === "done");
   const parsed = parseQuote(committed, d.pdf.labour);
   const subtotal = parsed.lines.reduce((s, l) => s + l.qty * l.price, 0);
-  const vat = subtotal * VAT_RATE;
+  const vat = (subtotal * d.pdf.vatRate) / 100;
 
   return (
     <section ref={section} id="demo" className="relative py-24 sm:py-32">
@@ -223,7 +222,7 @@ export function LiveQuoteDemo() {
                     <img src={asset("/brand/biltov-mark.png")} alt="" className="h-9 w-8 rounded bg-black object-contain" />
                     <div>
                       <p className="font-display text-sm font-bold">Dupont Rénovation</p>
-                      <p className="text-[10px] text-slate-500">SIRET 912 345 678 00017 · TVA FR12 912345678</p>
+                      <p className="text-[10px] text-slate-500">BCE 0403.170.701 · TVA BE 0403.170.701</p>
                     </div>
                   </div>
                   <div className="text-right">

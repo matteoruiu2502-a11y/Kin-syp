@@ -2,17 +2,17 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { fr, type Dict } from "./content/fr";
-import { en } from "./content/en";
+import { nl } from "./content/nl";
 import { de } from "./content/de";
 
-export type Lang = "fr" | "en" | "de";
+export type Lang = "fr" | "nl" | "de";
 export const LANGS: { id: Lang; label: string; locale: string }[] = [
-  { id: "fr", label: "FR", locale: "fr-FR" },
-  { id: "en", label: "EN", locale: "en-GB" },
-  { id: "de", label: "DE", locale: "de-DE" },
+  { id: "fr", label: "FR", locale: "fr-BE" },
+  { id: "nl", label: "NL", locale: "nl-BE" },
+  { id: "de", label: "DE", locale: "de-BE" },
 ];
 
-const DICTS: Record<Lang, Dict> = { fr, en, de };
+const DICTS: Record<Lang, Dict> = { fr, nl, de };
 const STORAGE_KEY = "biltov.lang";
 
 type I18n = { lang: Lang; locale: string; t: Dict; setLang: (l: Lang) => void };

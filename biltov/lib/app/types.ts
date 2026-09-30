@@ -1,123 +1,315 @@
-// Modèle de données de l'application Biltov (espace artisan).
+// Modèle de données de Biltov (Belgique). Toutes les collections d'un compte.
 
 import type { TradeId } from "../content/fr";
+import type { ClientKind, Lang, LineCategory, VatCode } from "../tax/belgium";
 
-export type VatRate = 20 | 10 | 5.5 | 0;
-export const VAT_RATES: VatRate[] = [20, 10, 5.5, 0];
+export type { ClientKind, Lang, LineCategory, VatCode };
+export type ISODate = string;
 
-export type LegalForm = "EI" | "EI (micro-entreprise)" | "EURL" | "SARL" | "SASU" | "SAS" | "SA" | "SCOP" | "Autre";
-export const LEGAL_FORMS: LegalForm[] = ["EI", "EI (micro-entreprise)", "EURL", "SARL", "SASU", "SAS", "SA", "SCOP", "Autre"];
+export type LegalForm = "Personne physique" | "SRL" | "SA" | "SC" | "SComm" | "SNC" | "ASBL" | "Autre";
+export const LEGAL_FORMS: LegalForm[] = ["Personne physique", "SRL", "SA", "SC", "SComm", "SNC", "ASBL", "Autre"];
+
+export type Address = { street: string; postcode: string; city: string; country: string };
+export const emptyAddress = (): Address => ({ street: "", postcode: "", city: "", country: "BE" });
 
 export type Company = {
-  name: string; // raison sociale ou nom commercial
-  owner: string; // dirigeant / entrepreneur
+  name: string;
+  owner: string;
   legalForm: LegalForm;
-  capital: string; // ex. « 10 000 € » (sociétés)
-  address: string;
-  postcode: string;
-  city: string;
+  address: Address;
   phone: string;
   email: string;
-  siret: string;
-  registry: string; // « RCS Lyon 912 345 678 » ou « RM 69 912 345 678 »
-  vatNumber: string; // TVA intracommunautaire
-  vatMode: "normal" | "franchise"; // franchise en base : art. 293 B du CGI
-  vatOnDebits: boolean; // option pour le paiement de la TVA d'après les débits
-  insurer: string; // assurance décennale / RC pro
+  website: string;
+  bce: string; // numéro d'entreprise
+  vatRegime: "normal" | "franchise";
+  rpm: string; // « RPM Liège » (personnes morales)
+  insurer: string;
   insurerContact: string;
   policyNumber: string;
-  coverage: string; // couverture géographique
-  mediatorName: string; // médiateur de la consommation (clients particuliers)
-  mediatorUrl: string;
   iban: string;
   bic: string;
   trade: TradeId;
+  lang: Lang; // langue par défaut des documents
 };
 
-export type Branding = { color: string; logo: string | null /* data URL */ };
+export type Branding = { color: string; logo: string | null };
+
+export type ModuleId =
+  | "catalog"
+  | "clients"
+  | "planning"
+  | "time"
+  | "reports"
+  | "purchases"
+  | "stock"
+  | "fleet"
+  | "rentals"
+  | "maintenance"
+  | "expenses"
+  | "documents"
+  | "helpdesk"
+  | "leaves"
+  | "recruitment"
+  | "knowledge"
+  | "surveys"
+  | "chat"
+  | "appointments"
+  | "marketing"
+  | "website"
+  | "subnetwork"
+  | "manufacturing";
+
+export type ReminderTemplate = { subject: Record<Lang, string>; body: Record<Lang, string> };
 
 export type Settings = {
   quoteValidityDays: number;
-  paymentTermsDays: number; // délai de paiement des factures
-  depositPercent: number; // acompte proposé à la signature
-  defaultVat: VatRate;
-  quotePrefix: string;
-  invoicePrefix: string;
-  creditPrefix: string;
-  counters: Record<string, number>; // « F-2026 » → dernier numéro émis
-  freeQuote: boolean; // devis gratuit
+  paymentTermsDays: number;
+  depositPercent: number;
+  prefixes: { quote: string; invoice: string; credit: string; proforma: string; order: string };
+  counters: Record<string, number>; // « F-2026 » → dernier numéro émis (continu, sans trou)
+  modules: Record<ModuleId, boolean>;
+  reminderTemplates: ReminderTemplate[]; // 0 : 1er rappel (gratuit en B2C), 1 : relance, 2 : mise en demeure
+  priceLists: PriceList[];
+  retentionGuaranteePercent: number;
+  terms: { b2c: string; b2b: string }; // conditions générales (texte libre de l'artisan)
 };
 
-export type ClientType = "particulier" | "professionnel";
+export type PriceList = { id: string; name: string; discountPercent: number; familyDiscounts: Record<string, number> };
 
-export type JobStatus = "draft" | "sent" | "accepted" | "in_progress" | "done" | "refused";
+export type Client = {
+  id: string;
+  kind: ClientKind;
+  name: string; // nom complet ou raison sociale
+  contactName: string;
+  bce: string; // numéro d'entreprise (assujettis)
+  vatNumber: string;
+  lang: Lang;
+  email: string;
+  phone: string;
+  billing: Address;
+  sites: (Address & { id: string; label: string })[];
+  notes: string;
+  tags: string[];
+  priceListId: string | null;
+  source: string; // origine du contact (bouche-à-oreille, site…)
+  marketingConsent: boolean;
+  peppolId: string; // 0208:BCE si inscrit
+  createdAt: ISODate;
+};
+
+export type JobStatus = "lead" | "draft" | "sent" | "accepted" | "in_progress" | "done" | "refused" | "lost";
 
 export type Job = {
   id: string;
+  clientId: string;
   name: string;
   trade: TradeId;
   status: JobStatus;
-  date: string; // AAAA-MM-JJ (création / devis)
+  date: ISODate;
+  siteId: string | null; // adresse de chantier du client (sinon adresse de facturation)
+  siteAddress: string;
+  workKind: "immobilier" | "livraison";
+  privateHousing: boolean;
+  firstOccupationYear: number | null;
+  offPremises: boolean; // devis signé au domicile du consommateur
+  startDate: ISODate;
+  endDate: ISODate;
+  memberIds: string[];
   notes: string;
-  clientType: ClientType;
-  client: string;
-  clientAddress: string;
-  clientEmail: string;
-  clientPhone: string;
-  clientSiren: string; // obligatoire sur les factures B2B (réforme facturation électronique)
-  siteAddress: string; // adresse du chantier
-  city: string;
-  startDate: string;
-  duration: string; // durée estimée des travaux
-  offPremises: boolean; // contrat conclu hors établissement → droit de rétractation 14 j
-  reducedVatEligible: boolean; // logement achevé depuis plus de 2 ans (TVA 10 % / 5,5 %)
-  reverseCharge: boolean; // sous-traitance BTP : autoliquidation (art. 283-2 nonies CGI)
-  amount: number; // montant HT indicatif (remplacé par le devis dès qu'il existe)
+  amount: number; // HTVA du devis de référence
+  probability: number; // % de chance de signature (pipeline)
+  salesRep: string;
+  weatherSensitive: boolean;
 };
 
-export type Line = { id: string; label: string; qty: number; unit: string; unitPrice: number; vat: VatRate };
+export type LineKind = "item" | "section" | "text";
 
-export type DocType = "quote" | "invoice" | "credit";
-export type DocStatus = "draft" | "sent" | "accepted" | "refused" | "issued" | "paid" | "cancelled";
+export type Line = {
+  id: string;
+  kind: LineKind;
+  articleId: string | null;
+  label: string;
+  qty: number;
+  unit: string;
+  unitPrice: number; // HTVA
+  discountPercent: number;
+  category: LineCategory;
+  vat: VatCode;
+  vatOverridden: boolean;
+  optional: boolean; // option proposée au client
+  selected: boolean; // option retenue
+  toPrice: boolean; // « à chiffrer » (introuvable au catalogue)
+  confidence: number | null; // correspondance catalogue lors de la dictée (0-1)
+  costPrice: number; // prix de revient (rentabilité)
+  progressPercent: number; // situations : avancement cumulé
+};
 
-export type SendLog = { at: string; channel: "email" | "whatsapp" | "sms" | "share" | "download"; kind: "document" | "reminder"; step?: number };
+export type DocType = "quote" | "invoice" | "credit" | "proforma";
+export type DocKind = "full" | "deposit" | "situation" | "final";
+export type DocStatus = "draft" | "sent" | "viewed" | "accepted" | "refused" | "expired" | "issued" | "partial" | "paid" | "cancelled";
+export type BillingMode = "forfait" | "regie" | "jalons";
+
+export type SendLog = { at: string; channel: "email" | "whatsapp" | "sms" | "share" | "download" | "peppol" | "post"; kind: "document" | "reminder"; step?: number };
+export type Payment = { id: string; date: ISODate; amount: number; method: string; reference: string };
+export type Milestone = { id: string; label: string; percent: number; invoiced: boolean };
 
 export type Doc = {
   id: string;
   jobId: string;
+  clientId: string;
   type: DocType;
-  number: string | null; // attribué à l'émission (facture) ou à la création (devis)
+  kind: DocKind;
+  number: string | null;
+  version: number;
+  previousId: string | null; // version précédente du devis
   status: DocStatus;
-  issueDate: string;
-  workDate: string; // date / période d'exécution (factures)
-  dueDate: string; // échéance (factures)
-  validUntil: string; // devis
+  lang: Lang;
+  issueDate: ISODate;
+  workDate: ISODate;
+  dueDate: ISODate;
+  validUntil: ISODate;
   lines: Line[];
-  depositPercent: number; // devis : acompte demandé
-  paidBefore: number; // factures : acomptes déjà versés (TTC)
-  kind: "full" | "deposit" | "balance"; // facture complète, d'acompte ou de solde
+  globalDiscountPercent: number;
+  depositPercent: number;
+  deductions: { label: string; amount: number; vat: VatCode }[]; // acomptes / situations déjà facturés (factures finales)
+  retentionPercent: number; // retenue de garantie
+  billingMode: BillingMode;
+  milestones: Milestone[];
   notes: string;
-  sourceId: string | null; // devis d'origine / facture annulée par l'avoir
+  sourceId: string | null; // devis d'origine / facture annulée par la note de crédit
+  isAmendment: boolean; // avenant / travaux supplémentaires
+  template: string | null; // nom si modèle réutilisable
   signature: { image: string; name: string; at: string } | null;
   sends: SendLog[];
-  paidAt: string | null;
-  paymentMethod: string;
-  lockedAt: string | null; // facture émise : plus modifiable
+  payments: Payment[];
+  structuredComm: string;
+  peppol: { status: "none" | "ready" | "sent" | "delivered" | "error"; at?: string; message?: string };
+  dispute: { active: boolean; note: string; since?: ISODate };
+  lockedAt: string | null;
 };
+
+export type ArticleType = "supply" | "labour" | "equipment" | "subcontract" | "package";
+
+export type Article = {
+  id: string;
+  ref: string;
+  name: Record<Lang, string>;
+  description: string;
+  family: string;
+  trade: TradeId | "";
+  type: ArticleType;
+  unit: string;
+  purchasePrice: number;
+  marginPercent: number;
+  salePrice: number;
+  salePriceForced: boolean;
+  category: LineCategory;
+  supplierId: string | null;
+  supplierRef: string;
+  ean: string;
+  notes: string;
+  active: boolean;
+  components: { articleId: string; qty: number }[]; // ouvrage composé
+  related: string[]; // ouvrages liés suggérés
+  priceHistory: { at: ISODate; purchase: number; sale: number }[];
+  minStock: number;
+};
+
+export type SupplierKind = "supplier" | "subcontractor";
+export type Supplier = {
+  id: string;
+  kind: SupplierKind;
+  name: string;
+  bce: string;
+  email: string;
+  phone: string;
+  address: Address;
+  trade: TradeId | "";
+  importMapping: Record<string, string> | null; // profil d'import mémorisé
+  notes: string;
+};
+
+export type RetentionCheck = { checkedAt: ISODate; taxDebt: boolean; onssDebt: boolean; inastiDebt: boolean; attestationId: string | null };
+
+export type PurchaseStatus = "draft" | "ordered" | "received" | "to_pay" | "paid";
+export type Purchase = {
+  id: string;
+  type: "order" | "invoice";
+  supplierId: string;
+  jobId: string | null;
+  number: string;
+  date: ISODate;
+  dueDate: ISODate;
+  lines: { id: string; articleId: string | null; label: string; qty: number; unitPrice: number; vat: number }[];
+  status: PurchaseStatus;
+  source: "manual" | "ocr" | "peppol";
+  retention: RetentionCheck | null;
+  paidAt: ISODate | null;
+  fileId: string | null;
+};
+
+export type Expense = { id: string; jobId: string | null; memberId: string | null; date: ISODate; supplier: string; label: string; amountTTC: number; vat: number; receiptId: string | null; reimbursable: boolean; status: "draft" | "submitted" | "approved" | "reimbursed" };
 
 export type PhotoPhase = "avant" | "pendant" | "apres";
 export type Photo = { id: string; jobId: string; phase: PhotoPhase; caption: string; takenAt: string; addedAt: string; width: number; height: number };
 
-export type Expense = { id: string; jobId: string; date: string; supplier: string; label: string; amountTTC: number; vat: VatRate; receiptId: string | null };
+export type Role = "owner" | "office" | "worker" | "accountant";
+export type Member = { id: string; name: string; role: Role; phone: string; email: string; lang: Lang; hourlyCost: number; color: string; pin: string; active: boolean };
+
+export type TimeEntry = { id: string; memberId: string; jobId: string; date: ISODate; start: string; end: string; hours: number; note: string };
+
+export type EventKind = "job" | "visit" | "appointment" | "leave" | "maintenance";
+export type PlanningEvent = { id: string; kind: EventKind; title: string; jobId: string | null; clientId: string | null; memberIds: string[]; start: string; end: string; notes: string; status: "planned" | "done" | "cancelled" | "requested" | "approved" | "refused" };
+
+export type Report = {
+  id: string;
+  jobId: string;
+  kind: "intervention" | "daily" | "reception" | "maintenance";
+  date: ISODate;
+  memberIds: string[];
+  checklist: { label: string; done: boolean }[];
+  notes: string;
+  photoIds: string[];
+  hours: number;
+  materials: { label: string; qty: number; unit: string }[];
+  signature: { image: string; name: string; at: string } | null;
+  sentAt: string | null;
+};
+
+export type StockLocation = { id: string; name: string; kind: "depot" | "vehicle"; vehicleId: string | null };
+export type StockMove = { id: string; articleId: string; locationId: string; qty: number; date: ISODate; reason: string; jobId: string | null };
+
+export type Vehicle = { id: string; plate: string; model: string; memberId: string | null; nextInspection: ISODate; nextService: ISODate; mileage: number; costs: { date: ISODate; label: string; amount: number; jobId: string | null }[] };
+
+/** Enregistrements génériques des modules complémentaires (SAV, congés, recrutement…). */
+export type GenericRecord = { id: string; module: ModuleId; title: string; status: string; fields: Record<string, string | number | boolean>; jobId: string | null; clientId: string | null; memberId: string | null; createdAt: string; updatedAt: string };
+
+export type AuditEntry = { at: string; user: string; action: string; entity: string; entityId: string; detail: string };
 
 export type AccountData = {
+  version: 2;
   company: Company;
   branding: Branding;
   settings: Settings;
+  clients: Client[];
   jobs: Job[];
   docs: Doc[];
-  photos: Photo[];
+  articles: Article[];
+  suppliers: Supplier[];
+  purchases: Purchase[];
   expenses: Expense[];
+  photos: Photo[];
+  members: Member[];
+  timeEntries: TimeEntry[];
+  events: PlanningEvent[];
+  reports: Report[];
+  stockLocations: StockLocation[];
+  stockMoves: StockMove[];
+  vehicles: Vehicle[];
+  records: GenericRecord[];
+  audit: AuditEntry[];
 };
+
+export type CollectionKey = { [K in keyof AccountData]: AccountData[K] extends { id: string }[] ? K : never }[keyof AccountData];
 
 export type Account = { id: string; email: string; salt: string; hash: string; createdAt: string };

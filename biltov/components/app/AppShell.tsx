@@ -1,44 +1,99 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { CreditCard, FileText, HardHat, LayoutDashboard, Loader2, LogOut, Settings, ShieldCheck } from "lucide-react";
+import {
+  Blocks,
+  Boxes,
+  Car,
+  CreditCard,
+  FileText,
+  HardHat,
+  HandCoins,
+  Loader2,
+  LogOut,
+  Menu,
+  Package,
+  Search,
+  Settings,
+  ShieldCheck,
+  ShoppingCart,
+  UserCog,
+  Users,
+  CalendarDays,
+  Contact,
+  X,
+} from "lucide-react";
 import { AppProvider, useApp, useAppData } from "@/lib/app/store";
-import { missingCompanyFields } from "@/lib/app/legal";
+import { TrProvider, useTr } from "@/lib/app/tr";
 import { paymentConfigured, readSubscription, trialHref } from "@/lib/checkout";
 import { dueReminders } from "@/lib/app/reminders";
+import { MODULES } from "@/lib/app/labels";
+import type { Lang, Member, ModuleId, Role } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
 import { BiltovLogo } from "../BiltovLogo";
 import { AuthScreen } from "./AuthScreen";
 import { Onboarding } from "./Onboarding";
-import { OverviewTab } from "./OverviewTab";
+import { companyMissing } from "./CompanyForm";
+import { MoneyTab } from "./MoneyTab";
 import { JobsTab } from "./JobsTab";
 import { JobDetail } from "./JobDetail";
-import { InvoicesTab } from "./InvoicesTab";
+import { ClientDetail, ClientsTab } from "./ClientsTab";
+import { DocsTab } from "./DocsTab";
+import { CatalogTab } from "./CatalogTab";
+import { PlanningTab } from "./PlanningTab";
+import { TeamTab } from "./TeamTab";
+import { PurchasesTab } from "./PurchasesTab";
+import { StockTab } from "./StockTab";
+import { FleetTab } from "./FleetTab";
+import { ModulesTab } from "./ModulesTab";
 import { SettingsTab } from "./SettingsTab";
 import { JobForm } from "./JobForm";
 import { DocEditor } from "./DocEditor";
+import { WorkerLogin, WorkerMode } from "./WorkerMode";
 
-type Tab = "overview" | "jobs" | "invoices" | "settings";
-type Route = { tab: Tab; jobId?: string };
+type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "modules" | "module" | "parametres";
+type Route = { page: Page; id?: string };
 
+const PAGES: Page[] = ["apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "modules", "module", "parametres"];
 const parse = (hash: string): Route => {
   const [a, b] = hash.replace(/^#/, "").split("/");
-  if (a === "chantier" && b) return { tab: "jobs", jobId: b };
-  return { tab: ({ chantiers: "jobs", factures: "invoices", parametres: "settings" } as Record<string, Tab>)[a] ?? "overview" };
+  const page = (PAGES as string[]).includes(a) ? (a as Page) : "apercu";
+  if ((page === "chantier" || page === "client" || page === "module") && !b) return { page: page === "chantier" ? "chantiers" : page === "client" ? "clients" : "modules" };
+  return { page, id: b };
 };
-const toHash = (r: Route) => (r.jobId ? `#chantier/${r.jobId}` : { overview: "#apercu", jobs: "#chantiers", invoices: "#factures", settings: "#parametres" }[r.tab]);
+const toHash = (r: Route) => `#${r.page}${r.id ? `/${r.id}` : ""}`;
+
+/** Pages accessibles selon le rôle de la personne connectée sur l'appareil. */
+const ROLE_PAGES: Record<Exclude<Role, "worker">, Page[] | "all"> = {
+  owner: "all",
+  office: PAGES.filter((p) => p !== "parametres"),
+  accountant: ["apercu", "documents", "achats", "clients", "client"],
+};
+
+const MEMBER_KEY = "biltov.member";
+
+/** Installation sur l'écran d'accueil et fonctionnement hors ligne (production uniquement). */
+function useServiceWorker() {
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register(`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/sw.js`).catch(() => {});
+  }, []);
+}
 
 export function App() {
+  useServiceWorker();
   return (
-    <AppProvider>
-      <Gate />
-    </AppProvider>
+    <TrProvider>
+      <AppProvider>
+        <Gate />
+      </AppProvider>
+    </TrProvider>
   );
 }
 
-/** Compte obligatoire, puis informations légales, puis tableau de bord. */
+/** Compte obligatoire (ou démo), puis identité de l'entreprise, puis tableau de bord. */
 function Gate() {
   const { account, data, loading } = useApp();
   if (loading)
@@ -48,46 +103,175 @@ function Gate() {
       </div>
     );
   if (!account || !data) return <AuthScreen />;
-  if (!data.company.name || !data.company.siret) return <Onboarding />;
+  if (!data.company.name || !data.company.bce) return <Onboarding />;
   return <Shell />;
 }
 
+function LangSwitch() {
+  const { lang, setLang } = useTr();
+  return (
+    <div className="flex rounded-lg border border-white/10 p-0.5 text-xs font-semibold">
+      {(["fr", "nl", "de"] as Lang[]).map((l) => (
+        <button key={l} onClick={() => setLang(l)} className={cn("rounded-md px-2 py-1", lang === l ? "bg-white/10 text-white" : "text-slate-500 hover:text-white")}>
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function GlobalSearch({ go, openDoc }: { go: (r: Route) => void; openDoc: (id: string) => void }) {
+  const { t } = useTr();
+  const { data } = useAppData();
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        ref.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const s = q.trim().toLowerCase();
+  const results = useMemo(() => {
+    if (s.length < 2) return [];
+    const has = (...xs: string[]) => xs.some((x) => x.toLowerCase().includes(s));
+    return [
+      ...data.clients.filter((c) => has(c.name, c.email, c.phone, c.bce, c.billing.city)).slice(0, 5).map((c) => ({ key: c.id, label: c.name, sub: t("Client"), act: () => go({ page: "client", id: c.id }) })),
+      ...data.jobs.filter((j) => has(j.name, j.siteAddress)).slice(0, 5).map((j) => ({ key: j.id, label: j.name, sub: t("Chantier"), act: () => go({ page: "chantier", id: j.id }) })),
+      ...data.docs.filter((d) => d.number && has(d.number, d.structuredComm)).slice(0, 5).map((d) => ({ key: d.id, label: d.number!, sub: data.clients.find((c) => c.id === d.clientId)?.name ?? "", act: () => openDoc(d.id) })),
+    ];
+  }, [s, data, go, openDoc, t]);
+  return (
+    <div className="relative hidden w-72 lg:block">
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+      <input
+        ref={ref}
+        value={q}
+        onChange={(e) => (setQ(e.target.value), setOpen(true))}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder={t("Rechercher… (Ctrl K)")}
+        className="w-full rounded-xl border border-white/10 bg-white/[0.03] py-2 pl-9 pr-3 text-sm text-slate-100 outline-none placeholder:text-slate-600 focus:border-cyan"
+      />
+      {open && results.length > 0 && (
+        <ul className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-white/10 bg-ink shadow-2xl">
+          {results.map((r) => (
+            <li key={r.key}>
+              <button onMouseDown={() => (r.act(), setQ(""))} className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-white/5">
+                <span className="truncate text-slate-100">{r.label}</span>
+                <span className="shrink-0 text-xs text-slate-500">{r.sub}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function Shell() {
+  const { t } = useTr();
   const { data, account, logOut, isDemo, resetDemo } = useAppData();
-  const [route, setRoute] = useState<Route>({ tab: "overview" });
+  const [route, setRoute] = useState<Route>({ page: "apercu" });
   const [subscribed, setSubscribed] = useState(false);
-  const [newJob, setNewJob] = useState(false);
+  const [newJob, setNewJob] = useState<{ clientId?: string } | null>(null);
   const [docId, setDocId] = useState<string | null>(null);
+  const [drawer, setDrawer] = useState(false);
+  const [member, setMember] = useState<Member | null>(null);
+  const [switching, setSwitching] = useState(false);
 
   useEffect(() => {
     setSubscribed(readSubscription());
+    try {
+      const id = sessionStorage.getItem(MEMBER_KEY);
+      if (id) setMember(data.members.find((m) => m.id === id) ?? null);
+    } catch {}
     const sync = () => setRoute(parse(window.location.hash));
     sync();
     window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
+    window.addEventListener("popstate", sync);
+    return () => {
+      window.removeEventListener("hashchange", sync);
+      window.removeEventListener("popstate", sync);
+    };
   }, []);
 
   const go = useCallback((r: Route) => {
     window.history.pushState(null, "", toHash(r));
     setRoute(r);
+    setDrawer(false);
     window.scrollTo({ top: 0 });
   }, []);
-  useEffect(() => {
-    const back = () => setRoute(parse(window.location.hash));
-    window.addEventListener("popstate", back);
-    return () => window.removeEventListener("popstate", back);
-  }, []);
+  const goPage = useCallback((p: string) => go(parse(`#${p}`)), [go]);
 
-  const job = route.jobId ? data.jobs.find((j) => j.id === route.jobId) : undefined;
-  const reminders = dueReminders(data.docs, data.jobs).length;
-  const incomplete = missingCompanyFields(data.company).length > 0;
+  const enter = (m: Member | null) => {
+    setMember(m);
+    setSwitching(false);
+    try {
+      if (m) sessionStorage.setItem(MEMBER_KEY, m.id);
+      else sessionStorage.removeItem(MEMBER_KEY);
+    } catch {}
+  };
 
-  const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
-    { id: "overview", label: "Aperçu", icon: LayoutDashboard },
-    { id: "jobs", label: "Chantiers & devis", icon: HardHat },
-    { id: "invoices", label: "Factures", icon: FileText, badge: reminders || undefined },
-    { id: "settings", label: "Paramètres", icon: Settings },
+  const mods = data.settings.modules;
+  const reminders = dueReminders(data).length;
+  const role: Role = member?.role ?? "owner";
+  const allowed = role === "worker" ? [] : ROLE_PAGES[role];
+  const can = (p: Page) => allowed === "all" || allowed.includes(p);
+
+  const nav: { page: Page; label: string; icon: typeof HardHat; badge?: number; on: boolean; group: 0 | 1 | 2 }[] = [
+    { page: "apercu", label: t("Argent à recevoir"), icon: HandCoins, badge: reminders || undefined, on: true, group: 0 },
+    { page: "chantiers", label: t("Chantiers"), icon: HardHat, on: true, group: 0 },
+    { page: "clients", label: t("Clients"), icon: Contact, on: mods.clients, group: 0 },
+    { page: "documents", label: t("Devis & factures"), icon: FileText, on: true, group: 0 },
+    { page: "catalogue", label: t("Catalogue"), icon: Package, on: mods.catalog, group: 0 },
+    { page: "planning", label: t("Planning"), icon: CalendarDays, on: mods.planning, group: 1 },
+    { page: "equipe", label: t("Équipe"), icon: Users, on: mods.planning || mods.time || mods.expenses, group: 1 },
+    { page: "achats", label: t("Achats"), icon: ShoppingCart, on: mods.purchases, group: 1 },
+    { page: "stock", label: t("Stock"), icon: Boxes, on: mods.stock, group: 1 },
+    { page: "flotte", label: t("Flotte"), icon: Car, on: mods.fleet, group: 1 },
+    { page: "modules", label: t("Modules"), icon: Blocks, on: true, group: 2 },
+    { page: "parametres", label: t("Paramètres"), icon: Settings, on: true, group: 2 },
   ];
+  const visible = nav.filter((n) => n.on && can(n.page));
+  const active = (p: Page) => route.page === p || (route.page === "chantier" && p === "chantiers") || (route.page === "client" && p === "clients") || (route.page === "module" && p === "modules");
+  const job = route.page === "chantier" ? data.jobs.find((j) => j.id === route.id) : undefined;
+  const client = route.page === "client" ? data.clients.find((c) => c.id === route.id) : undefined;
+  const page: Page = can(route.page) ? route.page : "apercu";
+
+  if (member?.role === "worker")
+    return (
+      <div className="min-h-screen px-4 py-6">
+        <WorkerMode member={member} onExit={() => enter(null)} />
+      </div>
+    );
+
+  const NavList = ({ onPick }: { onPick?: () => void }) => (
+    <nav className="space-y-5" aria-label={t("Navigation")}>
+      {[0, 1, 2].map((g) => (
+        <div key={g} className="space-y-1">
+          {visible
+            .filter((n) => n.group === g)
+            .map(({ page: p, label, icon: Icon, badge }) => (
+              <button key={p} onClick={() => (go({ page: p }), onPick?.())} className={cn("relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors", active(p) ? "text-white" : "text-slate-400 hover:text-white")}>
+                {active(p) && <motion.span layoutId="app-nav" className="absolute inset-0 rounded-xl bg-white/[0.07] ring-1 ring-white/10" />}
+                <Icon className="relative h-4 w-4" />
+                <span className="relative flex-1 text-left">{label}</span>
+                {badge && <span className="relative rounded-full bg-amber-400 px-1.5 text-[10px] font-bold text-ink">{badge}</span>}
+              </button>
+            ))}
+        </div>
+      ))}
+    </nav>
+  );
+
+  const openJob = (id: string) => go({ page: "chantier", id });
+  const openClient = (id: string) => go({ page: "client", id });
 
   return (
     <div className="relative min-h-screen pb-24 md:pb-0">
@@ -95,109 +279,196 @@ function Shell() {
       <div className="pointer-events-none fixed -left-40 top-0 -z-10 h-[480px] w-[480px] rounded-full bg-blue/15 blur-[140px]" aria-hidden />
 
       <header className="sticky top-0 z-40 border-b border-white/5 bg-ink/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-4">
-            <Link href="/" aria-label="Biltov">
+            <button onClick={() => setDrawer(true)} className="rounded-lg p-1.5 text-slate-300 md:hidden" aria-label={t("Menu")}>
+              <Menu className="h-5 w-5" />
+            </button>
+            <Link href="/" aria-label="Biltov" className="hidden min-[440px]:block">
               <BiltovLogo size={30} />
             </Link>
             <span className="hidden h-6 w-px bg-white/10 sm:block" />
             <span className="hidden truncate text-sm font-semibold text-slate-300 sm:block">{data.company.name}</span>
           </div>
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Navigation">
-            {tabs.map(({ id, label, icon: Icon, badge }) => (
-              <button key={id} onClick={() => go({ tab: id })} className={cn("relative flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors", route.tab === id ? "text-white" : "text-slate-400 hover:text-white")}>
-                {route.tab === id && <motion.span layoutId="app-tab" className="absolute inset-0 rounded-xl bg-white/[0.07] ring-1 ring-white/10" />}
-                <Icon className="relative h-4 w-4" />
-                <span className="relative">{label}</span>
-                {badge && <span className="relative rounded-full bg-amber-400 px-1.5 text-[10px] font-bold text-ink">{badge}</span>}
+          <GlobalSearch go={go} openDoc={setDocId} />
+          <div className="flex items-center gap-2">
+            <LangSwitch />
+            {data.members.length > 0 && (
+              <button onClick={() => setSwitching(true)} className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-400 hover:text-white" title={t("Changer d'utilisateur sur cet appareil")}>
+                <UserCog className="h-4 w-4" /> <span className="hidden lg:inline">{member?.name ?? t("Patron")}</span>
               </button>
-            ))}
-          </nav>
-          <button onClick={logOut} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-400 hover:text-white" title={`Se déconnecter (${account?.email})`}>
-            <LogOut className="h-4 w-4" /> <span className="hidden lg:inline">Déconnexion</span>
-          </button>
+            )}
+            <button onClick={logOut} className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-400 hover:text-white" title={`${t("Se déconnecter")} (${account?.email})`}>
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Navigation mobile */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-white/10 bg-ink/95 backdrop-blur-xl md:hidden" aria-label="Navigation">
-        {tabs.map(({ id, label, icon: Icon, badge }) => (
-          <button key={id} onClick={() => go({ tab: id })} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold", route.tab === id ? "text-cyan" : "text-slate-500")}>
-            <Icon className="h-5 w-5" />
-            {label.split(" ")[0]}
-            {badge && <span className="absolute right-1/4 top-1.5 h-2 w-2 rounded-full bg-amber-400" />}
-          </button>
-        ))}
-      </nav>
+      <div className="flex">
+        <aside className="sticky top-[61px] hidden h-[calc(100vh-61px)] w-60 shrink-0 overflow-y-auto border-r border-white/5 px-3 py-6 md:block">
+          <NavList />
+        </aside>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {isDemo && (
-          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald/40 bg-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-emerald">
-              <strong>Mode démonstration</strong> — entreprise et clients fictifs. Testez tout librement : dictée, devis, signature, factures, relances, photos. Les PDF portent la mention « DÉMONSTRATION ».
-            </p>
-            <div className="flex shrink-0 gap-2">
-              <button onClick={() => window.confirm("Remettre la démo à zéro ?") && void resetDemo()} className="btn-ghost !py-2 text-sm">
-                Réinitialiser
-              </button>
-              <button onClick={logOut} className="btn-primary !py-2 text-sm">
-                Créer mon vrai compte
-              </button>
-            </div>
-          </div>
-        )}
-        {!isDemo && !subscribed && (
-          <div className="glow-border mb-6 flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-blue/15 to-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-            <p className="flex items-start gap-3 text-slate-300">
-              <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-cyan" />
-              <span>
-                <strong className="text-white">Essai gratuit d&apos;1 jour.</strong> Enregistrez votre carte pour continuer ensuite : 80 € HT / mois prélevés automatiquement, résiliable à tout moment.
-                {!paymentConfigured && <span className="mt-1 block text-xs text-amber-300">Mode démonstration : le lien de paiement Stripe n&apos;est pas encore configuré.</span>}
-              </span>
-            </p>
-            {paymentConfigured && (
-              <a href={trialHref()} className="btn-primary shrink-0 !py-2 text-sm">
-                Enregistrer ma carte
-              </a>
-            )}
-          </div>
-        )}
-        {subscribed && (
-          <p className="mb-6 flex items-center gap-2 text-sm text-emerald">
-            <ShieldCheck className="h-4 w-4" /> Abonnement actif — prélèvement automatique.
-          </p>
-        )}
-        {incomplete && route.tab !== "settings" && (
-          <button onClick={() => go({ tab: "settings" })} className="mb-6 w-full rounded-2xl border border-amber-400/30 bg-amber-400/10 px-5 py-3 text-left text-sm text-amber-200">
-            Mentions légales incomplètes (assurance décennale, TVA…) : complétez vos paramètres pour envoyer des devis conformes →
-          </button>
-        )}
-
-        <AnimatePresence mode="wait">
-          <motion.div key={route.tab + (route.jobId ?? "")} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}>
-            {route.tab === "overview" && <OverviewTab onAdd={() => setNewJob(true)} onOpenJob={(id) => go({ tab: "jobs", jobId: id })} go={(tab) => go({ tab })} />}
-            {route.tab === "jobs" && !job && <JobsTab onOpen={(id) => go({ tab: "jobs", jobId: id })} onAdd={() => setNewJob(true)} />}
-            {route.tab === "jobs" && job && <JobDetail job={job} onBack={() => go({ tab: "jobs" })} onOpenDoc={setDocId} />}
-            {route.tab === "invoices" && <InvoicesTab onOpenDoc={setDocId} />}
-            {route.tab === "settings" && <SettingsTab />}
-          </motion.div>
+        <AnimatePresence>
+          {drawer && (
+            <motion.div className="fixed inset-0 z-50 md:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="absolute inset-0 bg-black/60" onClick={() => setDrawer(false)} />
+              <motion.div initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="absolute inset-y-0 left-0 w-72 overflow-y-auto border-r border-white/10 bg-ink p-4">
+                <div className="mb-6 flex items-center justify-between">
+                  <BiltovLogo size={28} />
+                  <button onClick={() => setDrawer(false)} className="p-1 text-slate-400" aria-label={t("Fermer")}>
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <NavList />
+              </motion.div>
+            </motion.div>
+          )}
         </AnimatePresence>
-      </main>
+
+        <main className="min-w-0 flex-1 px-4 py-8 sm:px-6 lg:px-10">
+          {isDemo && (
+            <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald/40 bg-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-emerald">
+                <strong>{t("Mode démonstration")}</strong> — {t("entreprise et clients belges fictifs. Testez tout librement ; les PDF portent la mention « DÉMONSTRATION ».")}
+              </p>
+              <div className="flex shrink-0 gap-2">
+                <button onClick={() => window.confirm(t("Remettre la démo à zéro ?")) && void resetDemo()} className="btn-ghost !py-2 text-sm">
+                  {t("Réinitialiser")}
+                </button>
+                <button onClick={logOut} className="btn-primary !py-2 text-sm">
+                  {t("Créer mon vrai compte")}
+                </button>
+              </div>
+            </div>
+          )}
+          {!isDemo && !subscribed && (
+            <div className="glow-border mb-6 flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-blue/15 to-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <p className="flex items-start gap-3 text-slate-300">
+                <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-cyan" />
+                <span>
+                  <strong className="text-white">{t("Essai gratuit d'1 jour.")}</strong> {t("Enregistrez votre carte pour continuer ensuite : 80 € HTVA / mois prélevés automatiquement, résiliable à tout moment.")}
+                  {!paymentConfigured && <span className="mt-1 block text-xs text-amber-300">{t("Le lien de paiement Stripe n'est pas encore configuré.")}</span>}
+                </span>
+              </p>
+              {paymentConfigured && (
+                <a href={trialHref()} className="btn-primary shrink-0 !py-2 text-sm">
+                  {t("Enregistrer ma carte")}
+                </a>
+              )}
+            </div>
+          )}
+          {subscribed && (
+            <p className="mb-6 flex items-center gap-2 text-sm text-emerald">
+              <ShieldCheck className="h-4 w-4" /> {t("Abonnement actif — prélèvement automatique.")}
+            </p>
+          )}
+          {companyMissing(data.company) && page !== "parametres" && can("parametres") && (
+            <button onClick={() => go({ page: "parametres" })} className="mb-6 w-full rounded-2xl border border-amber-400/30 bg-amber-400/10 px-5 py-3 text-left text-sm text-amber-200">
+              {t("Identité de l'entreprise incomplète (BCE, IBAN, adresse…) : complétez-la pour émettre des factures conformes →")}
+            </button>
+          )}
+
+          <AnimatePresence mode="wait">
+            <motion.div key={page + (route.id ?? "")} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
+              {page === "apercu" && <MoneyTab onOpenDoc={setDocId} onOpenJob={openJob} />}
+              {page === "chantiers" && <JobsTab onOpen={openJob} onAdd={() => setNewJob({})} />}
+              {page === "chantier" && (job ? <JobDetail job={job} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
+              {page === "clients" && <ClientsTab onOpen={openClient} />}
+              {page === "client" && (client ? <ClientDetail client={client} onBack={() => go({ page: "clients" })} onOpenJob={openJob} onOpenDoc={setDocId} onNewJob={(clientId) => setNewJob({ clientId })} /> : <NotFound onBack={() => go({ page: "clients" })} />)}
+              {page === "documents" && <DocsTab onOpenDoc={setDocId} />}
+              {page === "catalogue" && <CatalogTab />}
+              {page === "planning" && <PlanningTab />}
+              {page === "equipe" && <TeamTab />}
+              {page === "achats" && <PurchasesTab />}
+              {page === "stock" && <StockTab />}
+              {page === "flotte" && <FleetTab />}
+              {(page === "modules" || page === "module") && <ModulesTab module={page === "module" && route.id && route.id in MODULES ? (route.id as ModuleId) : null} onOpen={(m) => go({ page: "module", id: m })} onBack={() => go({ page: "modules" })} go={goPage} onOpenJob={openJob} />}
+              {page === "parametres" && <SettingsTab />}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+
+      {/* Navigation mobile */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-white/10 bg-ink/95 backdrop-blur-xl md:hidden" aria-label={t("Navigation")}>
+        {visible
+          .filter((n) => ["apercu", "chantiers", "documents"].includes(n.page))
+          .map(({ page: p, label, icon: Icon, badge }) => (
+            <button key={p} onClick={() => go({ page: p })} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold", active(p) ? "text-cyan" : "text-slate-500")}>
+              <Icon className="h-5 w-5" />
+              <span className="max-w-full truncate px-1">{label}</span>
+              {badge && <span className="absolute right-1/4 top-1.5 h-2 w-2 rounded-full bg-amber-400" />}
+            </button>
+          ))}
+        <button onClick={() => setDrawer(true)} className="flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold text-slate-500">
+          <Menu className="h-5 w-5" /> {t("Plus")}
+        </button>
+      </nav>
 
       <AnimatePresence>
         {newJob && (
           <JobForm
             job={null}
-            onClose={() => setNewJob(false)}
+            clientId={newJob.clientId}
+            onClose={() => setNewJob(null)}
             onSaved={(j, quoteId) => {
-              setNewJob(false);
-              go({ tab: "jobs", jobId: j.id });
+              setNewJob(null);
+              go({ page: "chantier", id: j.id });
               if (quoteId) setDocId(quoteId);
             }}
           />
         )}
       </AnimatePresence>
       <AnimatePresence>{docId && <DocEditor key={docId} docId={docId} onClose={() => setDocId(null)} onOpen={setDocId} />}</AnimatePresence>
+      <AnimatePresence>
+        {switching && (
+          <SwitchUser
+            current={member}
+            onPick={(m) => enter(m)}
+            onOwner={() => {
+              enter(null);
+              logOut();
+            }}
+            onClose={() => setSwitching(false)}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function SwitchUser({ current, onPick, onOwner, onClose }: { current: Member | null; onPick: (m: Member) => void; onOwner: () => void; onClose: () => void }) {
+  const { t } = useTr();
+  const [pick, setPick] = useState(false);
+  if (pick) return <WorkerLogin onEnter={onPick} onCancel={onClose} />;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="card w-full max-w-sm space-y-3 p-5" onClick={(e) => e.stopPropagation()}>
+        <p className="font-semibold text-white">{t("Qui utilise cet appareil ?")}</p>
+        <p className="text-xs text-slate-500">{t("Les droits dépendent du rôle : les ouvriers voient leur espace sans prix, le comptable les chiffres et exports.")}</p>
+        {current && (
+          <button onClick={onOwner} className="btn-ghost w-full text-sm">
+            {t("Revenir au compte du patron (mot de passe)")}
+          </button>
+        )}
+        <button onClick={() => setPick(true)} className="btn-primary w-full text-sm">
+          {t("Choisir un membre de l'équipe (PIN)")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NotFound({ onBack }: { onBack: () => void }) {
+  const { t } = useTr();
+  return (
+    <div className="card p-8 text-center">
+      <p className="text-slate-300">{t("Élément introuvable ou supprimé.")}</p>
+      <button onClick={onBack} className="btn-ghost mt-4 text-sm">
+        {t("Retour")}
+      </button>
     </div>
   );
 }
