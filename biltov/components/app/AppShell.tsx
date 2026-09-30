@@ -27,12 +27,14 @@ import {
 } from "lucide-react";
 import { AppProvider, useApp, useAppData } from "@/lib/app/store";
 import { TrProvider, useTr } from "@/lib/app/tr";
-import { paymentConfigured, readSubscription, trialHref } from "@/lib/checkout";
+import { PRICE_MONTHLY, PRICE_YEARLY, TRIAL_DAYS, paymentConfigured, readSubscription, subscribeHref, trialDaysLeft } from "@/lib/checkout";
+import { Notice } from "./ui";
 import { dueReminders } from "@/lib/app/reminders";
 import { MODULES } from "@/lib/app/labels";
 import type { Lang, Member, ModuleId, Role } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
 import { BiltovLogo } from "../BiltovLogo";
+import { ThemeToggle } from "../ThemeToggle";
 import { AuthScreen } from "./AuthScreen";
 import { Onboarding } from "./Onboarding";
 import { companyMissing } from "./CompanyForm";
@@ -218,6 +220,8 @@ function Shell() {
     } catch {}
   };
 
+  const trialLeft = account ? trialDaysLeft(account.createdAt) : TRIAL_DAYS;
+  const trialOver = !isDemo && !subscribed && trialLeft === 0;
   const mods = data.settings.modules;
   const reminders = dueReminders(data).length;
   const role: Role = member?.role ?? "owner";
@@ -293,6 +297,7 @@ function Shell() {
           <GlobalSearch go={go} openDoc={setDocId} />
           <div className="flex items-center gap-2">
             <LangSwitch />
+            <ThemeToggle labels={{ light: t("Mode jour"), dark: t("Mode nuit") }} />
             {data.members.length > 0 && (
               <button onClick={() => setSwitching(true)} className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-400 hover:text-white" title={t("Changer d'utilisateur sur cet appareil")}>
                 <UserCog className="h-4 w-4" /> <span className="hidden lg:inline">{member?.name ?? t("Patron")}</span>
@@ -343,20 +348,25 @@ function Shell() {
               </div>
             </div>
           )}
-          {!isDemo && !subscribed && (
+          {!isDemo && !subscribed && trialLeft > 0 && (
             <div className="glow-border mb-6 flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-blue/15 to-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
               <p className="flex items-start gap-3 text-slate-300">
                 <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-cyan" />
                 <span>
-                  <strong className="text-white">{t("Essai gratuit d'1 jour.")}</strong> {t("Enregistrez votre carte pour continuer ensuite : 80 € HTVA / mois prélevés automatiquement, résiliable à tout moment.")}
-                  {!paymentConfigured && <span className="mt-1 block text-xs text-amber-300">{t("Le lien de paiement Stripe n'est pas encore configuré.")}</span>}
+                  <strong className="text-white">{trialLeft === 1 ? t("Essai gratuit : dernier jour.") : t("Essai gratuit : {n} jours restants.", { n: trialLeft })}</strong>{" "}
+                  {t("Aucune carte demandée pendant l'essai. Pour continuer ensuite : {p} € HTVA / mois, résiliable à tout moment.", { p: PRICE_MONTHLY })}
                 </span>
               </p>
-              {paymentConfigured && (
-                <a href={trialHref()} className="btn-primary shrink-0 !py-2 text-sm">
-                  {t("Enregistrer ma carte")}
+              {subscribeHref() && (
+                <a href={subscribeHref()!} className="btn-primary shrink-0 !py-2 text-sm">
+                  {t("S'abonner")}
                 </a>
               )}
+            </div>
+          )}
+          {trialOver && !paymentConfigured && (
+            <div className="mb-6">
+              <Notice tone="warn">{t("L'essai gratuit est terminé. Le lien de paiement Stripe n'est pas encore configuré : l'accès reste ouvert en attendant.")}</Notice>
             </div>
           )}
           {subscribed && (
@@ -372,6 +382,10 @@ function Shell() {
 
           <AnimatePresence mode="wait">
             <motion.div key={page + (route.id ?? "")} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
+              {trialOver && paymentConfigured && page !== "parametres" ? (
+                <Paywall onBackup={() => go({ page: "parametres" })} />
+              ) : (
+              <>
               {page === "apercu" && <MoneyTab onOpenDoc={setDocId} onOpenJob={openJob} />}
               {page === "chantiers" && <JobsTab onOpen={openJob} onAdd={() => setNewJob({})} />}
               {page === "chantier" && (job ? <JobDetail job={job} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
@@ -386,6 +400,8 @@ function Shell() {
               {page === "flotte" && <FleetTab />}
               {(page === "modules" || page === "module") && <ModulesTab module={page === "module" && route.id && route.id in MODULES ? (route.id as ModuleId) : null} onOpen={(m) => go({ page: "module", id: m })} onBack={() => go({ page: "modules" })} go={goPage} onOpenJob={openJob} />}
               {page === "parametres" && <SettingsTab />}
+              </>
+              )}
             </motion.div>
           </AnimatePresence>
         </main>
@@ -457,6 +473,30 @@ function SwitchUser({ current, onPick, onOwner, onClose }: { current: Member | n
           {t("Choisir un membre de l'équipe (PIN)")}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** Fin de l'essai gratuit : abonnement requis pour continuer (les données restent exportables). */
+function Paywall({ onBackup }: { onBackup: () => void }) {
+  const { t } = useTr();
+  return (
+    <div className="card mx-auto max-w-xl space-y-5 p-8 text-center">
+      <CreditCard className="mx-auto h-10 w-10 text-cyan" />
+      <h1 className="font-display text-2xl font-bold text-white">{t("Votre essai gratuit de {n} jours est terminé", { n: TRIAL_DAYS })}</h1>
+      <p className="text-sm text-slate-400">{t("Abonnez-vous pour continuer à utiliser Biltov. Vos chantiers, devis et factures sont conservés.")}</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <a href={subscribeHref()!} className="btn-primary text-sm">
+          {t("{p} € HTVA / mois", { p: PRICE_MONTHLY })}
+        </a>
+        <a href={subscribeHref(true)!} className="btn-ghost text-sm">
+          {t("{p} € HTVA / an", { p: PRICE_YEARLY })}
+        </a>
+      </div>
+      <p className="text-xs text-slate-500">{t("Paiement sécurisé par Stripe, prélèvement automatique, résiliable à tout moment.")}</p>
+      <button onClick={onBackup} className="text-sm text-cyan hover:underline">
+        {t("Télécharger une sauvegarde de mes données")}
+      </button>
     </div>
   );
 }

@@ -274,7 +274,7 @@ export function PlanningTab() {
                         <button
                           key={e.id}
                           onClick={() => setEditing(e)}
-                          className={cn("block w-full truncate rounded-lg px-2 py-1 text-left text-xs font-medium text-white", e.status === "requested" && "opacity-60 ring-1 ring-dashed ring-amber-300", e.status === "done" && "opacity-50 line-through")}
+                          className={cn("theme-fixed block w-full truncate rounded-lg px-2 py-1 text-left text-xs font-medium text-white", e.status === "requested" && "opacity-60 ring-1 ring-dashed ring-amber-300", e.status === "done" && "opacity-50 line-through")}
                           style={{ background: `${EVENT_KIND[e.kind].color}cc` }}
                           title={`${e.title} · ${e.start.slice(11)}–${e.end.slice(11)}`}
                         >

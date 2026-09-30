@@ -26,7 +26,7 @@ export function BrandingForm({ value, onChange }: { value: Branding; onChange: (
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex items-center gap-3">
           <label className="flex flex-1 cursor-pointer items-center gap-4 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-3 hover:border-cyan/60">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center theme-fixed overflow-hidden rounded-xl bg-white">
               {value.logo ? <img src={value.logo} alt="Logo" className="h-full w-full object-contain" /> : <ImageUp className="h-5 w-5 text-slate-400" />}
             </span>
             <span className="text-sm font-semibold text-slate-200">{value.logo ? t("Changer le logo") : t("Importer votre logo")}</span>

@@ -72,7 +72,7 @@ export function VoiceToPdf() {
       </div>
 
       {/* PDF généré */}
-      <div className="relative overflow-hidden rounded-2xl bg-white p-5 text-slate-800 shadow-[0_20px_60px_-20px_rgba(16,185,129,0.5)]">
+      <div className="relative overflow-hidden theme-fixed rounded-2xl bg-white p-5 text-slate-800 shadow-[0_20px_60px_-20px_rgba(16,185,129,0.5)]">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2 text-xs font-bold tracking-wider text-blue">
             <FileText className="h-4 w-4" /> {v.quote}

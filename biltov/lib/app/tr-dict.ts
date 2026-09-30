@@ -1061,17 +1061,9 @@ export const DICT: Record<string, [string, string]> = {
   "Betalingen registreren",
   "Zahlungen erfassen"
  ],
- "Enregistrer ma carte": [
-  "Mijn kaart registreren",
-  "Meine Karte hinterlegen"
- ],
  "Enregistrer un paiement": [
   "Een betaling registreren",
   "Eine Zahlung erfassen"
- ],
- "Enregistrez votre carte pour continuer ensuite : 80 € HTVA / mois prélevés automatiquement, résiliable à tout moment.": [
-  "Registreer uw kaart om daarna verder te gaan: 80 € excl. btw / maand automatisch afgeschreven, op elk moment opzegbaar.",
-  "Hinterlegen Sie Ihre Karte, um danach weiterzumachen: 80 € netto / Monat automatisch abgebucht, jederzeit kündbar."
  ],
  "Enregistré": [
   "Opgeslagen",
@@ -1152,10 +1144,6 @@ export const DICT: Record<string, [string, string]> = {
  "Espace ouvrier": [
   "Arbeidersruimte",
   "Arbeiterbereich"
- ],
- "Essai gratuit d'1 jour.": [
-  "Gratis proefperiode van 1 dag.",
-  "Kostenlose Testphase von 1 Tag."
  ],
  "Ex. : « Pour Mme Martin, 18 m² de faïence, un receveur de douche et 10 heures de main-d'œuvre »": [
   "Bv.: « Voor mevrouw Martin, 18 m² faience, een douchebak en 10 uur werkuren »",
@@ -4072,5 +4060,57 @@ export const DICT: Record<string, [string, string]> = {
  "erreur": [
   "fout",
   "Fehler"
+ ],
+ "Mode jour": [
+  "Dagmodus",
+  "Tagmodus"
+ ],
+ "Mode nuit": [
+  "Nachtmodus",
+  "Nachtmodus"
+ ],
+ "Essai gratuit : dernier jour.": [
+  "Gratis proefperiode: laatste dag.",
+  "Kostenloser Test: letzter Tag."
+ ],
+ "Essai gratuit : {n} jours restants.": [
+  "Gratis proefperiode: nog {n} dagen.",
+  "Kostenloser Test: noch {n} Tage."
+ ],
+ "Aucune carte demandée pendant l'essai. Pour continuer ensuite : {p} € HTVA / mois, résiliable à tout moment.": [
+  "Geen kaart nodig tijdens de proefperiode. Daarna verder: {p} € excl. btw / maand, op elk moment opzegbaar.",
+  "Keine Karte während des Tests nötig. Danach weiter: {p} € netto / Monat, jederzeit kündbar."
+ ],
+ "S'abonner": [
+  "Abonneren",
+  "Abonnieren"
+ ],
+ "L'essai gratuit est terminé. Le lien de paiement Stripe n'est pas encore configuré : l'accès reste ouvert en attendant.": [
+  "De gratis proefperiode is afgelopen. De Stripe-betaallink is nog niet ingesteld: de toegang blijft intussen open.",
+  "Der kostenlose Test ist beendet. Der Stripe-Zahlungslink ist noch nicht eingerichtet: Der Zugang bleibt bis dahin offen."
+ ],
+ "Votre essai gratuit de {n} jours est terminé": [
+  "Uw gratis proefperiode van {n} dagen is afgelopen",
+  "Ihr kostenloser Test von {n} Tagen ist beendet"
+ ],
+ "Abonnez-vous pour continuer à utiliser Biltov. Vos chantiers, devis et factures sont conservés.": [
+  "Neem een abonnement om Biltov te blijven gebruiken. Uw werven, offertes en facturen blijven bewaard.",
+  "Schließen Sie ein Abonnement ab, um Biltov weiter zu nutzen. Ihre Baustellen, Angebote und Rechnungen bleiben erhalten."
+ ],
+ "{p} € HTVA / mois": [
+  "{p} € excl. btw / maand",
+  "{p} € netto / Monat"
+ ],
+ "{p} € HTVA / an": [
+  "{p} € excl. btw / jaar",
+  "{p} € netto / Jahr"
+ ],
+ "Paiement sécurisé par Stripe, prélèvement automatique, résiliable à tout moment.": [
+  "Beveiligde betaling via Stripe, automatische afschrijving, op elk moment opzegbaar.",
+  "Sichere Zahlung über Stripe, automatische Abbuchung, jederzeit kündbar."
+ ],
+ "Télécharger une sauvegarde de mes données": [
+  "Een back-up van mijn gegevens downloaden",
+  "Eine Sicherung meiner Daten herunterladen"
  ]
 };

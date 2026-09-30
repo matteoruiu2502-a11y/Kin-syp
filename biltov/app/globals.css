@@ -166,3 +166,81 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/* ——— Mode jour ————————————————————————————————————————————————————————————
+   L'interface est dessinée en mode nuit. En mode jour, on réaffecte les couleurs
+   de la palette (texte « blanc » → encre, gris inversés, fond « ink » → clair).
+   `.theme-fixed` garde les couleurs d'origine (feuilles de devis blanches,
+   zone de signature, boutons curseurs…). */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-ink: #f4f6fb;
+  --color-night: #e9eef6;
+  --color-panel: #ffffff;
+  --color-line: rgb(15 23 42 / 0.1);
+  --color-white: oklch(20.8% 0.042 265.755);
+  --color-slate-50: oklch(12.9% 0.042 264.695);
+  --color-slate-100: oklch(20.8% 0.042 265.755);
+  --color-slate-200: oklch(27.9% 0.041 260.031);
+  --color-slate-300: oklch(37.2% 0.044 257.287);
+  --color-slate-400: oklch(44.6% 0.043 257.281);
+  --color-slate-500: oklch(52% 0.046 257.417);
+  --color-slate-600: oklch(70.4% 0.04 256.788);
+  --color-slate-700: oklch(86.9% 0.022 252.894);
+  --color-slate-800: oklch(92.9% 0.013 255.508);
+  --color-slate-900: oklch(96.8% 0.007 247.896);
+  --color-cyan: #0e7490;
+  --color-emerald: #047857;
+  --color-amber-200: oklch(47.3% 0.137 46.201);
+  --color-amber-300: oklch(55.5% 0.163 48.998);
+  --color-rose-300: oklch(58.6% 0.253 17.585);
+  --color-rose-400: oklch(58.6% 0.253 17.585);
+  --color-sky-200: oklch(44.3% 0.11 240.79);
+  --color-sky-300: oklch(50% 0.134 242.749);
+  --color-rose-200: oklch(51.4% 0.222 16.935);
+  --color-amber-400: oklch(66.6% 0.179 58.318);
+  --color-orange-300: oklch(55.3% 0.195 38.402);
+  --color-red-300: oklch(50.5% 0.213 27.518);
+  --color-violet-300: oklch(49.1% 0.27 292.581);
+}
+:root[data-theme="light"] .theme-fixed,
+:root[data-theme="light"] [class*="bg-black"],
+:root[data-theme="light"] .bg-blue {
+  --color-white: #fff;
+  --color-slate-50: oklch(98.4% 0.003 247.858);
+  --color-slate-100: oklch(96.8% 0.007 247.896);
+  --color-slate-200: oklch(92.9% 0.013 255.508);
+  --color-slate-300: oklch(86.9% 0.022 252.894);
+  --color-slate-400: oklch(70.4% 0.04 256.788);
+  --color-slate-500: oklch(55.4% 0.046 257.417);
+  --color-slate-600: oklch(44.6% 0.043 257.281);
+  --color-slate-700: oklch(37.2% 0.044 257.287);
+  --color-slate-800: oklch(27.9% 0.041 260.031);
+  --color-slate-900: oklch(20.8% 0.042 265.755);
+}
+:root[data-theme="light"] body {
+  color: oklch(27.9% 0.041 260.031);
+}
+:root[data-theme="light"] .bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(15 23 42 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.06) 1px, transparent 1px);
+}
+:root[data-theme="light"] .card {
+  background: linear-gradient(160deg, #ffffff, #f8fafc);
+  box-shadow:
+    0 1px 0 rgb(255 255 255) inset,
+    0 18px 40px -24px rgb(15 23 42 / 0.25);
+}
+:root[data-theme="light"] .btn-ghost {
+  color: oklch(27.9% 0.041 260.031);
+  background: rgb(15 23 42 / 0.03);
+  border-color: rgb(15 23 42 / 0.12);
+}
+:root[data-theme="light"] .btn-ghost:hover {
+  background: rgb(15 23 42 / 0.07);
+  border-color: rgb(15 23 42 / 0.2);
+}
+:root[data-theme="light"] .range {
+  background: linear-gradient(to right, #0066ff, #10b981 var(--fill, 50%), rgb(15 23 42 / 0.1) var(--fill, 50%));
+}

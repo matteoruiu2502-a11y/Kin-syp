@@ -66,7 +66,7 @@ export function SignaturePad({ onChange }: { onChange: (dataUrl: string | null) 
           <Eraser className="h-3.5 w-3.5" /> {t("Effacer")}
         </button>
       </div>
-      <canvas ref={canvas} className="h-44 w-full touch-none rounded-xl bg-white" />
+      <canvas ref={canvas} className="h-44 w-full theme-fixed touch-none rounded-xl bg-white" />
     </div>
   );
 }

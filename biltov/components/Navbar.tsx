@@ -8,6 +8,7 @@ import { BiltovLogo } from "./BiltovLogo";
 import { useI18n } from "@/lib/i18n";
 import { DASHBOARD_PATH, trialHref } from "@/lib/checkout";
 import { LangSwitch } from "./LangSwitch";
+import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
@@ -30,6 +31,7 @@ export function Navbar() {
   ];
 
   const langSwitch = <LangSwitch />;
+  const themeToggle = <ThemeToggle labels={{ light: t.nav.lightMode, dark: t.nav.darkMode }} />;
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
@@ -56,6 +58,7 @@ export function Navbar() {
 
         <div className="hidden items-center gap-3 xl:flex">
           {langSwitch}
+          {themeToggle}
           <Link href={DASHBOARD_PATH} className="btn-ghost whitespace-nowrap !px-4 !py-2.5 text-sm" aria-label={t.nav.dashboard} title={t.nav.dashboard}>
             <LayoutDashboard className="h-4 w-4" /> {t.nav.dashboard}
           </Link>
@@ -64,6 +67,7 @@ export function Navbar() {
           </a>
         </div>
 
+        <div className="flex items-center gap-2 xl:hidden">{themeToggle}</div>
         <button className="rounded-xl p-2 text-slate-200 xl:hidden" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={open ? t.nav.closeMenu : t.nav.openMenu}>
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
