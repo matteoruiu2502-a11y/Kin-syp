@@ -15,11 +15,11 @@ import { Empty, Field, Modal, Notice, Toggle, inputClass } from "./ui";
 export const expenseHt = (e: Expense) => round2(e.amountTTC / (1 + e.vat / 100));
 
 /** Ticket / note de frais : photo lue par OCR (fournisseur, date, total TVAC). */
-export function ExpenseForm({ jobId, expense, onClose }: { jobId: string | null; expense: Expense | null; onClose: () => void }) {
+export function ExpenseForm({ jobId, expense, onClose, workerId }: { jobId: string | null; expense: Expense | null; onClose: () => void; workerId?: string }) {
   const { t } = useTr();
   const f = useFmt();
   const { data, upsert, putBlob } = useAppData();
-  const [e, setE] = useState<Expense>(expense ?? { id: uid(), jobId, memberId: null, date: todayIso(), supplier: "", label: "", amountTTC: 0, vat: 21, receiptId: null, reimbursable: false, status: "draft" });
+  const [e, setE] = useState<Expense>(expense ?? { id: uid(), jobId, memberId: workerId ?? null, date: todayIso(), supplier: "", label: "", amountTTC: 0, vat: 21, receiptId: null, reimbursable: !!workerId, status: workerId ? "submitted" : "draft" });
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [scan, setScan] = useState<number | null>(null);

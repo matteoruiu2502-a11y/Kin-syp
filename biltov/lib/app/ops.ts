@@ -243,7 +243,9 @@ export function jobFinance(d: AccountData, jobId: string) {
   const invoicedTvac = round2(invoices.reduce((s, x) => s + computeTotals(x).payable, 0) - credits.reduce((s, x) => s + computeTotals(x).tvac, 0));
   const cashed = round2(invoices.reduce((s, x) => s + computeTotals(x).paid, 0));
   const purchases = round2(d.purchases.filter((p) => p.jobId === jobId && p.type === "invoice").reduce((s, p) => s + p.lines.reduce((a, l) => a + l.qty * l.unitPrice, 0), 0));
-  const expenses = round2(d.expenses.filter((e) => e.jobId === jobId).reduce((s, e) => s + e.amountTTC / (1 + e.vat / 100), 0));
+  const vehicleCosts = d.vehicles.flatMap((v) => v.costs).filter((c) => c.jobId === jobId).reduce((s, c) => s + c.amount, 0);
+  const rentals = d.records.filter((r) => r.module === "rentals" && r.jobId === jobId && r.fields.billTo !== "client").reduce((s, r) => s + Number(r.fields.cost ?? 0), 0);
+  const expenses = round2(d.expenses.filter((e) => e.jobId === jobId).reduce((s, e) => s + e.amountTTC / (1 + e.vat / 100), 0) + vehicleCosts + rentals);
   const labour = round2(d.timeEntries.filter((t) => t.jobId === jobId).reduce((s, t) => s + t.hours * (d.members.find((m) => m.id === t.memberId)?.hourlyCost ?? 0), 0));
   const plannedCost = round2(signed.reduce((s, q) => s + computeTotals(q).cost, 0));
   const revenue = Math.max(quoted, invoiced);

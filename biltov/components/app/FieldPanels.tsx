@@ -332,12 +332,12 @@ export function FilesPanel({ jobId, clientId }: { jobId: string | null; clientId
 }
 
 /** Messagerie interne du chantier (bureau ↔ équipes). */
-export function ChatPanel({ jobId }: { jobId: string }) {
+export function ChatPanel({ jobId, authorId }: { jobId: string; authorId?: string }) {
   const { t } = useTr();
   const f = useFmt();
   const { data, upsert, account } = useAppData();
   const [text, setText] = useState("");
-  const [as, setAs] = useState(data.members.find((m) => m.role === "owner")?.id ?? "");
+  const [as, setAs] = useState(authorId ?? data.members.find((m) => m.role === "owner")?.id ?? "");
   const msgs = data.records.filter((r) => r.module === "chat" && r.jobId === jobId).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   const send = () => {
     if (!text.trim()) return;
@@ -362,6 +362,7 @@ export function ChatPanel({ jobId }: { jobId: string }) {
         {!msgs.length && <p className="text-sm text-slate-500">{t("Aucun message.")}</p>}
       </div>
       <div className="flex gap-2">
+        {!authorId && (
         <select className={cn(inputClass, "!w-40")} value={as} onChange={(e) => setAs(e.target.value)} aria-label={t("Auteur")}>
           <option value="">{t("Moi")}</option>
           {data.members.map((m) => (
@@ -370,6 +371,7 @@ export function ChatPanel({ jobId }: { jobId: string }) {
             </option>
           ))}
         </select>
+        )}
         <input className={inputClass} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder={t("Message à l'équipe…")} />
         <button onClick={send} className="btn-primary !px-3" aria-label={t("Envoyer")}>
           <Send className="h-4 w-4" />

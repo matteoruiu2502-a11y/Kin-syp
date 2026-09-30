@@ -53,6 +53,13 @@ export function legal<K extends LegalKey>(key: K, date = new Date().toISOString(
   return row.value;
 }
 
+/** Comme legal(), mais null si aucune valeur n'est encore en vigueur à cette date (mesure future). */
+export function legalInForce<K extends LegalKey>(key: K, date = new Date().toISOString().slice(0, 10)): ValueOf<K> | null {
+  const rows = LEGAL_TABLE[key] as LegalValue<ValueOf<K>>[];
+  const row = [...rows].sort((a, b) => b.validFrom.localeCompare(a.validFrom)).find((r) => r.validFrom <= date && (!r.validTo || r.validTo >= date));
+  return row ? row.value : null;
+}
+
 export function legalRow(key: LegalKey, date = new Date().toISOString().slice(0, 10)) {
   const rows = LEGAL_TABLE[key] as LegalValue<unknown>[];
   return [...rows].sort((a, b) => b.validFrom.localeCompare(a.validFrom)).find((r) => r.validFrom <= date) ?? rows[0];
