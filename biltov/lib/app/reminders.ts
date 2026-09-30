@@ -1,53 +1,79 @@
-// Relances d'impayés : J+7, J+14 et J+21 après l'échéance, avec un ton de plus en plus ferme.
+// Relances d'impayés conformes au droit belge, calculées à partir du moteur « tax/belgium ».
 
-import { addDays, todayIso } from "./defaults";
-import { computeTotals, eur } from "./money";
-import { fmtDate } from "./legal";
-import type { Company, Doc, Job } from "./types";
+import { b2bFlatIndemnity, b2bInterestRate, b2cIndemnityCap, b2cMaxInterestRate, dunningPlan, lateInterest, type DunningStep } from "../tax/belgium";
+import { todayIso } from "./defaults";
+import { dt, fmtDate, LOCALE } from "./docText";
+import { computeTotals, eur, round2 } from "./money";
+import type { AccountData, Client, Doc, Job, Lang } from "./types";
 
-export const REMINDER_STEPS = [
-  { day: 7, title: "Rappel courtois" },
-  { day: 14, title: "Relance ferme" },
-  { day: 21, title: "Mise en demeure" },
-] as const;
+export type ReminderState = { doc: Doc; job: Job | undefined; client: Client | undefined; b2c: boolean; step: number; plan: DunningStep[]; nextDate: string | null; due: boolean; fees: number; interest: number; blocked: string | null };
 
-export type DueReminder = { doc: Doc; job: Job; step: number; date: string; overdueDays: number };
+const reminderSends = (doc: Doc) => doc.sends.filter((s) => s.kind === "reminder").sort((a, b) => a.at.localeCompare(b.at));
 
-const sentSteps = (doc: Doc) => new Set(doc.sends.filter((s) => s.kind === "reminder").map((s) => s.step));
-
-/** Relances dues aujourd'hui (ou en retard) pour les factures émises non payées. */
-export function dueReminders(docs: Doc[], jobs: Job[], today = todayIso()): DueReminder[] {
-  const out: DueReminder[] = [];
-  for (const doc of docs) {
-    if (doc.type !== "invoice" || doc.status !== "issued") continue;
-    const job = jobs.find((j) => j.id === doc.jobId);
-    if (!job) continue;
-    // Prochaine étape non envoyée, si sa date est atteinte
-    const sent = sentSteps(doc);
-    const step = REMINDER_STEPS.findIndex((_, k) => !sent.has(k));
-    if (step === -1) continue;
-    const date = addDays(doc.dueDate, REMINDER_STEPS[step].day);
-    if (date > today) continue;
-    out.push({ doc, job, step, date, overdueDays: Math.round((Date.parse(today) - Date.parse(doc.dueDate)) / 86_400_000) });
+/** Frais réclamables à une date : B2C seulement après le délai de 14 jours (plafonnés) ; B2B intérêts + forfait. */
+export function feesFor(doc: Doc, b2c: boolean, plan: DunningStep[], today: string) {
+  const t = computeTotals(doc);
+  if (b2c) {
+    const allowedFrom = plan[1]?.earliest;
+    if (!allowedFrom || today < allowedFrom) return { fees: 0, interest: 0 };
+    return { fees: b2cIndemnityCap(t.due, today), interest: lateInterest(t.due, b2cMaxInterestRate(today), allowedFrom, today) };
   }
-  return out.sort((a, b) => a.date.localeCompare(b.date));
+  if (today <= doc.dueDate) return { fees: 0, interest: 0 };
+  return { fees: b2bFlatIndemnity(today), interest: lateInterest(t.due, b2bInterestRate(today), doc.dueDate, today) };
 }
 
-export function reminderSchedule(doc: Doc) {
-  const sent = sentSteps(doc);
-  return REMINDER_STEPS.map((s, i) => ({ ...s, date: addDays(doc.dueDate, s.day), sent: sent.has(i) }));
+export function reminderState(d: AccountData, doc: Doc, today = todayIso()): ReminderState {
+  const job = d.jobs.find((j) => j.id === doc.jobId);
+  const client = d.clients.find((c) => c.id === doc.clientId);
+  const b2c = !client || client.kind === "particulier";
+  const sends = reminderSends(doc);
+  const first = sends[0];
+  const plan = dunningPlan({ b2c, dueDate: doc.dueDate, firstReminderSent: first?.at.slice(0, 10), channel: first?.channel === "post" ? "postal" : "electronic" });
+  const step = sends.length;
+  const next = plan[step];
+  const { fees, interest } = step === 0 ? { fees: 0, interest: 0 } : feesFor(doc, b2c, plan, today);
+  const blocked = doc.dispute.active ? "Contestation / plan de paiement en cours : relances suspendues" : null;
+  return { doc, job, client, b2c, step, plan, nextDate: next?.earliest ?? null, due: !blocked && !!next && next.earliest <= today && (doc.status === "issued" || doc.status === "partial"), fees, interest, blocked };
 }
 
-export function reminderMessage(step: number, doc: Doc, job: Job, company: Company) {
-  const amount = eur(computeTotals(doc).due);
-  const ref = `la facture ${doc.number} du ${fmtDate(doc.issueDate)} (${amount})`;
-  const pay = company.iban ? `\n\nRèglement par virement : IBAN ${company.iban}, référence ${doc.number}.` : "";
-  const sign = `\n\n${company.owner || company.name}\n${company.name}${company.phone ? ` — ${company.phone}` : ""}`;
-  const hello = `Bonjour ${job.client},`;
-  const bodies = [
-    `${hello}\n\nSauf erreur de notre part, ${ref}, arrivée à échéance le ${fmtDate(doc.dueDate)}, reste à régler. Si le paiement a été effectué entre-temps, merci de ne pas tenir compte de ce message.${pay}${sign}`,
-    `${hello}\n\nMalgré notre précédent rappel, ${ref} demeure impayée à ce jour. Nous vous remercions de procéder à son règlement sous 7 jours.${pay}${sign}`,
-    `${hello}\n\nPar la présente, nous vous mettons en demeure de régler ${ref}, échue le ${fmtDate(doc.dueDate)}, dans un délai de 8 jours à compter de la réception de ce message. À défaut, nous engagerons les démarches de recouvrement ; des pénalités de retard${job.clientType === "professionnel" ? " et l'indemnité forfaitaire de 40 € pour frais de recouvrement" : ""} sont applicables.${pay}${sign}`,
-  ];
-  return { subject: `${REMINDER_STEPS[step].title} — facture ${doc.number}`, body: bodies[step] };
+export function dueReminders(d: AccountData, today = todayIso()) {
+  return d.docs
+    .filter((x) => x.type === "invoice" && x.lockedAt && (x.status === "issued" || x.status === "partial"))
+    .map((x) => reminderState(d, x, today))
+    .filter((r) => r.due)
+    .sort((a, b) => (a.nextDate ?? "").localeCompare(b.nextDate ?? ""));
 }
+
+const fill = (s: string, vars: Record<string, string>) => s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+
+/** Message de relance (modèle éditable des paramètres), dans la langue du client. */
+export function reminderMessage(d: AccountData, r: ReminderState, lang?: Lang) {
+  const l = lang ?? r.client?.lang ?? d.company.lang;
+  const loc = LOCALE[l];
+  const tpl = d.settings.reminderTemplates[Math.min(r.step, d.settings.reminderTemplates.length - 1)];
+  const t = computeTotals(r.doc);
+  const extra = round2(r.fees + r.interest);
+  const b2cNote = {
+    fr: `Ce premier rappel est gratuit. En l'absence de paiement dans les 14 jours, une indemnité de ${eur(b2cIndemnityCap(t.due), loc)} maximum et des intérêts de retard pourront être réclamés.`,
+    nl: `Deze eerste herinnering is kosteloos. Bij gebrek aan betaling binnen 14 dagen kunnen een schadevergoeding van maximaal ${eur(b2cIndemnityCap(t.due), loc)} en nalatigheidsinteresten worden gevorderd.`,
+    de: `Diese erste Erinnerung ist kostenlos. Erfolgt die Zahlung nicht innerhalb von 14 Tagen, können eine Entschädigung von höchstens ${eur(b2cIndemnityCap(t.due), loc)} und Verzugszinsen verlangt werden.`,
+  }[l];
+  const vars = {
+    client: r.client?.contactName || r.client?.name || "",
+    numero: r.doc.number ?? "",
+    date: fmtDate(r.doc.issueDate, l),
+    prestation: r.job?.name ?? "",
+    montant: eur(t.due, loc),
+    montant_total: eur(round2(t.due + extra), loc),
+    frais: extra ? `${eur(r.fees, loc)} + ${eur(r.interest, loc)}` : eur(0, loc),
+    echeance: fmtDate(r.doc.dueDate, l),
+    iban: d.company.iban,
+    communication: r.doc.structuredComm || r.doc.number || "",
+    mention_b2c: r.b2c && r.step === 0 ? b2cNote : "",
+    entreprise: d.company.name,
+    bce: d.company.bce,
+  };
+  return { subject: fill(tpl.subject[l], vars), body: fill(tpl.body[l], vars).replace(/\n{3,}/g, "\n\n"), title: dt(l, "reminder") };
+}
+
+export const STEP_LABEL = (r: ReminderState) => (r.b2c ? ["1er rappel (gratuit)", "Relance avec frais", "Mise en demeure"] : ["Rappel", "Relance (intérêts + indemnité)", "Mise en demeure"])[Math.min(r.step, 2)];

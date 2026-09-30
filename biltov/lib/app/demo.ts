@@ -1,16 +1,17 @@
-// Espace de démonstration : entreprise et données fictives, pour découvrir Biltov sans compte.
+// Espace de démonstration belge : entreprise, clients et chantiers fictifs, pour découvrir Biltov sans compte.
 
-import { addDays, defaultSettings, emptyCompany, newDoc, newJob, todayIso, uid } from "./defaults";
 import { idbSet } from "./db";
-import type { Account, AccountData, Doc, Line, Photo, VatRate } from "./types";
+import { addDays, emptyAccountData, newArticle, newClient, newJob, newLine, nowIso, todayIso, uid } from "./defaults";
+import { addPayment, createQuote, issueDoc, logSend, quoteToInvoice, signQuote } from "./ops";
+import { recalcAll } from "./catalog/pricing";
+import { computeTotals } from "./money";
+import type { Account, AccountData, GenericRecord, Photo } from "./types";
 
 export const DEMO_ID = "demo";
-export const demoAccount: Account = { id: DEMO_ID, email: "demo@biltov.fr", salt: "", hash: "", createdAt: new Date(0).toISOString() };
+export const demoAccount: Account = { id: DEMO_ID, email: "demo@biltov.be", salt: "", hash: "", createdAt: new Date(0).toISOString() };
 
-const L = (label: string, qty: number, unit: string, unitPrice: number, vat: VatRate = 10): Line => ({ id: uid(), label, qty, unit, unitPrice, vat });
-const d = (days: number) => addDays(todayIso(), days);
+const d0 = (n: number) => addDays(todayIso(), n);
 
-/** Photo de démonstration dessinée à la volée (aucun fichier à télécharger). */
 async function drawPhoto(kind: "avant" | "apres"): Promise<Blob> {
   const c = Object.assign(document.createElement("canvas"), { width: 1200, height: 900 });
   const g = c.getContext("2d")!;
@@ -27,24 +28,14 @@ async function drawPhoto(kind: "avant" | "apres"): Promise<Blob> {
     g.lineTo(280, 520);
     g.lineTo(420, 760);
     g.stroke();
-    g.fillStyle = "#8b8378";
-    g.fillRect(0, 720, 1200, 180);
   } else {
     g.fillStyle = "#eef2f5";
     g.fillRect(0, 0, 1200, 720);
     g.strokeStyle = "#cfd8dc";
     g.lineWidth = 3;
     for (let x = 0; x <= 1200; x += 150) g.strokeRect(x, 0, 150, 720);
-    for (let y = 0; y <= 720; y += 75) {
-      g.beginPath();
-      g.moveTo(0, y);
-      g.lineTo(1200, y);
-      g.stroke();
-    }
-    const grad = g.createLinearGradient(0, 720, 1200, 900);
-    grad.addColorStop(0, "#a0764f");
-    grad.addColorStop(1, "#c79a6b");
-    g.fillStyle = grad;
+    for (let y = 0; y <= 720; y += 75) g.strokeRect(0, y, 1200, 75);
+    g.fillStyle = "#b08560";
     g.fillRect(0, 720, 1200, 180);
   }
   g.fillStyle = "rgba(0,0,0,.55)";
@@ -55,71 +46,165 @@ async function drawPhoto(kind: "avant" | "apres"): Promise<Blob> {
   return new Promise((res) => c.toBlob((b) => res(b!), "image/jpeg", 0.85));
 }
 
+const rec = (module: GenericRecord["module"], title: string, status: string, fields: GenericRecord["fields"], extra: Partial<GenericRecord> = {}): GenericRecord => ({ id: uid(), module, title, status, fields, jobId: null, clientId: null, memberId: null, createdAt: nowIso(), updatedAt: nowIso(), ...extra });
+
 export async function buildDemoData(): Promise<AccountData> {
-  const company = {
-    ...emptyCompany("contact@dupont-renovation.fr"),
-    name: "Dupont Rénovation (démo)",
+  let d = emptyAccountData("info@dupont-renovation.be");
+  d.company = {
+    ...d.company,
+    name: "Dupont Rénovation SRL (démo)",
     owner: "Jean Dupont",
-    legalForm: "SARL" as const,
-    capital: "10 000 €",
-    address: "12 rue des Artisans",
-    postcode: "69003",
-    city: "Lyon",
-    phone: "04 78 00 00 00",
-    siret: "90012345600007",
-    registry: "RCS Lyon 900 123 456",
-    vatNumber: "FR" + String((12 + 3 * (900123456 % 97)) % 97).padStart(2, "0") + "900123456",
-    insurer: "Assureur Exemple",
-    insurerContact: "1 place de la Bourse, 69002 Lyon",
-    policyNumber: "DEC-000000",
-    coverage: "France métropolitaine",
-    mediatorName: "Médiateur Exemple",
-    mediatorUrl: "https://www.exemple-mediateur.fr",
-    iban: "FR76 3000 6000 0112 3456 7890 189",
-    bic: "AGRIFRPP",
+    legalForm: "SRL",
+    address: { street: "Rue des Artisans 12", postcode: "4000", city: "Liège", country: "BE" },
+    phone: "04 123 45 67",
+    email: "info@dupont-renovation.be",
+    bce: "0799.999.085",
+    rpm: "RPM Liège",
+    insurer: "Assureur Exemple SA",
+    insurerContact: "Boulevard d'Avroy 1, 4000 Liège",
+    policyNumber: "RC-000000",
+    iban: "BE68 5390 0754 7034",
+    bic: "GKCCBEBB",
+    trade: "plombier",
   };
 
-  const durand = newJob({ name: "Salle de bain Durand", client: "Paul Durand", clientAddress: "8 avenue Foch, 69006 Lyon", clientEmail: "paul.durand@exemple.fr", clientPhone: "06 12 34 56 78", city: "Lyon", trade: "plombier", status: "in_progress", date: d(-40), startDate: d(-30), duration: "5 jours", reducedVatEligible: true });
-  const girard = newJob({ name: "Tableau électrique Girard", client: "Marc Girard", clientAddress: "3 rue Pasteur, 69100 Villeurbanne", clientPhone: "06 98 76 54 32", city: "Villeurbanne", trade: "electricien", status: "sent", date: d(-3), reducedVatEligible: true });
-  const roux = newJob({ name: "Fenêtres PVC Roux", client: "Claire Roux", clientAddress: "14 chemin des Vignes, 69130 Écully", clientEmail: "claire.roux@exemple.fr", city: "Écully", trade: "menuisier", status: "done", date: d(-60), reducedVatEligible: true });
-  const horizon = newJob({ name: "Local commercial SCI Horizon", client: "SCI Horizon", clientType: "professionnel", clientSiren: "900123456", clientAddress: "45 cours Lafayette, 69003 Lyon", clientEmail: "gestion@exemple.fr", city: "Lyon", trade: "peintre", status: "draft", date: d(0) });
-  const bernard = newJob({ name: "Ravalement Bernard", client: "Alain Bernard", clientAddress: "2 impasse du Moulin, 69160 Tassin", city: "Tassin", trade: "peintre", status: "refused", date: d(-25), notes: "Trop cher selon le client" });
+  // Équipe
+  const patron = { id: uid(), name: "Jean Dupont", role: "owner" as const, phone: "0470 00 00 01", email: "jean@dupont.be", lang: "fr" as const, hourlyCost: 0, color: "#0066FF", pin: "1111", active: true };
+  const karim = { id: uid(), name: "Karim B.", role: "worker" as const, phone: "0470 00 00 02", email: "", lang: "fr" as const, hourlyCost: 38, color: "#10B981", pin: "2222", active: true };
+  const piotr = { id: uid(), name: "Piotr K.", role: "worker" as const, phone: "0470 00 00 03", email: "", lang: "nl" as const, hourlyCost: 36, color: "#F59E0B", pin: "3333", active: true };
+  d.members = [patron, karim, piotr];
 
-  const qDurand = newDoc({ jobId: durand.id, type: "quote", number: "D-2026-0001", status: "accepted", issueDate: d(-40), validUntil: d(-10), depositPercent: 30, lines: [L("Dépose ancienne baignoire et évacuation gravats", 1, "forfait", 380), L("Receveur extra-plat 90×120 + bonde", 1, "u", 540), L("Faïence murale 30×60 posée", 18, "m²", 68), L("Mitigeur thermostatique douche", 1, "u", 290), L("Main d'œuvre plombier", 16, "h", 55)] });
-  const depDurand = newDoc({ jobId: durand.id, type: "invoice", kind: "deposit", number: "F-2026-0001", status: "paid", issueDate: d(-38), workDate: d(-38), dueDate: d(-38), lockedAt: d(-38), sourceId: qDurand.id, paidAt: d(-36), paymentMethod: "Virement", lines: [L("Acompte de 30 % sur devis D-2026-0001", 1, "forfait", 994.2)] });
-  const qGirard = newDoc({ jobId: girard.id, type: "quote", number: "D-2026-0004", status: "sent", issueDate: d(-3), validUntil: d(27), depositPercent: 30, lines: [L("Tableau électrique 3 rangées 39 modules", 1, "u", 128), L("Interrupteur différentiel 40 A 30 mA type A", 2, "u", 74), L("Disjoncteur 16 A", 12, "u", 11.5), L("Main d'œuvre électricien", 6, "h", 55)], sends: [{ at: new Date(Date.now() - 3 * 864e5).toISOString(), channel: "whatsapp", kind: "document" }] });
-  const qRoux = newDoc({ jobId: roux.id, type: "quote", number: "D-2026-0002", status: "accepted", issueDate: d(-60), validUntil: d(-30), lines: [L("Fenêtre PVC 2 vantaux 120×135 Uw 1,3", 3, "u", 540, 5.5), L("Dépose menuiserie bois existante", 3, "u", 65, 5.5), L("Habillage + couvre-joints", 3, "u", 48, 5.5)] });
-  const fRoux = newDoc({ jobId: roux.id, type: "invoice", kind: "full", number: "F-2026-0002", status: "issued", issueDate: d(-40), workDate: d(-42), dueDate: d(-10), lockedAt: d(-40), sourceId: qRoux.id, lines: qRoux.lines.map((l) => ({ ...l, id: uid() })), sends: [{ at: new Date(Date.now() - 40 * 864e5).toISOString(), channel: "email", kind: "document" }] });
-  const qHorizon = newDoc({ jobId: horizon.id, type: "quote", number: "D-2026-0005", status: "draft", issueDate: d(0), validUntil: d(30), depositPercent: 30, lines: [L("Lessivage et rebouchage des murs", 120, "m²", 6, 20), L("Peinture acrylique velours 2 couches", 120, "m²", 16, 20), L("Protection des sols et évacuation", 1, "forfait", 180, 20)] });
-  const qBernard = newDoc({ jobId: bernard.id, type: "quote", number: "D-2026-0003", status: "refused", issueDate: d(-25), validUntil: d(5), lines: [L("Ravalement façade enduit", 140, "m²", 58), L("Échafaudage", 1, "forfait", 1200)] });
+  // Fournisseurs et sous-traitants
+  const negoce = { id: uid(), kind: "supplier" as const, name: "Négoce Matériaux (démo)", bce: "0712.345.036", email: "commandes@negoce.be", phone: "04 000 00 00", address: { street: "Quai 5", postcode: "4020", city: "Liège", country: "BE" }, trade: "" as const, importMapping: null, notes: "" };
+  const soustraitant = { id: uid(), kind: "subcontractor" as const, name: "Électricité Martin (démo)", bce: "0654.321.022", email: "martin@elec.be", phone: "0471 00 00 00", address: { street: "Rue Haute 3", postcode: "4100", city: "Seraing", country: "BE" }, trade: "electricien" as const, importMapping: null, notes: "" };
+  d.suppliers = [negoce, soustraitant];
 
-  const docs: Doc[] = [qHorizon, qGirard, qBernard, fRoux, qRoux, depDurand, qDurand];
-  const settings = { ...defaultSettings(), counters: { "D-2026": 5, "F-2026": 2 } };
+  // Catalogue
+  const a = (ref: string, fr: string, nl: string, de: string, unit: string, purchase: number, margin: number, type: "supply" | "labour" = "supply", category: "installed_material" | "labour" | "supply_only" = type === "labour" ? "labour" : "installed_material", family = "Sanitaire") =>
+    newArticle({ ref, name: { fr, nl, de }, unit, purchasePrice: purchase, marginPercent: margin, type, category, family, trade: "plombier", supplierId: type === "supply" ? negoce.id : null });
+  const moPlomb = a("MO-PLB", "Main-d'œuvre plombier", "Arbeidsloon loodgieter", "Arbeitszeit Installateur", "h", 38, 45, "labour", "labour", "Main-d'œuvre");
+  const moCarr = a("MO-CAR", "Main-d'œuvre carreleur", "Arbeidsloon tegelzetter", "Arbeitszeit Fliesenleger", "h", 36, 50, "labour", "labour", "Main-d'œuvre");
+  const receveur = a("REC-90", "Receveur de douche extra-plat 90×120", "Extra platte douchebak 90×120", "Flache Duschwanne 90×120", "u", 260, 40);
+  const mitigeur = a("MIT-TH", "Mitigeur thermostatique douche", "Thermostatische douchemengkraan", "Thermostat-Duscharmatur", "u", 140, 40);
+  const faience = a("FAI-3060", "Faïence murale 30×60", "Wandtegel 30×60", "Wandfliese 30×60", "m²", 24, 45, "supply", "installed_material", "Carrelage");
+  const colle = a("COL-C2", "Colle carrelage C2 25 kg", "Tegellijm C2 25 kg", "Fliesenkleber C2 25 kg", "u", 17, 40, "supply", "installed_material", "Carrelage");
+  const joint = a("JNT-5", "Joint gris 5 kg", "Voegmiddel grijs 5 kg", "Fugenmörtel grau 5 kg", "u", 11, 40, "supply", "installed_material", "Carrelage");
+  const boiler = a("BOIL-200", "Chauffe-eau électrique 200 L", "Elektrische boiler 200 L", "Elektro-Warmwasserspeicher 200 L", "u", 390, 30);
+  const chaudiere = a("CH-GAZ", "Chaudière gaz à condensation 24 kW", "Condensatieketel gas 24 kW", "Gas-Brennwertkessel 24 kW", "u", 1650, 25, "supply", "installed_material", "Chauffage");
+  const entretien = a("ENT-CH", "Entretien annuel chaudière", "Jaarlijks onderhoud ketel", "Jährliche Kesselwartung", "forfait", 60, 80, "labour", "labour", "Chauffage");
+  const pac = a("PAC-8", "Pompe à chaleur air-eau 8 kW", "Lucht-water warmtepomp 8 kW", "Luft-Wasser-Wärmepumpe 8 kW", "u", 5200, 25, "supply", "installed_material", "Chauffage");
+  const kit = newArticle({ ref: "OUV-FAI", name: { fr: "Pose faïence murale (ouvrage / m²)", nl: "Plaatsing wandtegels (per m²)", de: "Verlegung Wandfliesen (je m²)" }, unit: "m²", type: "package", category: "installed_material", family: "Carrelage", trade: "plombier", components: [{ articleId: faience.id, qty: 1.1 }, { articleId: colle.id, qty: 0.2 }, { articleId: joint.id, qty: 0.1 }, { articleId: moCarr.id, qty: 0.8 }] });
+  const depose = a("DEP-CAR", "Dépose ancien carrelage", "Verwijderen oude tegels", "Abbruch alte Fliesen", "m²", 8, 60, "labour", "labour", "Carrelage");
+  kit.related = [depose.id];
+  chaudiere.category = "fossil_boiler_install";
+  entretien.category = "fossil_boiler_service";
+  pac.category = "heat_pump";
+  d.articles = recalcAll([moPlomb, moCarr, receveur, mitigeur, faience, colle, joint, boiler, chaudiere, entretien, pac, kit, depose]);
 
-  // Photos du chantier Durand
+  // Clients
+  const durand = newClient({ kind: "particulier", name: "Paul Durand", lang: "fr", email: "paul.durand@exemple.be", phone: "0475 12 34 56", billing: { street: "Avenue Rogier 8", postcode: "4000", city: "Liège", country: "BE" }, source: "Bouche-à-oreille", marketingConsent: true });
+  const peeters = newClient({ kind: "particulier", name: "An Peeters", lang: "nl", email: "an.peeters@voorbeeld.be", phone: "0476 98 76 54", billing: { street: "Kerkstraat 21", postcode: "9000", city: "Gent", country: "BE" }, source: "Site web" });
+  const bouw = newClient({ kind: "assujetti", name: "Bouw & Co NV (démo)", contactName: "Dhr. Jansens", lang: "nl", bce: "0888.888.006", vatNumber: "BE0888888006", email: "facturen@bouwco.be", phone: "09 000 00 00", billing: { street: "Industrieweg 4", postcode: "9000", city: "Gent", country: "BE" }, priceListId: "pro", source: "Architecte" });
+  const horizon = newClient({ kind: "assujetti", name: "SCI Horizon SA (démo)", lang: "fr", bce: "0712.345.036", vatNumber: "BE0712345036", email: "gestion@horizon.be", billing: { street: "Place Saint-Lambert 1", postcode: "4000", city: "Liège", country: "BE" }, priceListId: "pro" });
+  d.clients = [durand, peeters, bouw, horizon];
+
+  // Chantiers
+  const jDurand = newJob({ clientId: durand.id, name: "Salle de bain Durand", trade: "plombier", status: "in_progress", date: d0(-40), firstOccupationYear: 1978, startDate: d0(-30), endDate: d0(5), memberIds: [karim.id], probability: 100 });
+  const jPeeters = newJob({ clientId: peeters.id, name: "Badkamer Peeters", trade: "plombier", status: "sent", date: d0(-4), firstOccupationYear: 2019, probability: 60 });
+  const jBouw = newJob({ clientId: bouw.id, name: "Appartementen Bouw & Co — sanitair", trade: "plombier", status: "in_progress", date: d0(-50), memberIds: [piotr.id, karim.id], probability: 100 });
+  const jHorizon = newJob({ clientId: horizon.id, name: "Remplacement chaudière Horizon", trade: "plombier", status: "draft", date: d0(0), privateHousing: false, probability: 40 });
+  const jLead = newJob({ clientId: durand.id, name: "Visite : cuisine Durand (métré)", status: "lead", date: d0(1), probability: 20 });
+  d.jobs = [jLead, jHorizon, jPeeters, jBouw, jDurand];
+
+  const line = (art: (typeof d.articles)[number], qty: number) => newLine({ articleId: art.id, label: art.name.fr, qty, unit: art.unit, unitPrice: d.articles.find((x) => x.id === art.id)!.salePrice, category: art.category, costPrice: d.articles.find((x) => x.id === art.id)!.purchasePrice });
+  const lineNl = (art: (typeof d.articles)[number], qty: number) => ({ ...line(art, qty), label: art.name.nl });
+
+  // Durand : devis signé, acompte payé, facture finale en retard (1er rappel gratuit à envoyer)
+  let q: ReturnType<typeof createQuote>[1];
+  [d, q] = createQuote(d, jDurand.id, [newLine({ kind: "section", label: "Démolition" }), line(depose, 12), newLine({ kind: "section", label: "Sanitaire" }), line(receveur, 1), line(mitigeur, 1), line(moPlomb, 10), newLine({ kind: "section", label: "Carrelage" }), line(kit, 18), { ...line(boiler, 1), optional: true, selected: false }], { issueDate: d0(-40) });
+  d = signQuote(d, q.id, { image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", name: "Paul Durand", at: new Date(Date.now() - 39 * 864e5).toISOString() });
+  let inv: ReturnType<typeof quoteToInvoice>[1];
+  [d, inv] = quoteToInvoice(d, q.id, "deposit", { percent: 30 });
+  let issued: ReturnType<typeof issueDoc>[1];
+  [d, issued] = issueDoc(d, inv.id);
+  d = addPayment(d, issued!.id, { date: d0(-35), amount: computeTotals(issued!).tvac, method: "Virement", reference: issued!.structuredComm });
+  [d, inv] = quoteToInvoice(d, q.id, "final");
+  [d, issued] = issueDoc(d, inv.id);
+  d = { ...d, docs: d.docs.map((x) => (x.id === issued!.id ? { ...x, issueDate: d0(-12), dueDate: d0(-2) } : x)) };
+  d = logSend(d, issued!.id, { channel: "email", kind: "document" });
+
+  // Peeters : offerte en néerlandais envoyée
+  [d, q] = createQuote(d, jPeeters.id, [lineNl(receveur, 1), lineNl(mitigeur, 1), lineNl(moPlomb, 8), lineNl(kit, 14)]);
+  d = logSend(d, q.id, { channel: "whatsapp", kind: "document" });
+
+  // Bouw & Co : autoliquidation, facture de situation émise (prête pour Peppol)
+  [d, q] = createQuote(d, jBouw.id, [lineNl(boiler, 6), lineNl(moPlomb, 48)], { issueDate: d0(-50) });
+  d = signQuote(d, q.id, { image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", name: "Dhr. Jansens", at: new Date(Date.now() - 48 * 864e5).toISOString() });
+  const qb = d.docs.find((x) => x.id === q.id)!;
+  [d, inv] = quoteToInvoice(d, q.id, "situation", { progress: Object.fromEntries(qb.lines.map((l) => [l.id, 50])) });
+  [d, issued] = issueDoc(d, inv.id);
+
+  // Horizon : devis brouillon chaudière (bâtiment non résidentiel → 21 %)
+  [d, q] = createQuote(d, jHorizon.id, [line(chaudiere, 1), line(moPlomb, 12)]);
+
+  // Photos Durand
   const photos: Photo[] = [];
-  for (const [phase, offset] of [["avant", -31], ["apres", -2]] as const) {
-    const p: Photo = { id: uid(), jobId: durand.id, phase, caption: phase === "avant" ? "Salle de bain d'origine" : "Douche à l'italienne terminée", takenAt: new Date(Date.now() + offset * 864e5).toISOString(), addedAt: new Date().toISOString(), width: 1200, height: 900 };
-    await idbSet(`photo:${p.id}`, await drawPhoto(phase));
+  for (const [phase, off] of [["avant", -31], ["apres", -1]] as const) {
+    const p: Photo = { id: uid(), jobId: jDurand.id, phase, caption: phase === "avant" ? "Salle de bain d'origine" : "Douche terminée", takenAt: new Date(Date.now() + off * 864e5).toISOString(), addedAt: nowIso(), width: 1200, height: 900 };
+    await idbSet(`blob:photo:${p.id}`, await drawPhoto(phase));
     photos.push(p);
   }
+  d.photos = photos;
 
-  return {
-    company,
-    branding: { color: "#0066FF", logo: null },
-    settings,
-    jobs: [
-      { ...horizon, amount: 2820 },
-      { ...girard, amount: 668 },
-      { ...bernard, amount: 9320 },
-      { ...durand, amount: 3314 },
-      { ...roux, amount: 1959 },
-    ],
-    docs,
-    photos,
-    expenses: [
-      { id: uid(), jobId: durand.id, date: d(-29), supplier: "Négoce Exemple", label: "Receveur + bonde + mitigeur", amountTTC: 612.4, vat: 20, receiptId: null },
-      { id: uid(), jobId: durand.id, date: d(-27), supplier: "Négoce Exemple", label: "Faïence 30×60, colle, joints", amountTTC: 486.9, vat: 20, receiptId: null },
-    ],
-  };
+  // Pointage, planning, rapports
+  d.timeEntries = [
+    { id: uid(), memberId: karim.id, jobId: jDurand.id, date: d0(-3), start: "07:30", end: "16:00", hours: 8, note: "Pose faïence" },
+    { id: uid(), memberId: karim.id, jobId: jDurand.id, date: d0(-2), start: "07:30", end: "15:30", hours: 7.5, note: "Joints + receveur" },
+    { id: uid(), memberId: piotr.id, jobId: jBouw.id, date: d0(-2), start: "08:00", end: "16:30", hours: 8, note: "Boilers app. 1-3" },
+  ];
+  const at = (days: number, h: number) => `${d0(days)}T${String(h).padStart(2, "0")}:00`;
+  d.events = [
+    { id: uid(), kind: "job", title: "Salle de bain Durand — finitions", jobId: jDurand.id, clientId: durand.id, memberIds: [karim.id], start: at(0, 8), end: at(0, 16), notes: "", status: "planned" },
+    { id: uid(), kind: "job", title: "Bouw & Co — boilers app. 4-6", jobId: jBouw.id, clientId: bouw.id, memberIds: [piotr.id], start: at(1, 8), end: at(1, 16), notes: "", status: "planned" },
+    { id: uid(), kind: "visit", title: "Métré cuisine Durand", jobId: jLead.id, clientId: durand.id, memberIds: [patron.id], start: at(1, 10), end: at(1, 11), notes: "", status: "planned" },
+    { id: uid(), kind: "leave", title: "Congé Piotr", jobId: null, clientId: null, memberIds: [piotr.id], start: at(4, 0), end: at(4, 23), notes: "", status: "requested" },
+  ];
+  d.reports = [
+    { id: uid(), jobId: jDurand.id, kind: "daily", date: d0(-2), memberIds: [karim.id], checklist: [{ label: "Receveur posé et testé", done: true }, { label: "Joints silicone", done: true }, { label: "Nettoyage", done: false }], notes: "Reste la pose des accessoires.", photoIds: [], hours: 7.5, materials: [{ label: "Joint gris", qty: 1, unit: "u" }], signature: null, sentAt: null },
+  ];
+
+  // Achats : facture fournisseur + sous-traitance avec contrôle de retenue
+  d.purchases = [
+    { id: uid(), type: "invoice", supplierId: negoce.id, jobId: jDurand.id, number: "NM-2026-1182", date: d0(-29), dueDate: d0(1), lines: [{ id: uid(), articleId: receveur.id, label: "Receveur 90×120", qty: 1, unitPrice: 260, vat: 21 }, { id: uid(), articleId: faience.id, label: "Faïence 30×60", qty: 20, unitPrice: 24, vat: 21 }], status: "to_pay", source: "manual", retention: null, paidAt: null, fileId: null },
+    { id: uid(), type: "invoice", supplierId: soustraitant.id, jobId: jBouw.id, number: "EM-114", date: d0(-10), dueDate: d0(20), lines: [{ id: uid(), articleId: null, label: "Raccordements électriques boilers", qty: 1, unitPrice: 1800, vat: 0 }], status: "to_pay", source: "manual", retention: null, paidAt: null, fileId: null },
+    { id: uid(), type: "order", supplierId: negoce.id, jobId: jBouw.id, number: "BC-2026-0001", date: d0(-1), dueDate: d0(6), lines: [{ id: uid(), articleId: boiler.id, label: "Boiler 200 L", qty: 3, unitPrice: 390, vat: 21 }], status: "ordered", source: "manual", retention: null, paidAt: null, fileId: null },
+  ];
+  d.expenses = [{ id: uid(), jobId: jDurand.id, memberId: karim.id, date: d0(-3), supplier: "Brico", label: "Silicone + embouts", amountTTC: 24.2, vat: 21, receiptId: null, reimbursable: true, status: "submitted" }];
+
+  // Stock et flotte
+  const van = { id: uid(), plate: "1-ABC-123", model: "Renault Master", memberId: karim.id, nextInspection: d0(45), nextService: d0(12), mileage: 84200, costs: [{ date: d0(-20), label: "Pneus", amount: 480, jobId: null }] };
+  d.vehicles = [van];
+  d.stockLocations = [
+    { id: "depot", name: "Dépôt", kind: "depot", vehicleId: null },
+    { id: uid(), name: "Camionnette 1-ABC-123", kind: "vehicle", vehicleId: van.id },
+  ];
+  d.stockMoves = [
+    { id: uid(), articleId: colle.id, locationId: "depot", qty: 12, date: d0(-30), reason: "Réception", jobId: null },
+    { id: uid(), articleId: colle.id, locationId: "depot", qty: -4, date: d0(-3), reason: "Sortie chantier", jobId: jDurand.id },
+    { id: uid(), articleId: joint.id, locationId: d.stockLocations[1].id, qty: 3, date: d0(-10), reason: "Chargement", jobId: null },
+  ];
+  d.articles = d.articles.map((x) => (x.id === colle.id ? { ...x, minStock: 10 } : x));
+
+  // Modules complémentaires
+  d.records = [
+    rec("helpdesk", "Fuite sous l'évier après intervention", "open", { priority: "Haute", deadline: d0(2) }, { clientId: durand.id, jobId: jDurand.id }),
+    rec("knowledge", "Check-list réception salle de bain", "published", { content: "1. Test d'étanchéité 24 h\n2. Pente d'évacuation\n3. Joints silicone\n4. Photos après travaux\n5. PV de réception signé" }),
+    rec("maintenance", "Carotteuse Hilti — révision", "planned", { due: d0(20), cost: 120 }),
+    rec("rentals", "Échafaudage roulant 6 m", "out", { from: d0(-5), to: d0(5), dailyRate: 25, billTo: "client" }, { jobId: jBouw.id }),
+    rec("recruitment", "Plombier-chauffagiste (CDI)", "open", { candidates: 2 }),
+    rec("surveys", "Satisfaction — Salle de bain Durand", "sent", { score: "" }, { clientId: durand.id, jobId: jDurand.id }),
+    rec("chat", "Karim B.", "message", { text: "Il manque 2 sacs de colle pour finir demain." }, { jobId: jDurand.id, memberId: karim.id }),
+  ];
+  d.settings = { ...d.settings, modules: { ...d.settings.modules, recruitment: true, marketing: true, website: true, subnetwork: true } };
+  return d;
 }
