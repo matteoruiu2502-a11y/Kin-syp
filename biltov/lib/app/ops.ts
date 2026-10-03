@@ -149,7 +149,8 @@ export function quoteToInvoice(d: AccountData, quoteId: string, kind: DocKind, o
     lines,
     deductions,
     globalDiscountPercent: kind === "deposit" ? 0 : q.globalDiscountPercent,
-    retentionPercent: kind === "final" || kind === "full" ? d.settings.retentionGuaranteePercent : 0,
+    // retenue de garantie (souvent 5 %) sur les situations et la facture finale des clients professionnels / publics
+    retentionPercent: kind !== "deposit" && clientOf(d, q.clientId)?.kind !== "particulier" ? d.settings.retentionGuaranteePercent : 0,
     sourceId: quoteId,
     dueDate: addDays(todayIso(), kind === "deposit" ? 8 : d.settings.paymentTermsDays),
     notes: notes || q.notes,

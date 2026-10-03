@@ -17,6 +17,9 @@ import { Badge, DataTable, Empty, Field, Modal, Notice, PageHeader, SearchBox, S
 export const PURCHASE_STATUS: Record<PurchaseStatus, { label: string; style: string }> = {
   draft: { label: "Brouillon", style: "bg-white/5 text-slate-300 ring-white/10" },
   ordered: { label: "Commandé", style: "bg-blue/15 text-sky-300 ring-blue/30" },
+  preparing: { label: "En préparation", style: "bg-violet-500/10 text-violet-300 ring-violet-500/30" },
+  delivered: { label: "Livré sur chantier", style: "bg-cyan/10 text-cyan ring-cyan/30" },
+  verified: { label: "Vérifié", style: "bg-emerald/10 text-emerald ring-emerald/30" },
   received: { label: "Réceptionné", style: "bg-cyan/10 text-cyan ring-cyan/30" },
   to_pay: { label: "À payer", style: "bg-amber-400/10 text-amber-300 ring-amber-400/30" },
   paid: { label: "Payé", style: "bg-emerald/10 text-emerald ring-emerald/30" },

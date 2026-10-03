@@ -42,6 +42,8 @@ export const CATEGORY: Record<LineCategory, string> = {
   fossil_boiler_install: "Installation chaudière fossile",
   fossil_boiler_service: "Entretien / réparation chaudière",
   heat_pump: "Pompe à chaleur",
+  garden_creation: "Aménagement de jardin",
+  garden_maintenance: "Entretien de jardin",
   other: "Autre",
 };
 

@@ -75,8 +75,25 @@ export const defaultSettings = (): Settings => ({
     { id: "default", name: "Particuliers", discountPercent: 0, familyDiscounts: {} },
     { id: "pro", name: "Professionnels", discountPercent: 5, familyDiscounts: {} },
   ],
-  retentionGuaranteePercent: 0,
+  retentionGuaranteePercent: 5,
   terms: { b2c: "", b2b: "" },
+  accounting: defaultAccounting(),
+});
+
+/** Comptes du PCMN belge proposés par défaut (à adapter avec le comptable). */
+export const defaultAccounting = (): Settings["accounting"] => ({
+  salesJournal: "VEN",
+  purchasesJournal: "ACH",
+  bankJournal: "BNK",
+  sales: "700000",
+  customers: "400000",
+  purchases: "600000",
+  subcontracting: "604000",
+  generalExpenses: "610000",
+  suppliers: "440000",
+  vatDue: "451000",
+  vatDeductible: "411000",
+  bank: "550000",
 });
 
 export const emptyAccountData = (email: string): AccountData => ({
@@ -100,6 +117,9 @@ export const emptyAccountData = (email: string): AccountData => ({
   stockMoves: [],
   vehicles: [],
   records: [],
+  bankMoves: [],
+  tools: [],
+  contracts: [],
   audit: [],
 });
 
