@@ -30,20 +30,20 @@ export function attestationState(a: Attestation | undefined, today = todayIso())
 /** Dernière consultation de l'obligation de retenue. */
 export const lastCheck = (s: Supplier): RetentionCheck | null => [...(s.retentionChecks ?? [])].sort((a, b) => b.checkedAt.localeCompare(a.checkedAt))[0] ?? null;
 
-export type SubAlert = { supplierId: string; level: "danger" | "warn"; text: string; purchaseId?: string };
+export type SubAlert = { supplierId: string; level: "danger" | "warn"; text: string; issue: "missing" | "expired" | "expiring" | "unchecked" | "stale"; kind?: AttestationKind; number?: string; date?: string; purchaseId?: string };
 
 export function subcontractorAlerts(d: AccountData, today = todayIso()): SubAlert[] {
   const out: SubAlert[] = [];
   for (const s of d.suppliers.filter((x) => x.kind === "subcontractor")) {
     for (const kind of REQUIRED_ATTESTATIONS) {
       const st = attestationState((s.attestations ?? []).filter((a) => a.kind === kind).sort((a, b) => (b.validUntil ?? "9").localeCompare(a.validUntil ?? "9"))[0], today);
-      if (st === "missing") out.push({ supplierId: s.id, level: "warn", text: `${ATTESTATION_LABEL[kind]} manquante` });
-      if (st === "expired") out.push({ supplierId: s.id, level: "danger", text: `${ATTESTATION_LABEL[kind]} expirée` });
-      if (st === "expiring") out.push({ supplierId: s.id, level: "warn", text: `${ATTESTATION_LABEL[kind]} expire bientôt` });
+      if (st === "missing") out.push({ supplierId: s.id, level: "warn", issue: "missing", kind, text: `${ATTESTATION_LABEL[kind]} manquante` });
+      if (st === "expired") out.push({ supplierId: s.id, level: "danger", issue: "expired", kind, text: `${ATTESTATION_LABEL[kind]} expirée` });
+      if (st === "expiring") out.push({ supplierId: s.id, level: "warn", issue: "expiring", kind, text: `${ATTESTATION_LABEL[kind]} expire bientôt` });
     }
     for (const p of d.purchases.filter((x) => x.supplierId === s.id && x.type === "invoice" && x.status !== "paid")) {
-      if (!p.retention) out.push({ supplierId: s.id, level: "danger", purchaseId: p.id, text: `Facture ${p.number || "—"} : obligation de retenue non vérifiée avant paiement` });
-      else if (p.retention.checkedAt < addDays(today, -7)) out.push({ supplierId: s.id, level: "warn", purchaseId: p.id, text: `Facture ${p.number || "—"} : vérification de la retenue datée du ${p.retention.checkedAt}, à refaire le jour du paiement` });
+      if (!p.retention) out.push({ supplierId: s.id, level: "danger", issue: "unchecked", number: p.number, purchaseId: p.id, text: `Facture ${p.number || "—"} : obligation de retenue non vérifiée avant paiement` });
+      else if (p.retention.checkedAt < addDays(today, -7)) out.push({ supplierId: s.id, level: "warn", issue: "stale", number: p.number, date: p.retention.checkedAt, purchaseId: p.id, text: `Facture ${p.number || "—"} : vérification de la retenue datée du ${p.retention.checkedAt}, à refaire le jour du paiement` });
     }
   }
   return out;

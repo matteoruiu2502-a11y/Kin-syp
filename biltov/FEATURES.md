@@ -27,7 +27,8 @@ Ce fichier dit honnêtement ce qui fonctionne aujourd'hui.
 | Relances B2B (loi du 2 août 2002) | ✅ | Intérêts au taux commercial + indemnité forfaitaire |
 | Devis hors établissement (droit de rétractation) | ✅ | Mention ajoutée au devis |
 | Obligation de retenue sous-traitants (art. 30bis ONSS, art. 403 CIR) | 🟡 | Calcul des montants à retenir après votre vérification ; ⏳ consultation automatique du service officiel |
-| Import d'extraits bancaires CODA | ✅ | Rapprochement par communication structurée puis par montant |
+| Banque : extraits CODA, lettrage (#banque) | ✅ | Mouvements conservés, doublons ignorés, communication structurée validée (modulo 97), lettrage automatique (communication, n° de facture), proposition par montant, partiels et surplus, paiements fournisseurs, lettrage manuel multi-factures, annulation. ⏳ Synchronisation Ponto (interface prête, nécessite le serveur) |
+| Garden / parcs & jardins | 🟡 | Entretien de jardin à 21 %, aménagement exclu du 6 % (autoliquidation si client assujetti) — règles marquées « à valider par le comptable » |
 | Aide à la déclaration TVA (grilles 00–03, 45, 49, 54, 56, 59, 64, 81, 82, 87) | 🟡 | Estimation à valider par le comptable ; pas de dépôt Intervat |
 | Conservation des documents | 🟡 | Documents émis immuables, journal d'audit ; ⏳ archivage à valeur probante |
 
@@ -78,7 +79,13 @@ Ce fichier dit honnêtement ce qui fonctionne aujourd'hui.
 | Fiche chantier : devis, factures, rentabilité prévu / réel | ✅ |
 | Photos avant / pendant / après horodatées, comparaison, rapport photo PDF | ✅ |
 | Tickets de caisse lus par OCR (dans le navigateur) | ✅ |
-| Planning semaine par ouvrier, conflits, congés, export .ics | ✅ |
+| Planning semaine par ouvrier **et par véhicule**, glisser-déposer, conflits, congés, export .ics (planning et agenda de l'ouvrier) | ✅ ; ⏳ flux .ics abonnable (URL publique, nécessite le serveur) |
+| Pointage et photos géolocalisés (GPS de l'appareil, avec accord), itinéraire Google Maps / Waze, carte du chantier | ✅ |
+| Ordres de mission dans l'espace ouvrier | ✅ |
+| Rentabilité en temps réel (#chantier/<id>/rentabilite) : vendu (devis + avenants), facturé, matières, main-d'œuvre, sous-traitance, matériel, engagé, marge réelle contre prévue | ✅ |
+| Parc d'outils et machines (#outils) : affectation dépôt / camionnette / ouvrier / chantier, historique, rappels d'entretien | ✅ |
+| Contrats d'entretien récurrents (#contrats) : facture et intervention générées à chaque échéance | ✅ |
+| Calculateur de quantités (surfaces, volumes, tonnages, carrelage avec perte et boîtes, gazon, linéaires) dans les devis | ✅ |
 | Météo défavorable pour les travaux extérieurs (Open-Meteo) | ✅ |
 | Pointage des heures, export pour le secrétariat social | ✅ (pas de calcul de salaire) |
 | Rapports journaliers, bons d'intervention, PV de réception signés, PDF | ✅ |
@@ -97,13 +104,25 @@ Ce fichier dit honnêtement ce qui fonctionne aujourd'hui.
 | Stock multi-emplacements (dépôt, camionnettes), transferts, inventaire, minimum | ✅ |
 | Véhicules : contrôle technique, entretien, frais imputés aux chantiers | ✅ |
 
+## Achats, sous-traitants et grossistes (ajouts)
+
+| Fonction | État |
+|---|---|
+| Sous-traitants (#sous-traitants) : BCE, TVA, IBAN, attestations datées (RC, ONSS, SPF…) avec pièces jointes, alertes d'expiration, historique des consultations 30bis appliquées aux factures non payées | ✅ ; ⏳ consultation automatique du service officiel |
+| Retenue de garantie (5 % par défaut) sur les états d'avancement et factures finales des clients professionnels | ✅ |
+| Scan OCR des factures fournisseurs et bons de livraison (image) : n°, dates, bases HTVA par taux, TVAC, IBAN, BCE, communication | ✅ (dans le navigateur) ; ⏳ PDF et factures Peppol entrantes |
+| Commandes : brouillon → commandé → en préparation → livré sur chantier → vérifié ; comparaison commande / bons de livraison / facture (quantités et prix) | ✅ |
+| Devis signé → bons de commande fournisseurs (un par fournisseur, composants d'ouvrage) | ✅ |
+| Tarifs grossistes (Cebeo, Facq, BigMat…) : prix net ou brut − remise, index de recherche pour les gros catalogues utilisés par la dictée | ✅ |
+
 ## Pilotage
 
 | Fonction | État |
 |---|---|
 | Accueil « Argent à recevoir » : ancienneté des créances, relances à envoyer, reste à facturer, devis pondérés, encaissements | ✅ |
 | Prévision de trésorerie sur 13 semaines | ✅ |
-| Journaux des ventes, des achats et des paiements (CSV belge, Excel) | ✅ ; ⏳ connecteurs directs Winbooks / BOB / Exact |
+| Journaux des ventes, des achats et des paiements (CSV belge, Excel) | ✅ |
+| Comptabilité (#comptabilite) : écritures en partie double PCMN (700000, 400000, 451000, 600000/604000, 411000, 440000 — modifiables), export WinBooks ACT.DBF + CSF.DBF, UBL Peppol des ventes en ZIP (Yuki, Pennylane, Odoo, BOB50…), retenues 30bis à verser | 🟡 Format WinBooks à valider par un import test ; ⏳ connecteurs directs |
 | Rôles (patron, secrétariat, comptable, ouvrier) | 🟡 Restreint l'affichage sur l'appareil ; ⏳ comptes séparés et droits côté serveur |
 | Journal d'audit | ✅ |
 

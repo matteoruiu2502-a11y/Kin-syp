@@ -4112,5 +4112,1069 @@ export const DICT: Record<string, [string, string]> = {
  "Télécharger une sauvegarde de mes données": [
   "Een back-up van mijn gegevens downloaden",
   "Eine Sicherung meiner Daten herunterladen"
+ ],
+ "30bis jamais vérifié": [
+  "30bis nooit gecontroleerd",
+  "30bis nie geprüft"
+ ],
+ "30bis vérifié le {d}": [
+  "30bis gecontroleerd op {d}",
+  "30bis geprüft am {d}"
+ ],
+ "Accès à la profession / enregistrement": [
+  "Toegang tot het beroep / registratie",
+  "Berufszugang / Registrierung"
+ ],
+ "Achats et frais": [
+  "Aankopen en kosten",
+  "Einkäufe und Spesen"
+ ],
+ "Affectation actuelle": [
+  "Huidige toewijzing",
+  "Aktuelle Zuweisung"
+ ],
+ "Affecté": [
+  "Toegewezen",
+  "Zugeordnet"
+ ],
+ "Affecté à": [
+  "Toegewezen aan",
+  "Zugewiesen an"
+ ],
+ "Ajouter au devis : {q} {u}": [
+  "Toevoegen aan de offerte: {q} {u}",
+  "Zum Angebot hinzufügen: {q} {u}"
+ ],
+ "Ajouter mon planning à mon agenda (.ics)": [
+  "Mijn planning aan mijn agenda toevoegen (.ics)",
+  "Meine Planung zum Kalender hinzufügen (.ics)"
+ ],
+ "Ajouter un mouvement": [
+  "Een beweging toevoegen",
+  "Eine Bewegung hinzufügen"
+ ],
+ "Ajoutez vos sous-traitants : attestations, contrôle de l'obligation de retenue avant chaque paiement.": [
+  "Voeg uw onderaannemers toe: attesten, controle van de inhoudingsplicht vóór elke betaling.",
+  "Fügen Sie Ihre Subunternehmer hinzu: Bescheinigungen, Prüfung der Einbehaltungspflicht vor jeder Zahlung."
+ ],
+ "Alertes": [
+  "Waarschuwingen",
+  "Warnungen"
+ ],
+ "Aménagement de jardin": [
+  "Tuinaanleg",
+  "Gartengestaltung"
+ ],
+ "Annuler le lettrage": [
+  "Afpunting annuleren",
+  "Zuordnung aufheben"
+ ],
+ "Approvisionnements (600)": [
+  "Aankopen grondstoffen (600)",
+  "Wareneinkauf (600)"
+ ],
+ "Assurance RC professionnelle": [
+  "Beroepsaansprakelijkheidsverzekering",
+  "Berufshaftpflichtversicherung"
+ ],
+ "Assurance décennale": [
+  "Tienjarige aansprakelijkheidsverzekering",
+  "Zehnjahres-Haftpflichtversicherung"
+ ],
+ "Attestation ONSS (absence de dettes sociales)": [
+  "RSZ-attest (geen sociale schulden)",
+  "LSS-Bescheinigung (keine Sozialschulden)"
+ ],
+ "Attestation SPF Finances (absence de dettes fiscales)": [
+  "Attest FOD Financiën (geen fiscale schulden)",
+  "Bescheinigung FÖD Finanzen (keine Steuerschulden)"
+ ],
+ "Attestations, obligation de retenue 30bis, retenue de garantie": [
+  "Attesten, inhoudingsplicht 30bis, waarborginhouding",
+  "Bescheinigungen, Einbehaltungspflicht 30bis, Gewährleistungseinbehalt"
+ ],
+ "Aucune attestation enregistrée.": [
+  "Geen attest geregistreerd.",
+  "Keine Bescheinigung erfasst."
+ ],
+ "Aucune facture ouverte.": [
+  "Geen openstaande factuur.",
+  "Keine offene Rechnung."
+ ],
+ "Aucune facture.": [
+  "Geen factuur.",
+  "Keine Rechnung."
+ ],
+ "Aucune fourniture du catalogue avec un fournisseur dans ce devis.": [
+  "Geen catalogusartikel met een leverancier in deze offerte.",
+  "Kein Katalogartikel mit Lieferant in diesem Angebot."
+ ],
+ "Aucune pièce sur cette période.": [
+  "Geen stuk in deze periode.",
+  "Kein Beleg in diesem Zeitraum."
+ ],
+ "Aucune retenue sur la période.": [
+  "Geen inhouding in deze periode.",
+  "Kein Einbehalt in diesem Zeitraum."
+ ],
+ "Autre document": [
+  "Ander document",
+  "Anderes Dokument"
+ ],
+ "BCE manquant": [
+  "KBO-nummer ontbreekt",
+  "Unternehmensnummer fehlt"
+ ],
+ "Banque": [
+  "Bank",
+  "Bank"
+ ],
+ "Banque (55)": [
+  "Bank (55)",
+  "Bank (55)"
+ ],
+ "Bases HTVA par taux": [
+  "Maatstaven excl. btw per tarief",
+  "Nettobeträge je Steuersatz"
+ ],
+ "Biltov lit le fournisseur, le numéro, les dates, les bases HTVA par taux (0, 6, 12, 21 %), le total TVAC, l'IBAN et la communication structurée. Vous vérifiez avant d'enregistrer.": [
+  "Biltov leest de leverancier, het nummer, de datums, de maatstaven excl. btw per tarief (0, 6, 12, 21 %), het totaal incl. btw, de IBAN en de gestructureerde mededeling. U controleert vóór het opslaan.",
+  "Biltov liest Lieferant, Nummer, Daten, Nettobeträge je Steuersatz (0, 6, 12, 21 %), Bruttobetrag, IBAN und strukturierte Mitteilung. Sie prüfen vor dem Speichern."
+ ],
+ "Bon de commande lié": [
+  "Gekoppelde bestelbon",
+  "Verknüpfte Bestellung"
+ ],
+ "Bon de livraison": [
+  "Leveringsbon",
+  "Lieferschein"
+ ],
+ "Bon de livraison {n}": [
+  "Leveringsbon {n}",
+  "Lieferschein {n}"
+ ],
+ "Bons de livraison": [
+  "Leveringsbonnen",
+  "Lieferscheine"
+ ],
+ "Boîtes": [
+  "Dozen",
+  "Kartons"
+ ],
+ "CA facturé": [
+  "Gefactureerde omzet",
+  "Fakturierter Umsatz"
+ ],
+ "CA vendu (devis + avenants)": [
+  "Verkochte omzet (offertes + aanhangsels)",
+  "Verkaufter Umsatz (Angebote + Nachträge)"
+ ],
+ "Calculateur": [
+  "Rekenmodule",
+  "Rechner"
+ ],
+ "Calculateur de quantités": [
+  "Hoeveelheidscalculator",
+  "Mengenrechner"
+ ],
+ "Carreau : largeur (cm)": [
+  "Tegel: breedte (cm)",
+  "Fliese: Breite (cm)"
+ ],
+ "Carreau : longueur (cm)": [
+  "Tegel: lengte (cm)",
+  "Fliese: Länge (cm)"
+ ],
+ "Carreaux": [
+  "Tegels",
+  "Fliesen"
+ ],
+ "Carreaux par boîte": [
+  "Tegels per doos",
+  "Fliesen pro Karton"
+ ],
+ "Carrelage / pavés": [
+  "Tegels / klinkers",
+  "Fliesen / Pflaster"
+ ],
+ "Carrelage {w}×{h} (perte {p} %)": [
+  "Tegels {w}×{h} (verlies {p} %)",
+  "Fliesen {w}×{h} (Verschnitt {p} %)"
+ ],
+ "Carte du chantier": [
+  "Kaart van de werf",
+  "Karte der Baustelle"
+ ],
+ "Chiffre d'affaires récurrent (an)": [
+  "Terugkerende omzet (jaar)",
+  "Wiederkehrender Umsatz (Jahr)"
+ ],
+ "Clients (400)": [
+  "Klanten (400)",
+  "Kunden (400)"
+ ],
+ "Commande {n} : commandé, livré, facturé": [
+  "Bestelling {n}: besteld, geleverd, gefactureerd",
+  "Bestellung {n}: bestellt, geliefert, fakturiert"
+ ],
+ "Commander les fournitures (bons de commande)": [
+  "Leveringen bestellen (bestelbonnen)",
+  "Lieferungen bestellen (Bestellungen)"
+ ],
+ "Communication": [
+  "Mededeling",
+  "Mitteilung"
+ ],
+ "Communication invalide": [
+  "Ongeldige mededeling",
+  "Ungültige Mitteilung"
+ ],
+ "Communication valide": [
+  "Geldige mededeling",
+  "Gültige Mitteilung"
+ ],
+ "Comparer": [
+  "Vergelijken",
+  "Vergleichen"
+ ],
+ "Comptabilité": [
+  "Boekhouding",
+  "Buchhaltung"
+ ],
+ "Compte": [
+  "Rekening",
+  "Konto"
+ ],
+ "Comptes PCMN et format WinBooks proposés par défaut : faites un import test avec votre comptable et adaptez le plan comptable si besoin.": [
+  "Standaard voorgestelde MAR-rekeningen en WinBooks-formaat: doe een testimport met uw boekhouder en pas het rekeningstelsel aan indien nodig.",
+  "Standardmäßig vorgeschlagene Konten (belgischer Kontenrahmen) und WinBooks-Format: Machen Sie mit Ihrem Buchhalter einen Testimport und passen Sie den Kontenplan bei Bedarf an."
+ ],
+ "Connecter Ponto": [
+  "Ponto koppelen",
+  "Ponto verbinden"
+ ],
+ "Consultez le service officiel le jour du paiement avec le numéro d'entreprise, puis encodez le résultat : il s'applique aux factures non payées de ce sous-traitant.": [
+  "Raadpleeg de officiële dienst op de dag van betaling met het ondernemingsnummer en voer het resultaat in: het geldt voor de onbetaalde facturen van deze onderaannemer.",
+  "Prüfen Sie am Zahlungstag den offiziellen Dienst mit der Unternehmensnummer und erfassen Sie das Ergebnis: Es gilt für die unbezahlten Rechnungen dieses Subunternehmers."
+ ],
+ "Contrat": [
+  "Contract",
+  "Vertrag"
+ ],
+ "Contrat actif": [
+  "Actief contract",
+  "Aktiver Vertrag"
+ ],
+ "Contrats actifs": [
+  "Actieve contracten",
+  "Aktive Verträge"
+ ],
+ "Contrats d'entretien": [
+  "Onderhoudscontracten",
+  "Wartungsverträge"
+ ],
+ "Contrepartie": [
+  "Tegenpartij",
+  "Gegenpartei"
+ ],
+ "Conversion : nombre de carreaux": [
+  "Omrekening: aantal tegels",
+  "Umrechnung: Anzahl Fliesen"
+ ],
+ "Coûts réels": [
+  "Werkelijke kosten",
+  "Tatsächliche Kosten"
+ ],
+ "Crédit": [
+  "Credit",
+  "Haben"
+ ],
+ "Créez vos contrats d'entretien : Biltov prépare la facture et l'intervention au planning à chaque échéance.": [
+  "Maak uw onderhoudscontracten aan: Biltov maakt bij elke vervaldag de factuur en de interventie in de planning klaar.",
+  "Legen Sie Ihre Wartungsverträge an: Biltov bereitet zu jeder Fälligkeit die Rechnung und den Einsatz in der Planung vor."
+ ],
+ "Date d'achat": [
+  "Aankoopdatum",
+  "Kaufdatum"
+ ],
+ "Date de consultation": [
+  "Datum van raadpleging",
+  "Abfragedatum"
+ ],
+ "Dernier entretien": [
+  "Laatste onderhoud",
+  "Letzte Wartung"
+ ],
+ "Débit": [
+  "Debet",
+  "Soll"
+ ],
+ "Dépassement": [
+  "Overschrijding",
+  "Überschreitung"
+ ],
+ "Empierrement 0/32": [
+  "Steenslag 0/32",
+  "Schotter 0/32"
+ ],
+ "En préparation": [
+  "In voorbereiding",
+  "In Vorbereitung"
+ ],
+ "En réparation": [
+  "In herstelling",
+  "In Reparatur"
+ ],
+ "En service": [
+  "In gebruik",
+  "In Betrieb"
+ ],
+ "Encaissements": [
+  "Ontvangsten",
+  "Einnahmen"
+ ],
+ "Engagé (livré, non facturé)": [
+  "Vastgelegd (geleverd, niet gefactureerd)",
+  "Gebunden (geliefert, nicht fakturiert)"
+ ],
+ "Enregistrer la consultation": [
+  "Raadpleging opslaan",
+  "Abfrage speichern"
+ ],
+ "Enregistrer la facture": [
+  "Factuur opslaan",
+  "Rechnung speichern"
+ ],
+ "Enregistrer le bon de livraison": [
+  "Leveringsbon opslaan",
+  "Lieferschein speichern"
+ ],
+ "Entretien de jardin": [
+  "Tuinonderhoud",
+  "Gartenpflege"
+ ],
+ "Entretien fait aujourd'hui": [
+  "Onderhoud vandaag gedaan",
+  "Wartung heute erledigt"
+ ],
+ "Entretien tous les (jours)": [
+  "Onderhoud om de (dagen)",
+  "Wartung alle (Tage)"
+ ],
+ "Entretiens à prévoir (14 j)": [
+  "Te plannen onderhoud (14 d)",
+  "Anstehende Wartungen (14 T)"
+ ],
+ "Expire bientôt": [
+  "Verloopt binnenkort",
+  "Läuft bald ab"
+ ],
+ "Expirée": [
+  "Verlopen",
+  "Abgelaufen"
+ ],
+ "Exports": [
+  "Exports",
+  "Exporte"
+ ],
+ "Extraits CODA, lettrage des factures clients et fournisseurs": [
+  "CODA-uittreksels, afpunting van klant- en leveranciersfacturen",
+  "CODA-Auszüge, Zuordnung von Kunden- und Lieferantenrechnungen"
+ ],
+ "Facture": [
+  "Factuur",
+  "Rechnung"
+ ],
+ "Facture ": [
+  "Factuur ",
+  "Rechnung "
+ ],
+ "Factures ouvertes": [
+  "Openstaande facturen",
+  "Offene Rechnungen"
+ ],
+ "Facturé": [
+  "Gefactureerd",
+  "Fakturiert"
+ ],
+ "Fichiers ACT.DBF (écritures) et CSF.DBF (clients et fournisseurs).": [
+  "Bestanden ACT.DBF (boekingen) en CSF.DBF (klanten en leveranciers).",
+  "Dateien ACT.DBF (Buchungen) und CSF.DBF (Kunden und Lieferanten)."
+ ],
+ "Fin du contrat": [
+  "Einde van het contract",
+  "Vertragsende"
+ ],
+ "Foisonnement / tassement (%)": [
+  "Uitzetting / verdichting (%)",
+  "Auflockerung / Verdichtung (%)"
+ ],
+ "Fournisseurs (440)": [
+  "Leveranciers (440)",
+  "Lieferanten (440)"
+ ],
+ "Frais généraux (61)": [
+  "Algemene kosten (61)",
+  "Gemeinkosten (61)"
+ ],
+ "Fréquence": [
+  "Frequentie",
+  "Häufigkeit"
+ ],
+ "Gazon": [
+  "Gazon",
+  "Rasen"
+ ],
+ "Gravier / concassé": [
+  "Grind / steenslag",
+  "Kies / Schotter"
+ ],
+ "Générer l'échéance": [
+  "Vervaldag genereren",
+  "Fälligkeit erzeugen"
+ ],
+ "Ignorer (frais bancaires, salaires…)": [
+  "Negeren (bankkosten, lonen…)",
+  "Ignorieren (Bankgebühren, Löhne…)"
+ ],
+ "Ignoré": [
+  "Genegeerd",
+  "Ignoriert"
+ ],
+ "Importez l'extrait CODA de votre banque : chaque virement est rapproché de sa facture grâce à la communication structurée.": [
+  "Importeer het CODA-uittreksel van uw bank: elke overschrijving wordt via de gestructureerde mededeling aan haar factuur gekoppeld.",
+  "Importieren Sie den CODA-Auszug Ihrer Bank: Jede Überweisung wird über die strukturierte Mitteilung ihrer Rechnung zugeordnet."
+ ],
+ "Inactif": [
+  "Inactief",
+  "Inaktiv"
+ ],
+ "Interventions récurrentes : tonte, taille, entretien chaudière…": [
+  "Terugkerende interventies: maaien, snoeien, onderhoud ketel…",
+  "Wiederkehrende Einsätze: Mähen, Schneiden, Kesselwartung…"
+ ],
+ "Intitulé": [
+  "Omschrijving",
+  "Bezeichnung"
+ ],
+ "Joindre le document": [
+  "Document bijvoegen",
+  "Dokument anhängen"
+ ],
+ "Journal des achats": [
+  "Aankoopdagboek",
+  "Einkaufsjournal"
+ ],
+ "Journal financier": [
+  "Financieel dagboek",
+  "Finanzjournal"
+ ],
+ "Largeur (m)": [
+  "Breedte (m)",
+  "Breite (m)"
+ ],
+ "Lecture automatique indisponible : saisissez les montants.": [
+  "Automatisch lezen niet beschikbaar: voer de bedragen in.",
+  "Automatisches Lesen nicht verfügbar: Geben Sie die Beträge ein."
+ ],
+ "Lecture du document…": [
+  "Document wordt gelezen…",
+  "Dokument wird gelesen…"
+ ],
+ "Les lignes du bon de commande sont reprises : comparez ensuite les quantités livrées dans le suivi des commandes.": [
+  "De regels van de bestelbon worden overgenomen: vergelijk daarna de geleverde hoeveelheden in de opvolging van de bestellingen.",
+  "Die Zeilen der Bestellung werden übernommen: Vergleichen Sie danach die gelieferten Mengen in der Bestellverfolgung."
+ ],
+ "Lettrer": [
+  "Afpunten",
+  "Zuordnen"
+ ],
+ "Lettrer un encaissement": [
+  "Een ontvangst afpunten",
+  "Einen Zahlungseingang zuordnen"
+ ],
+ "Lettrer un paiement fournisseur": [
+  "Een leveranciersbetaling afpunten",
+  "Eine Lieferantenzahlung zuordnen"
+ ],
+ "Lettré": [
+  "Afgepunt",
+  "Zugeordnet"
+ ],
+ "Lettrés": [
+  "Afgepunt",
+  "Zugeordnet"
+ ],
+ "Linéaire": [
+  "Lineair",
+  "Linear"
+ ],
+ "Livré": [
+  "Geleverd",
+  "Geliefert"
+ ],
+ "Livré sur chantier": [
+  "Geleverd op de werf",
+  "Auf die Baustelle geliefert"
+ ],
+ "Longueur (m)": [
+  "Lengte (m)",
+  "Länge (m)"
+ ],
+ "Longueur d'un élément (m)": [
+  "Lengte van een element (m)",
+  "Länge eines Elements (m)"
+ ],
+ "Longueur totale (m)": [
+  "Totale lengte (m)",
+  "Gesamtlänge (m)"
+ ],
+ "Machines et outillage : affectation, historique, entretien": [
+  "Machines en gereedschap: toewijzing, geschiedenis, onderhoud",
+  "Maschinen und Werkzeug: Zuweisung, Verlauf, Wartung"
+ ],
+ "Main-d'œuvre (heures × coût chargé)": [
+  "Werkuren (uren × beladen kost)",
+  "Arbeitszeit (Stunden × belastete Kosten)"
+ ],
+ "Manquante": [
+  "Ontbreekt",
+  "Fehlt"
+ ],
+ "Marge brute": [
+  "Brutomarge",
+  "Bruttomarge"
+ ],
+ "Marge brute réelle": [
+  "Werkelijke brutomarge",
+  "Tatsächliche Bruttomarge"
+ ],
+ "Marquer comme vérifiée": [
+  "Markeren als gecontroleerd",
+  "Als geprüft markieren"
+ ],
+ "Masse volumique (t/m³)": [
+  "Volumieke massa (t/m³)",
+  "Dichte (t/m³)"
+ ],
+ "Matières (achats, tickets, stock)": [
+  "Materialen (aankopen, tickets, voorraad)",
+  "Material (Einkäufe, Belege, Lager)"
+ ],
+ "Matériau": [
+  "Materiaal",
+  "Material"
+ ],
+ "Matériel, location, véhicules": [
+  "Materieel, huur, voertuigen",
+  "Gerät, Miete, Fahrzeuge"
+ ],
+ "Minipelle, laser rotatif, disqueuse…": [
+  "Minigraver, rotatielaser, slijpschijf…",
+  "Minibagger, Rotationslaser, Trennschleifer…"
+ ],
+ "Mise en service": [
+  "Indienststelling",
+  "Inbetriebnahme"
+ ],
+ "Montant (négatif = paiement)": [
+  "Bedrag (negatief = betaling)",
+  "Betrag (negativ = Zahlung)"
+ ],
+ "Montant du mouvement": [
+  "Bedrag van de beweging",
+  "Betrag der Bewegung"
+ ],
+ "Mouvement": [
+  "Beweging",
+  "Bewegung"
+ ],
+ "Nom du nouveau fournisseur": [
+  "Naam van de nieuwe leverancier",
+  "Name des neuen Lieferanten"
+ ],
+ "Non affecté (surplus)": [
+  "Niet toegewezen (overschot)",
+  "Nicht zugeordnet (Überschuss)"
+ ],
+ "Note (facultatif)": [
+  "Notitie (optioneel)",
+  "Notiz (optional)"
+ ],
+ "Nouveau contrat d'entretien": [
+  "Nieuw onderhoudscontract",
+  "Neuer Wartungsvertrag"
+ ],
+ "Nouveau fournisseur…": [
+  "Nieuwe leverancier…",
+  "Neuer Lieferant…"
+ ],
+ "Nouveau sous-traitant": [
+  "Nieuwe onderaannemer",
+  "Neuer Subunternehmer"
+ ],
+ "Nouvel outil / machine": [
+  "Nieuw gereedschap / machine",
+  "Neues Werkzeug / neue Maschine"
+ ],
+ "Ordre de mission": [
+  "Opdrachtbon",
+  "Einsatzauftrag"
+ ],
+ "Outil / machine": [
+  "Gereedschap / machine",
+  "Werkzeug / Maschine"
+ ],
+ "Outils": [
+  "Gereedschap",
+  "Werkzeuge"
+ ],
+ "Outils & matériel": [
+  "Gereedschap & materieel",
+  "Werkzeuge & Geräte"
+ ],
+ "Outils et machines": [
+  "Gereedschap en machines",
+  "Werkzeuge und Maschinen"
+ ],
+ "Paiement partiel": [
+  "Gedeeltelijke betaling",
+  "Teilzahlung"
+ ],
+ "Paiements": [
+  "Betalingen",
+  "Zahlungen"
+ ],
+ "Paillis / écorces": [
+  "Mulch / boomschors",
+  "Mulch / Rinde"
+ ],
+ "Par intervention": [
+  "Per interventie",
+  "Pro Einsatz"
+ ],
+ "Parcs & jardins : l'entretien (tonte, taille) est facturé à 21 % ; l'aménagement de jardin est exclu du 6 %. Le moteur TVA applique ces règles selon la nature de chaque ligne — à valider par votre comptable.": [
+  "Parken & tuinen: onderhoud (maaien, snoeien) wordt aan 21 % gefactureerd; tuinaanleg is uitgesloten van 6 %. De btw-motor past deze regels toe volgens de aard van elke regel — te laten valideren door uw boekhouder.",
+  "Parks & Gärten: Pflege (Mähen, Schneiden) wird mit 21 % berechnet; Gartengestaltung ist vom 6-%-Satz ausgeschlossen. Die MwSt.-Engine wendet diese Regeln je nach Art jeder Zeile an — von Ihrem Buchhalter prüfen lassen."
+ ],
+ "Perdu / volé": [
+  "Verloren / gestolen",
+  "Verloren / gestohlen"
+ ],
+ "Perte (%)": [
+  "Verlies (%)",
+  "Verschnitt (%)"
+ ],
+ "Perte de découpe (%)": [
+  "Snijverlies (%)",
+  "Schnittverlust (%)"
+ ],
+ "Photographiez la facture ou le bon de livraison": [
+  "Fotografeer de factuur of de leveringsbon",
+  "Fotografieren Sie die Rechnung oder den Lieferschein"
+ ],
+ "Plan comptable": [
+  "Rekeningstelsel",
+  "Kontenplan"
+ ],
+ "Position au début du pointage": [
+  "Positie bij het begin van de prikklok",
+  "Position zu Beginn der Zeiterfassung"
+ ],
+ "Prenez une photo ou une capture d'écran de la facture (image). Les factures PDF / Peppol seront lues directement avec le serveur.": [
+  "Neem een foto of schermafdruk van de factuur (afbeelding). Pdf- / Peppol-facturen worden rechtstreeks gelezen met de server.",
+  "Machen Sie ein Foto oder einen Screenshot der Rechnung (Bild). PDF-/Peppol-Rechnungen werden mit dem Server direkt gelesen."
+ ],
+ "Prestation": [
+  "Prestatie",
+  "Leistung"
+ ],
+ "Prix cmd / fact.": [
+  "Prijs bestel. / fact.",
+  "Preis Best. / Rechn."
+ ],
+ "Prochain : {d}": [
+  "Volgende: {d}",
+  "Nächste: {d}"
+ ],
+ "Prochaine intervention": [
+  "Volgende interventie",
+  "Nächster Einsatz"
+ ],
+ "Prévu": [
+  "Voorzien",
+  "Geplant"
+ ],
+ "Prévu (devis) contre réel, par poste": [
+  "Voorzien (offerte) tegenover werkelijk, per post",
+  "Geplant (Angebot) gegenüber Ist, je Posten"
+ ],
+ "Prévu : prix de revient des lignes des devis et avenants signés. Réel : factures d'achat, tickets, sorties de stock, heures pointées, location et véhicules imputés au chantier. Engagé : commandes livrées dont la facture fournisseur n'est pas encore encodée.": [
+  "Voorzien: kostprijs van de regels van ondertekende offertes en aanhangsels. Werkelijk: aankoopfacturen, tickets, voorraaduitgangen, geregistreerde uren, huur en voertuigen toegewezen aan de werf. Vastgelegd: geleverde bestellingen waarvan de leveranciersfactuur nog niet is ingevoerd.",
+  "Geplant: Selbstkosten der Zeilen unterschriebener Angebote und Nachträge. Ist: Einkaufsrechnungen, Belege, Lagerentnahmen, erfasste Stunden, Miete und Fahrzeuge der Baustelle. Gebunden: gelieferte Bestellungen ohne erfasste Lieferantenrechnung."
+ ],
+ "Rechercher : contrepartie, communication, montant…": [
+  "Zoeken: tegenpartij, mededeling, bedrag…",
+  "Suchen: Gegenpartei, Mitteilung, Betrag…"
+ ],
+ "Rechercher : outil, n° de série, affectation…": [
+  "Zoeken: gereedschap, serienummer, toewijzing…",
+  "Suchen: Werkzeug, Seriennummer, Zuweisung…"
+ ],
+ "Rechercher une facture…": [
+  "Een factuur zoeken…",
+  "Eine Rechnung suchen…"
+ ],
+ "Retenue de garantie : {p} % par défaut sur les états d'avancement et factures finales des clients professionnels (Paramètres → Devis & factures).": [
+  "Waarborginhouding: standaard {p} % op vorderingsstaten en eindfacturen van professionele klanten (Instellingen → Offertes & facturen).",
+  "Gewährleistungseinbehalt: standardmäßig {p} % auf Abschlags- und Schlussrechnungen von Geschäftskunden (Einstellungen → Angebote & Rechnungen)."
+ ],
+ "Retenues 30bis à verser": [
+  "Te storten 30bis-inhoudingen",
+  "Abzuführende 30bis-Einbehalte"
+ ],
+ "Retenues à verser": [
+  "Te storten inhoudingen",
+  "Abzuführende Einbehalte"
+ ],
+ "Réaffecter": [
+  "Opnieuw toewijzen",
+  "Neu zuweisen"
+ ],
+ "Réformé": [
+  "Buiten gebruik",
+  "Ausgemustert"
+ ],
+ "Référence / n° de police": [
+  "Referentie / polisnummer",
+  "Referenz / Policennummer"
+ ],
+ "Rétablir": [
+  "Herstellen",
+  "Wiederherstellen"
+ ],
+ "Sable stabilisé": [
+  "Gestabiliseerd zand",
+  "Stabilisierter Sand"
+ ],
+ "Scanner": [
+  "Scannen",
+  "Scannen"
+ ],
+ "Scanner une facture fournisseur ou un bon de livraison": [
+  "Een leveranciersfactuur of leveringsbon scannen",
+  "Eine Lieferantenrechnung oder einen Lieferschein scannen"
+ ],
+ "Semences": [
+  "Zaad",
+  "Saatgut"
+ ],
+ "Semences (g/m²)": [
+  "Zaad (g/m²)",
+  "Saatgut (g/m²)"
+ ],
+ "Semis de gazon ({g} g/m²)": [
+  "Gazon zaaien ({g} g/m²)",
+  "Rasenaussaat ({g} g/m²)"
+ ],
+ "Sous-traitance (604)": [
+  "Onderaanneming (604)",
+  "Subunternehmer (604)"
+ ],
+ "Sous-traitants": [
+  "Onderaannemers",
+  "Subunternehmer"
+ ],
+ "Suivez vos machines et outils : qui les a, sur quel chantier, et quand les entretenir.": [
+  "Volg uw machines en gereedschap op: wie ze heeft, op welke werf, en wanneer ze onderhouden moeten worden.",
+  "Verfolgen Sie Ihre Maschinen und Werkzeuge: wer sie hat, auf welcher Baustelle und wann sie gewartet werden müssen."
+ ],
+ "Surface": [
+  "Oppervlakte",
+  "Fläche"
+ ],
+ "Surface à ajouter (m²)": [
+  "Toe te voegen oppervlakte (m²)",
+  "Zusätzliche Fläche (m²)"
+ ],
+ "Surplus": [
+  "Overschot",
+  "Überschuss"
+ ],
+ "TVA due": [
+  "Verschuldigde btw",
+  "Geschuldete MwSt."
+ ],
+ "TVA due (451)": [
+  "Verschuldigde btw (451)",
+  "Geschuldete MwSt. (451)"
+ ],
+ "TVA déductible (411)": [
+  "Aftrekbare btw (411)",
+  "Abziehbare MwSt. (411)"
+ ],
+ "Tarifs grossistes (Cebeo, Facq, BigMat, Van Marcke…) : les colonnes « prix net » ou « prix brut » + « remise » sont reconnues. Les gros catalogues sont indexés pour la dictée.": [
+  "Groothandelstarieven (Cebeo, Facq, BigMat, Van Marcke…): de kolommen « nettoprijs » of « brutoprijs » + « korting » worden herkend. Grote catalogi worden geïndexeerd voor het dicteren.",
+  "Großhandelstarife (Cebeo, Facq, BigMat, Van Marcke…): Die Spalten « Nettopreis » oder « Bruttopreis » + « Rabatt » werden erkannt. Große Kataloge werden für das Diktat indexiert."
+ ],
+ "Taux": [
+  "Tarief",
+  "Satz"
+ ],
+ "Terre arable": [
+  "Teelaarde",
+  "Mutterboden"
+ ],
+ "Tonnage à commander": [
+  "Te bestellen tonnage",
+  "Zu bestellende Tonnage"
+ ],
+ "Tonte de pelouse": [
+  "Gazon maaien",
+  "Rasen mähen"
+ ],
+ "Tonte et taille — villa Durand": [
+  "Maaien en snoeien — villa Durand",
+  "Mähen und Schneiden — Villa Durand"
+ ],
+ "Tout est lettré.": [
+  "Alles is afgepunt.",
+  "Alles ist zugeordnet."
+ ],
+ "Une facture UBL par document de vente : Yuki, Pennylane, Odoo, BOB50, Exact…": [
+  "Eén UBL-factuur per verkoopdocument: Yuki, Pennylane, Odoo, BOB50, Exact…",
+  "Eine UBL-Rechnung je Verkaufsbeleg: Yuki, Pennylane, Odoo, BOB50, Exact…"
+ ],
+ "Une ligne par imputation : journal, pièce, compte, débit, crédit, code TVA.": [
+  "Eén regel per boeking: dagboek, stuk, rekening, debet, credit, btw-code.",
+  "Eine Zeile je Buchung: Journal, Beleg, Konto, Soll, Haben, MwSt.-Code."
+ ],
+ "Valeur (€)": [
+  "Waarde (€)",
+  "Wert (€)"
+ ],
+ "Valeur du parc": [
+  "Waarde van het park",
+  "Wert des Bestands"
+ ],
+ "Valide": [
+  "Geldig",
+  "Gültig"
+ ],
+ "Ventes (classe 70)": [
+  "Verkopen (klasse 70)",
+  "Umsatzerlöse (Klasse 70)"
+ ],
+ "Ventes HTVA": [
+  "Verkopen excl. btw",
+  "Umsatz netto"
+ ],
+ "Voir": [
+  "Bekijken",
+  "Ansehen"
+ ],
+ "Volume": [
+  "Volume",
+  "Volumen"
+ ],
+ "Volume / tonnage": [
+  "Volume / tonnage",
+  "Volumen / Tonnage"
+ ],
+ "Véhicules": [
+  "Voertuigen",
+  "Fahrzeuge"
+ ],
+ "Vérifié": [
+  "Gecontroleerd",
+  "Geprüft"
+ ],
+ "aucune dette": [
+  "geen schulden",
+  "keine Schulden"
+ ],
+ "base": [
+  "maatstaf",
+  "Bemessungsgrundlage"
+ ],
+ "dettes": [
+  "schulden",
+  "Schulden"
+ ],
+ "dont avenants {a}": [
+  "waarvan aanhangsels {a}",
+  "davon Nachträge {a}"
+ ],
+ "hors commande": [
+  "buiten bestelling",
+  "außerhalb der Bestellung"
+ ],
+ "livraison incomplète": [
+  "onvolledige levering",
+  "unvollständige Lieferung"
+ ],
+ "lu sur le document": [
+  "gelezen op het document",
+  "auf dem Dokument gelesen"
+ ],
+ "non livré": [
+  "niet geleverd",
+  "nicht geliefert"
+ ],
+ "par an": [
+  "per jaar",
+  "pro Jahr"
+ ],
+ "prix différent": [
+  "andere prijs",
+  "anderer Preis"
+ ],
+ "prévue : {m} · {r} %": [
+  "voorzien: {m} · {r} %",
+  "geplant: {m} · {r} %"
+ ],
+ "quantité en trop": [
+  "te veel geleverd",
+  "Mehrmenge"
+ ],
+ "synchronisation automatique de vos comptes bancaires belges. Nécessite le serveur Biltov (identifiants et certificat Ponto) : en attendant, importez vos extraits CODA.": [
+  "automatische synchronisatie van uw Belgische bankrekeningen. Vereist de Biltov-server (Ponto-gegevens en certificaat): importeer intussen uw CODA-uittreksels.",
+  "automatische Synchronisierung Ihrer belgischen Bankkonten. Erfordert den Biltov-Server (Ponto-Zugangsdaten und Zertifikat): Importieren Sie bis dahin Ihre CODA-Auszüge."
+ ],
+ "{a} mouvement(s) importé(s), {m} lettré(s) automatiquement, {d} doublon(s) ignoré(s).": [
+  "{a} beweging(en) geïmporteerd, {m} automatisch afgepunt, {d} dubbel(s) genegeerd.",
+  "{a} Bewegung(en) importiert, {m} automatisch zugeordnet, {d} Duplikat(e) ignoriert."
+ ],
+ "{n} bon(s) de commande créé(s) en brouillon dans Achats.": [
+  "{n} bestelbon(nen) als concept aangemaakt in Aankopen.",
+  "{n} Bestellung(en) als Entwurf unter Einkauf angelegt."
+ ],
+ "{n} carreaux =": [
+  "{n} tegels =",
+  "{n} Fliesen ="
+ ],
+ "{p} % du budget · {h} h": [
+  "{p} % van het budget · {h} u",
+  "{p} % des Budgets · {h} Std."
+ ],
+ "{p} % du vendu · encaissé {c}": [
+  "{p} % van het verkochte · geïnd {c}",
+  "{p} % des Verkauften · eingenommen {c}"
+ ],
+ "À lettrer": [
+  "Af te punten",
+  "Zuzuordnen"
+ ],
+ "À traiter": [
+  "Te behandelen",
+  "Zu bearbeiten"
+ ],
+ "Écart de prix facturé par rapport à la commande : {g} HTVA.": [
+  "Prijsverschil gefactureerd t.o.v. de bestelling: {g} excl. btw.",
+  "Preisabweichung der Rechnung gegenüber der Bestellung: {g} netto."
+ ],
+ "Écarts": [
+  "Verschillen",
+  "Abweichungen"
+ ],
+ "Échéances à générer (7 j)": [
+  "Te genereren vervaldagen (7 d)",
+  "Zu erzeugende Fälligkeiten (7 T)"
+ ],
+ "Écritures": [
+  "Boekingen",
+  "Buchungen"
+ ],
+ "Écritures (PCMN)": [
+  "Boekingen (MAR)",
+  "Buchungen (Kontenrahmen)"
+ ],
+ "Écritures PCMN, exports WinBooks, UBL et CSV pour votre comptable": [
+  "MAR-boekingen, exports WinBooks, UBL en CSV voor uw boekhouder",
+  "Buchungen nach belgischem Kontenrahmen, Exporte WinBooks, UBL und CSV für Ihren Buchhalter"
+ ],
+ "Écritures équilibrées": [
+  "Evenwichtige boekingen",
+  "Ausgeglichene Buchungen"
+ ],
+ "Éléments": [
+  "Elementen",
+  "Elemente"
+ ],
+ "Éléments linéaires": [
+  "Lineaire elementen",
+  "Lineare Elemente"
+ ],
+ "Épaisseur (cm)": [
+  "Dikte (cm)",
+  "Dicke (cm)"
+ ],
+ "Étape suivante": [
+  "Volgende stap",
+  "Nächster Schritt"
+ ],
+ "Machine": [
+  "Machine",
+  "Maschine"
+ ],
+ "Électroportatif": [
+  "Elektrisch handgereedschap",
+  "Elektrowerkzeug"
+ ],
+ "Mesure": [
+  "Meting",
+  "Messgerät"
+ ],
+ "Échafaudage": [
+  "Stelling",
+  "Gerüst"
+ ],
+ "Jardin": [
+  "Tuin",
+  "Garten"
+ ],
+ "Hebdomadaire": [
+  "Wekelijks",
+  "Wöchentlich"
+ ],
+ "Mensuel": [
+  "Maandelijks",
+  "Monatlich"
+ ],
+ "Trimestriel": [
+  "Driemaandelijks",
+  "Vierteljährlich"
+ ],
+ "Annuel": [
+  "Jaarlijks",
+  "Jährlich"
+ ],
+ "Béton": [
+  "Beton",
+  "Beton"
+ ],
+ "{n} pièce(s)": [
+  "{n} stuk(ken)",
+  "{n} Beleg(e)"
+ ],
+ "Pièce": [
+  "Stuk",
+  "Beleg"
+ ],
+ "dû": [
+  "verschuldigd",
+  "geschuldet"
+ ],
+ "ONSS {o} · SPF {s}": [
+  "RSZ {o} · FOD {s}",
+  "LSS {o} · FÖD {s}"
+ ],
+ "Facture {n} : obligation de retenue non vérifiée avant paiement": [
+  "Factuur {n}: inhoudingsplicht niet gecontroleerd vóór betaling",
+  "Rechnung {n}: Einbehaltungspflicht vor Zahlung nicht geprüft"
+ ],
+ "Facture {n} : vérification datée du {d}, à refaire le jour du paiement": [
+  "Factuur {n}: controle van {d}, opnieuw te doen op de dag van betaling",
+  "Rechnung {n}: Prüfung vom {d}, am Zahlungstag zu wiederholen"
  ]
 };

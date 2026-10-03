@@ -48,6 +48,16 @@ const ROWS: Record<TradeId, Row[]> = {
     ["DEP-CH", "Dépose ancien châssis", "Verwijderen oud raam", "Ausbau altes Fenster", "u", 30, 100, "labour", "labour", "Châssis"],
     ["PARQ", "Parquet chêne posé", "Eiken parket geplaatst", "Eichenparkett verlegt", "m²", 32, 60, "supply", "installed_material", "Sols"],
   ],
+  paysagiste: [
+    ["MO-JAR", "Main-d'œuvre jardinier (entretien)", "Arbeidsloon tuinman (onderhoud)", "Arbeitszeit Gärtner (Pflege)", "h", 30, 50, "labour", "garden_maintenance", "Entretien"],
+    ["TONTE", "Tonte de pelouse", "Gazon maaien", "Rasen mähen", "m²", 0.08, 100, "labour", "garden_maintenance", "Entretien"],
+    ["TAILLE", "Taille de haies", "Hagen snoeien", "Heckenschnitt", "ml", 1.5, 80, "labour", "garden_maintenance", "Entretien"],
+    ["TERRE", "Terre arable criblée livrée et étalée", "Gezeefde teelaarde geleverd en verspreid", "Gesiebter Mutterboden geliefert und verteilt", "m³", 28, 70, "supply", "garden_creation", "Aménagement"],
+    ["GAZ-ROUL", "Gazon en rouleaux posé", "Graszoden gelegd", "Rollrasen verlegt", "m²", 5.5, 100, "supply", "garden_creation", "Aménagement"],
+    ["PAILLIS", "Paillis d'écorces (couche 7 cm)", "Boomschorsmulch (laag 7 cm)", "Rindenmulch (7 cm Schicht)", "m³", 35, 60, "supply", "garden_creation", "Aménagement"],
+    ["PAVE-TER", "Pavés de terrasse posés sur empierrement", "Terrasklinkers gelegd op steenslag", "Terrassenpflaster auf Schotter verlegt", "m²", 42, 85, "supply", "garden_creation", "Aménagement"],
+    ["EMPIER", "Empierrement 0/32 compacté", "Steenslag 0/32 verdicht", "Schotter 0/32 verdichtet", "m³", 30, 70, "supply", "garden_creation", "Aménagement"],
+  ],
 };
 
 export function starterCatalog(trade: TradeId): Article[] {

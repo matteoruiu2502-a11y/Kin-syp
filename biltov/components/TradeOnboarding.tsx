@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BrickWall, Hammer, Mic, PaintRoller, Package, Percent, Sparkles, Wrench, Zap, type LucideIcon } from "lucide-react";
+import { BrickWall, Hammer, Trees, Mic, PaintRoller, Package, Percent, Sparkles, Wrench, Zap, type LucideIcon } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { TradeId } from "@/lib/content/fr";
 import { cn, formatMoney } from "@/lib/utils";
@@ -15,6 +15,7 @@ const ICONS: Record<TradeId, LucideIcon> = {
   peintre: PaintRoller,
   macon: BrickWall,
   menuisier: Hammer,
+  paysagiste: Trees,
 };
 
 const QUOTES = { fr: ["« ", " »"], nl: ["“", "”"], de: ["„", "“"] } as const;

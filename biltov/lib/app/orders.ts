@@ -2,6 +2,7 @@
 // et rapprochement bon de commande / bon(s) de livraison / facture du grossiste.
 
 import { round2 } from "./money";
+import { uid } from "./defaults";
 import type { AccountData, Purchase, PurchaseStatus } from "./types";
 
 export const ORDER_FLOW: PurchaseStatus[] = ["draft", "ordered", "preparing", "delivered", "verified"];
@@ -64,3 +65,39 @@ export function compareOrder(d: AccountData, orderId: string): CompareRow[] {
 
 /** Écart total en euros entre la facture et la commande (prix et quantités facturés). */
 export const invoiceGap = (rows: CompareRow[]) => round2(rows.reduce((s, r) => s + r.invoiced * (r.invoicePrice ?? r.orderPrice) - r.invoiced * r.orderPrice, 0));
+
+/** Devis signé → bons de commande fournisseurs (un par fournisseur des articles), numérotés BC-AAAA-NNNN. */
+export function ordersFromQuote(d: AccountData, quoteId: string, fallbackSupplierId: string | null): [AccountData, Purchase[]] {
+  const q = d.docs.find((x) => x.id === quoteId);
+  if (!q) return [d, []];
+  const groups = new Map<string, Purchase["lines"]>();
+  for (const l of q.lines) {
+    if (l.kind !== "item" || (l.optional && !l.selected) || !l.articleId) continue;
+    const a = d.articles.find((x) => x.id === l.articleId);
+    if (!a || a.type === "labour" || a.type === "subcontract") continue;
+    const sid = a.supplierId ?? fallbackSupplierId;
+    if (!sid) continue;
+    // ouvrages composés : on commande les composants
+    const parts = a.components.length ? a.components.map((c) => ({ art: d.articles.find((x) => x.id === c.articleId), qty: c.qty * l.qty })) : [{ art: a, qty: l.qty }];
+    for (const { art, qty } of parts) {
+      if (!art || art.type === "labour") continue;
+      const key = art.supplierId ?? sid;
+      const lines = groups.get(key) ?? [];
+      const same = lines.find((x) => x.articleId === art.id);
+      if (same) same.qty = round2(same.qty + qty);
+      else lines.push({ id: uid(), articleId: art.id, label: art.name.fr, qty: round2(qty), unitPrice: art.purchasePrice, vat: 21 });
+      groups.set(key, lines);
+    }
+  }
+  let next = d;
+  const created: Purchase[] = [];
+  for (const [supplierId, lines] of groups) {
+    const key = `${next.settings.prefixes.order}-${new Date().getFullYear()}`;
+    const n = (next.settings.counters[key] ?? 0) + 1;
+    const today = new Date().toISOString().slice(0, 10);
+    const p: Purchase = { id: uid(), type: "order", supplierId, jobId: q.jobId, number: `${key}-${String(n).padStart(4, "0")}`, date: today, dueDate: today, lines, status: "draft", source: "manual", retention: null, paidAt: null, fileId: null };
+    next = { ...next, settings: { ...next.settings, counters: { ...next.settings.counters, [key]: n } }, purchases: [p, ...next.purchases] };
+    created.push(p);
+  }
+  return [next, created];
+}

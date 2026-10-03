@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { ArrowDown, ArrowUp, BadgeEuro, Ban, Eye, FileCheck2, FileCode2, FileMinus2, FileSpreadsheet, Flag, GitBranch, Heading, Lock, PenLine, Plus, Receipt, Save, Send, Sparkles, Trash2, Type } from "lucide-react";
+import { ArrowDown, ArrowUp, BadgeEuro, Ban, Calculator, Eye, FileCheck2, FileCode2, FileMinus2, FileSpreadsheet, Flag, GitBranch, Heading, Lock, PenLine, Plus, Receipt, Save, Send, Sparkles, Trash2, Type } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
@@ -22,6 +22,8 @@ import { downloadBlob } from "@/lib/app/send";
 import { decideVat, VAT_CODES, type LineCategory, type VatCode } from "@/lib/tax/belgium";
 import type { Doc, Lang, Line } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
+import { ordersFromQuote } from "@/lib/app/orders";
+import { QuantityCalculator } from "./QuantityCalculator";
 import { Badge, Field, Modal, Notice, cellClass, inputClass } from "./ui";
 import { VoiceInput } from "./VoiceInput";
 import { SendDialog } from "./SendDialog";
@@ -66,6 +68,7 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
   const setLines = (lines: Line[]) => save(applyVat(data, { ...doc, lines }));
   const setLine = (id: string, p: Partial<Line>) => setLines(doc.lines.map((l) => (l.id === id ? { ...l, ...p } : l)));
   const addLines = (lines: Line[]) => setLines([...doc.lines, ...lines]);
+  const [calc, setCalc] = useState(false);
   const move = (i: number, dir: -1 | 1) => {
     const arr = [...doc.lines];
     const j = i + dir;
@@ -166,6 +169,13 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
                   ...doc.milestones.filter((m) => !m.invoiced).map((m) => ({ label: `${t("Jalon")} : ${m.label} (${m.percent} %)`, run: () => onOpen(run((d) => quoteToInvoice(d, doc.id, "deposit", { milestoneId: m.id })).id) })),
                   { label: t("Facture finale (déduit acomptes et situations)"), run: () => onOpen(run((d) => quoteToInvoice(d, doc.id, "final")).id) },
                   { label: t("Facture complète"), run: () => onOpen(run((d) => quoteToInvoice(d, doc.id, "full")).id) },
+                  {
+                    label: t("Commander les fournitures (bons de commande)"),
+                    run: () => {
+                      const created = run((d) => ordersFromQuote(d, doc.id, d.suppliers.find((x) => x.kind === "supplier")?.id ?? null));
+                      window.alert(created.length ? t("{n} bon(s) de commande créé(s) en brouillon dans Achats.", { n: created.length }) : t("Aucune fourniture du catalogue avec un fournisseur dans ce devis."));
+                    },
+                  },
                 ].map((it) => (
                   <button
                     key={it.label}
@@ -350,6 +360,9 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => addLines([newLine({ vat: "21" })])} className="btn-ghost !py-1.5 text-xs">
                     <Plus className="h-3.5 w-3.5" /> {t("Ligne")}
+                  </button>
+                  <button onClick={() => setCalc(true)} className="btn-ghost !py-1.5 text-xs">
+                    <Calculator className="h-3.5 w-3.5" /> {t("Calculateur")}
                   </button>
                   <button onClick={() => addLines([newLine({ kind: "section", label: t("Nouveau lot") })])} className="btn-ghost !py-1.5 text-xs">
                     <Heading className="h-3.5 w-3.5" /> {t("Lot / section")}
@@ -615,6 +628,17 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
             </p>
           )}
         </div>
+      <AnimatePresence>
+        {calc && (
+          <QuantityCalculator
+            onClose={() => setCalc(false)}
+            onInsert={(r) => {
+              addLines([newLine({ label: r.label, qty: r.qty, unit: r.unit, category: r.category, toPrice: true })]);
+              setCalc(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
       </Modal>
 
       <AnimatePresence>

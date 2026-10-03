@@ -122,6 +122,20 @@ export const de: Dict = {
         jargon: ["Blendrahmen", "Flügel", "Renovierungsrahmen", "Uw", "Kompriband"],
         vat: "6 % (Privatwohnung älter als 10 Jahre)",
       },
+      {
+        id: "paysagiste",
+        name: "Garten- und Landschaftsbauer",
+        voice: "Für die Villa Lambertz in Eupen, 120 m² Rollrasen, 8 m³ Mutterboden, 25 m² Terrassenpflaster und die monatliche Heckenpflege.",
+        lines: [
+          { label: "Gesiebter Mutterboden geliefert und verteilt", qty: 8, unit: "m³", price: 48 },
+          { label: "Rollrasen verlegt", qty: 120, unit: "m²", price: 11.5 },
+          { label: "Terrassenpflaster auf Schotter verlegt", qty: 25, unit: "m²", price: 78 },
+          { label: "Heckenschnitt (monatliche Pflege)", qty: 3, unit: "h", price: 45 },
+        ],
+        supplies: ["Mutterboden", "Rollrasen", "Mulch", "Pflaster und Randsteine", "Schotter", "Pflanzen"],
+        jargon: ["Schotter", "Mulchen", "Vertikutieren", "Randstein", "Drainage"],
+        vat: "21 % (Garten: vom 6-%-Satz ausgeschlossen)",
+      },
     ] as Trade[],
   },
   features: {

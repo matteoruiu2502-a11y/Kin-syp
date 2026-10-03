@@ -27,3 +27,20 @@ describe("commandes fournisseurs", () => {
     expect(invoiceGap(rows)).toBe(10);
   });
 });
+
+import { newArticle, newDoc, newLine } from "./defaults";
+import { ordersFromQuote } from "./orders";
+describe("devis → bons de commande", () => {
+  it("un bon par fournisseur, composants d'ouvrage, sans main-d'œuvre", () => {
+    const colle = newArticle({ id: "colle", supplierId: "s1", purchasePrice: 20, name: { fr: "Colle", nl: "", de: "" } });
+    const joint = newArticle({ id: "joint", supplierId: "s2", purchasePrice: 8, name: { fr: "Joint", nl: "", de: "" } });
+    const mo = newArticle({ id: "mo", type: "labour" });
+    const ouvrage = newArticle({ id: "ouv", type: "package", components: [{ articleId: "colle", qty: 0.5 }, { articleId: "mo", qty: 1 }] });
+    const q = { ...newDoc({ jobId: "j", clientId: "c", type: "quote" }), id: "q", status: "accepted" as const, lines: [newLine({ articleId: "ouv", qty: 10 }), newLine({ articleId: "joint", qty: 3 }), newLine({ articleId: "mo", qty: 5 })] };
+    const [d, orders] = ordersFromQuote({ ...emptyAccountData("a"), articles: [colle, joint, mo, ouvrage], docs: [q] }, "q", "s1");
+    expect(orders).toHaveLength(2);
+    expect(orders.find((o) => o.supplierId === "s1")!.lines).toMatchObject([{ articleId: "colle", qty: 5, unitPrice: 20 }]);
+    expect(orders.find((o) => o.supplierId === "s2")!.lines).toMatchObject([{ articleId: "joint", qty: 3 }]);
+    expect(d.purchases[0].number).toMatch(/^BC-\d{4}-0002$/);
+  });
+});

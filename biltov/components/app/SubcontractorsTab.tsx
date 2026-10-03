@@ -229,7 +229,12 @@ export function SubcontractorsTab() {
             <button key={i} onClick={() => setOpen(data.suppliers.find((s) => s.id === a.supplierId) ?? null)} className="flex w-full items-start gap-2 text-left">
               <AlertTriangle className={cn("mt-0.5 h-4 w-4 shrink-0", a.level === "danger" ? "text-rose-400" : "text-amber-300")} />
               <span className="text-slate-300">
-                <strong className="text-white">{data.suppliers.find((s) => s.id === a.supplierId)?.name}</strong> — {t(a.text)}
+                <strong className="text-white">{data.suppliers.find((s) => s.id === a.supplierId)?.name}</strong> —{" "}
+                {a.kind
+                  ? `${t(ATTESTATION_LABEL[a.kind])} : ${t(STATE_STYLE[a.issue as AttestationState].label).toLowerCase()}`
+                  : a.issue === "unchecked"
+                    ? t("Facture {n} : obligation de retenue non vérifiée avant paiement", { n: a.number || "—" })
+                    : t("Facture {n} : vérification datée du {d}, à refaire le jour du paiement", { n: a.number || "—", d: f.date(a.date ?? "") })}
               </span>
             </button>
           ))}

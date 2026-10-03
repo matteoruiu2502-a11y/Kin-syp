@@ -122,6 +122,20 @@ export const nl: Dict = {
         jargon: ["raam", "kader", "vleugel", "Uw", "compriband"],
         vat: "6 % (privéwoning ouder dan 10 jaar)",
       },
+      {
+        id: "paysagiste",
+        name: "Tuinaannemer / hovenier",
+        voice: "Voor villa Lambrechts in Brasschaat, 120 m² graszoden, 8 m³ teelaarde, 25 m² terrasklinkers en het maandelijkse onderhoud van de hagen.",
+        lines: [
+          { label: "Gezeefde teelaarde geleverd en verspreid", qty: 8, unit: "m³", price: 48 },
+          { label: "Graszoden gelegd", qty: 120, unit: "m²", price: 11.5 },
+          { label: "Terrasklinkers gelegd op steenslag", qty: 25, unit: "m²", price: 78 },
+          { label: "Hagen snoeien (maandelijks onderhoud)", qty: 3, unit: "h", price: 45 },
+        ],
+        supplies: ["Teelaarde", "Graszoden", "Mulch", "Klinkers en boordstenen", "Steenslag", "Planten"],
+        jargon: ["steenslag", "mulchen", "verticuteren", "boordsteen", "drainage"],
+        vat: "21 % (tuin: uitgesloten van 6 %)",
+      },
     ] as Trade[],
   },
   features: {

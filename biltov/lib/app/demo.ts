@@ -5,6 +5,7 @@ import { addDays, emptyAccountData, newArticle, newClient, newJob, newLine, nowI
 import { addPayment, createQuote, issueDoc, logSend, quoteToInvoice, signQuote } from "./ops";
 import { recalcAll } from "./catalog/pricing";
 import { computeTotals } from "./money";
+import { importMoves } from "./bank";
 import type { Account, AccountData, GenericRecord, Photo } from "./types";
 
 export const DEMO_ID = "demo";
@@ -206,5 +207,25 @@ export async function buildDemoData(): Promise<AccountData> {
     rec("chat", "Karim B.", "message", { text: "Il manque 2 sacs de colle pour finir demain." }, { jobId: jDurand.id, memberId: karim.id }),
   ];
   d.settings = { ...d.settings, modules: { ...d.settings.modules, recruitment: true, marketing: true, website: true, subnetwork: true } };
+  // Banque : un extrait importé (un virement à lettrer, des frais bancaires)
+  const open3 = d.docs.find((x) => x.number === "F-2026-0003");
+  if (open3) {
+    [d] = importMoves(d, [
+      { amount: Math.round(computeTotals(open3).due * 100) / 100, date: d0(-1), communication: "Facture appartementen", structured: false, counterparty: "BOUW & CO NV", account: "BE71096123456769", ref: "DEMO-1" },
+      { amount: -12.5, date: d0(-2), communication: "Frais de gestion de compte", structured: false, counterparty: "Banque", account: "", ref: "DEMO-2" },
+    ]);
+  }
+  // Sous-traitant : attestations
+  d.suppliers = d.suppliers.map((s) => (s.kind === "subcontractor" ? { ...s, attestations: [{ id: uid(), kind: "insurance_rc", reference: "RC-55120", validUntil: d0(20), fileId: null }, { id: uid(), kind: "onss", reference: "", validUntil: d0(-3), fileId: null }] } : s));
+  // Parc d'outils
+  d.tools = [
+    { id: uid(), name: "Minipelle 1,8 t", category: "Machine", serial: "KB-18-2291", purchaseDate: d0(-400), value: 24000, assignment: { type: "job", id: jBouw.id }, history: [{ at: nowIso(), assignment: { type: "job", id: jBouw.id }, note: "Tranchées" }], serviceIntervalDays: 180, lastService: d0(-170), status: "ok", notes: "" },
+    { id: uid(), name: "Laser rotatif", category: "Mesure", serial: "LR-7781", purchaseDate: d0(-700), value: 1450, assignment: { type: "member", id: karim.id }, history: [], serviceIntervalDays: 365, lastService: d0(-100), status: "ok", notes: "" },
+    { id: uid(), name: "Disqueuse 230 mm", category: "Électroportatif", serial: "", purchaseDate: d0(-300), value: 280, assignment: { type: "vehicle", id: van.id }, history: [], serviceIntervalDays: null, lastService: null, status: "repair", notes: "Charbons à changer" },
+  ];
+  // Contrat d'entretien récurrent
+  d.contracts = [
+    { id: uid(), clientId: durand.id, jobId: null, title: "Entretien annuel chaudière — Durand", frequency: "yearly", startDate: d0(-360), nextDate: d0(5), endDate: null, lines: [{ label: "Entretien chaudière gaz + attestation", qty: 1, unit: "forfait", unitPrice: 120, category: "fossil_boiler_service" }], memberIds: [karim.id], active: true, history: [] },
+  ];
   return d;
 }

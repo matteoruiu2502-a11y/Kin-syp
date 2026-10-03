@@ -22,12 +22,13 @@ Pour publier dans un sous-dossier : `NEXT_PUBLIC_BASE_PATH=/mon/dossier npm run 
 |---|---|
 | `app/page.tsx`, `components/*.tsx`, `components/features/*`, `components/hero/*` | Page d'accueil (scène 3D, métiers, démo de dictée, tarif, FAQ) |
 | `lib/content/{fr,nl,de}.ts` | Textes de la page d'accueil, par langue (même structure) |
-| `app/tableau-de-bord/` + `components/app/*` | Espace artisan (navigation `#apercu`, `#chantiers`, `#clients`, `#documents`, `#catalogue`, `#planning`, `#equipe`, `#achats`, `#stock`, `#flotte`, `#modules`, `#parametres`) |
+| `app/tableau-de-bord/` + `components/app/*` | Espace artisan (navigation `#apercu`, `#chantiers`, `#chantier/<id>/rentabilite`, `#clients`, `#documents`, `#catalogue`, `#planning`, `#equipe`, `#achats`, `#stock`, `#flotte`, `#outils`, `#contrats`, `#banque`, `#comptabilite`, `#sous-traitants`, `#modules`, `#parametres`) |
 | `lib/tax/belgium/*` | Moteur fiscal belge : BCE / TVA (modulo 97), taux et règles de TVA, mentions, relances Livre XIX / loi 2002, **valeurs légales datées** (`config.ts`) |
 | `lib/app/types.ts`, `defaults.ts`, `store.tsx`, `db.ts` | Modèle de données, stockage IndexedDB par collection (couche unique, remplaçable par un serveur) |
 | `lib/app/ops.ts`, `money.ts` | Opérations métier pures (devis, versions, avenants, signature, acomptes, situations, émission, notes de crédit, paiements, rentabilité) |
 | `lib/app/pdf.ts`, `epc.ts`, `peppol/*` | PDF des documents, QR de virement, UBL Peppol BIS 3.0 + interface `PeppolProvider` |
 | `lib/app/catalog/*` | Catalogue : prix, rapprochement de la dictée, import Excel / CSV |
+| `lib/app/bank.ts`, `accounting.ts`, `profit.ts`, `subcontractors.ts`, `invoiceOcr.ts`, `orders.ts`, `tools.ts`, `contracts.ts`, `calc.ts`, `geo.ts` | Banque et lettrage, écritures PCMN / WinBooks, rentabilité chantier, sous-traitants 30bis, OCR des factures fournisseurs, commandes, outils, contrats d'entretien, calculateurs, géolocalisation |
 | `lib/app/finance.ts`, `coda.ts`, `reminders.ts`, `planning.ts`, `modules.ts`, `website.ts` | Argent à recevoir, trésorerie, aide TVA, obligation de retenue, journaux ; CODA ; relances ; planning ; modules complémentaires ; mini-site |
 | `lib/app/tr.tsx`, `tr-dict.ts` | Traduction de l'espace artisan (textes FR dans le code, NL / DE dans le dictionnaire, couverture testée) |
 | `public/manifest.webmanifest`, `public/sw.js` | Application installable et hors ligne |
