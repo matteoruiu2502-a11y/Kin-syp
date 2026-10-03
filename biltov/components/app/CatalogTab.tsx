@@ -470,6 +470,7 @@ export function CatalogTab() {
                 </Field>
                 <div className="sm:col-span-2">
                   <Notice>{t("Réimporter le fichier de prix d'un fournisseur met à jour les prix d'achat et recalcule les prix de vente selon vos marges (historique conservé).")}</Notice>
+                  <Notice>{t("Tarifs grossistes (Cebeo, Facq, BigMat, Van Marcke…) : les colonnes « prix net » ou « prix brut » + « remise » sont reconnues. Les gros catalogues sont indexés pour la dictée.")}</Notice>
                 </div>
               </div>
             }

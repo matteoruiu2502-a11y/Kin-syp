@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { Building2, CheckCircle2, ExternalLink, PackageCheck, Plus, ShieldAlert, ShoppingCart, Trash2, Truck } from "lucide-react";
+import { Building2, CheckCircle2, ExternalLink, PackageCheck, Plus, ScanLine, ShieldAlert, ShoppingCart, Trash2, Truck } from "lucide-react";
+import { compareOrder, invoiceGap, nextOrderStatus, statusesFor } from "@/lib/app/orders";
+import { PurchaseScan } from "./PurchaseScan";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
@@ -137,7 +139,7 @@ function PurchaseForm({ purchase, onClose }: { purchase: Purchase; onClose: () =
   return (
     <Modal
       wide="xl"
-      title={p.type === "order" ? t("Bon de commande {n}", { n: p.number || t("(numéro attribué à l'enregistrement)") }) : t("Facture fournisseur {n}", { n: p.number || "" })}
+      title={p.type === "order" ? t("Bon de commande {n}", { n: p.number || t("(numéro attribué à l'enregistrement)") }) : p.type === "delivery" ? t("Bon de livraison {n}", { n: p.number || "" }) : t("Facture fournisseur {n}", { n: p.number || "" })}
       onClose={onClose}
       footer={
         <>
@@ -146,7 +148,7 @@ function PurchaseForm({ purchase, onClose }: { purchase: Purchase; onClose: () =
               {t("Supprimer")}
             </button>
           )}
-          {p.type === "order" && p.status === "ordered" && data.settings.modules.stock && (
+          {(p.type === "order" || p.type === "delivery") && ["ordered", "preparing", "delivered"].includes(p.status) && data.settings.modules.stock && (
             <button onClick={receive} className="btn-ghost text-sm">
               <PackageCheck className="h-4 w-4" /> {t("Réceptionner en stock")}
             </button>
@@ -193,13 +195,27 @@ function PurchaseForm({ purchase, onClose }: { purchase: Purchase; onClose: () =
           </Field>
           <Field label={t("Statut")}>
             <select className={inputClass} value={p.status} onChange={(e) => setP((x) => ({ ...x, status: e.target.value as PurchaseStatus, paidAt: e.target.value === "paid" ? x.paidAt ?? todayIso() : null }))}>
-              {(Object.keys(PURCHASE_STATUS) as PurchaseStatus[]).map((s) => (
+              {statusesFor(p.type).map((s) => (
                 <option key={s} value={s}>
                   {t(PURCHASE_STATUS[s].label)}
                 </option>
               ))}
             </select>
           </Field>
+          {p.type !== "order" && (
+            <Field label={t("Bon de commande lié")}>
+              <select className={inputClass} value={p.orderId ?? ""} onChange={(e) => set("orderId", e.target.value || null)}>
+                <option value="">—</option>
+                {data.purchases
+                  .filter((o) => o.type === "order" && o.supplierId === p.supplierId)
+                  .map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.number || "—"} — {f.date(o.date)}
+                    </option>
+                  ))}
+              </select>
+            </Field>
+          )}
         </div>
 
         <div className="overflow-x-auto rounded-2xl border border-white/10">
@@ -322,11 +338,74 @@ function PurchaseForm({ purchase, onClose }: { purchase: Purchase; onClose: () =
   );
 }
 
+/** Rapprochement bon de commande / bons de livraison / facture du grossiste. */
+function OrderCompare({ order, onClose }: { order: Purchase; onClose: () => void }) {
+  const { t } = useTr();
+  const f = useFmt();
+  const { data, upsert } = useAppData();
+  const rows = compareOrder(data, order.id);
+  const gap = invoiceGap(rows);
+  const ISSUE: Record<string, string> = { missing: "non livré", short: "livraison incomplète", over: "quantité en trop", extra: "hors commande", price: "prix différent" };
+  return (
+    <Modal
+      wide
+      title={t("Commande {n} : commandé, livré, facturé", { n: order.number })}
+      onClose={onClose}
+      footer={
+        <>
+          <button onClick={onClose} className="btn-ghost text-sm">
+            {t("Fermer")}
+          </button>
+          {order.status !== "verified" && (
+            <button onClick={() => (upsert("purchases", { ...order, status: "verified" }), onClose())} className="btn-primary text-sm">
+              <CheckCircle2 className="h-4 w-4" /> {t("Marquer comme vérifiée")}
+            </button>
+          )}
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div className="overflow-x-auto rounded-2xl border border-white/10">
+          <table className="w-full min-w-[620px] text-sm">
+            <thead className="text-left text-xs uppercase tracking-wider text-slate-500">
+              <tr>
+                <th className="p-2">{t("Article")}</th>
+                <th className="p-2 text-right">{t("Commandé")}</th>
+                <th className="p-2 text-right">{t("Livré")}</th>
+                <th className="p-2 text-right">{t("Facturé")}</th>
+                <th className="p-2 text-right">{t("Prix cmd / fact.")}</th>
+                <th className="p-2">{t("Écarts")}</th>
+              </tr>
+            </thead>
+            <tbody className="tabular-nums">
+              {rows.map((r) => (
+                <tr key={r.key} className="border-t border-white/5">
+                  <td className="p-2 text-slate-200">{r.label}</td>
+                  <td className="p-2 text-right">{r.ordered}</td>
+                  <td className="p-2 text-right">{r.delivered}</td>
+                  <td className="p-2 text-right">{r.invoiced}</td>
+                  <td className="p-2 text-right">
+                    {f.money(r.orderPrice)} / {r.invoicePrice !== null ? f.money(r.invoicePrice) : "—"}
+                  </td>
+                  <td className="p-2">{r.issues.length ? <span className="text-amber-300">{r.issues.map((i) => t(ISSUE[i])).join(", ")}</span> : <CheckCircle2 className="h-4 w-4 text-emerald" />}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {gap !== 0 && <Notice tone="warn">{t("Écart de prix facturé par rapport à la commande : {g} HTVA.", { g: f.money(gap) })}</Notice>}
+      </div>
+    </Modal>
+  );
+}
+
 export function PurchasesTab() {
   const { t } = useTr();
   const f = useFmt();
-  const { data } = useAppData();
-  const [tab, setTab] = useState<"invoices" | "orders" | "suppliers">("invoices");
+  const { data, upsert } = useAppData();
+  const [tab, setTab] = useState<"invoices" | "orders" | "deliveries" | "suppliers">("invoices");
+  const [scan, setScan] = useState(false);
+  const [compare, setCompare] = useState<Purchase | null>(null);
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Purchase | null>(null);
   const [supplier, setSupplier] = useState<Supplier | "new" | null>(null);
@@ -341,7 +420,8 @@ export function PurchasesTab() {
   };
 
   const s = q.trim().toLowerCase();
-  const list = data.purchases.filter((p) => (tab === "orders" ? p.type === "order" : p.type === "invoice") && (!s || [p.number, sup(p.supplierId)?.name ?? "", data.jobs.find((j) => j.id === p.jobId)?.name ?? ""].some((x) => x.toLowerCase().includes(s))));
+  const typeOf = { invoices: "invoice", orders: "order", deliveries: "delivery", suppliers: "" }[tab];
+  const list = data.purchases.filter((p) => p.type === typeOf && (!s || [p.number, sup(p.supplierId)?.name ?? "", data.jobs.find((j) => j.id === p.jobId)?.name ?? ""].some((x) => x.toLowerCase().includes(s))));
 
   return (
     <div>
@@ -352,6 +432,9 @@ export function PurchasesTab() {
           <>
             <button onClick={() => setSupplier("new")} className="btn-ghost !py-2.5 text-sm">
               <Building2 className="h-4 w-4" /> {t("Fournisseur")}
+            </button>
+            <button onClick={() => setScan(true)} className="btn-ghost !py-2.5 text-sm">
+              <ScanLine className="h-4 w-4" /> {t("Scanner")}
             </button>
             <button onClick={() => setEditing(newPurchase("order"))} className="btn-ghost !py-2.5 text-sm" disabled={!data.suppliers.length}>
               <Truck className="h-4 w-4" /> {t("Commande")}
@@ -373,7 +456,8 @@ export function PurchasesTab() {
           onChange={setTab}
           tabs={[
             { id: "invoices", label: t("Factures"), count: data.purchases.filter((p) => p.type === "invoice").length },
-            { id: "orders", label: t("Commandes"), count: data.purchases.filter((p) => p.type === "order").length },
+            { id: "orders", label: t("Commandes"), count: data.purchases.filter((p) => p.type === "order" && p.status !== "verified").length },
+            { id: "deliveries", label: t("Bons de livraison"), count: data.purchases.filter((p) => p.type === "delivery").length },
             { id: "suppliers", label: t("Fournisseurs"), count: data.suppliers.length },
           ]}
         />
@@ -419,8 +503,18 @@ export function PurchasesTab() {
               label: t("Statut"),
               sort: (p) => p.status,
               render: (p) => (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                   <Badge label={t(PURCHASE_STATUS[p.status].label)} style={PURCHASE_STATUS[p.status].style} />
+                  {p.type === "order" && nextOrderStatus(p.status) && (
+                    <button onClick={() => upsert("purchases", { ...p, status: nextOrderStatus(p.status)! })} className="rounded-lg border border-white/10 px-2 py-0.5 text-xs text-slate-300 hover:border-cyan/50 hover:text-cyan" title={t("Étape suivante")}>
+                      → {t(PURCHASE_STATUS[nextOrderStatus(p.status)!].label)}
+                    </button>
+                  )}
+                  {p.type === "order" && data.purchases.some((x) => x.orderId === p.id) && (
+                    <button onClick={() => setCompare(p)} className="rounded-lg border border-white/10 px-2 py-0.5 text-xs text-slate-300 hover:border-cyan/50 hover:text-cyan">
+                      {t("Comparer")}
+                    </button>
+                  )}
                   {sup(p.supplierId)?.kind === "subcontractor" && p.type === "invoice" && (p.retention ? <CheckCircle2 className="h-4 w-4 text-emerald" /> : <ShieldAlert className="h-4 w-4 text-rose-400" />)}
                 </span>
               ),
@@ -431,6 +525,16 @@ export function PurchasesTab() {
       <AnimatePresence>
         {editing && <PurchaseForm key={editing.id} purchase={editing} onClose={() => setEditing(null)} />}
         {supplier && <SupplierForm supplier={supplier === "new" ? null : supplier} onClose={() => setSupplier(null)} />}
+        {scan && (
+          <PurchaseScan
+            onClose={() => setScan(false)}
+            onCreated={(p) => {
+              setScan(false);
+              setTab(p.type === "delivery" ? "deliveries" : "invoices");
+            }}
+          />
+        )}
+        {compare && <OrderCompare order={compare} onClose={() => setCompare(null)} />}
       </AnimatePresence>
     </div>
   );

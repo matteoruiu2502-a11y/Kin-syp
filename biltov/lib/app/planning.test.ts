@@ -32,3 +32,17 @@ describe("planning", () => {
     expect(badWeather({ date: "", code: 1, rain: 0, tmax: 18, wind: 10 })).toBe(false);
   });
 });
+
+import { moveEvent } from "./planning";
+describe("glisser-déposer", () => {
+  it("déplace d'un jour et réaffecte l'ouvrier", () => {
+    const e = { id: "e", kind: "job" as const, title: "x", jobId: null, clientId: null, memberIds: ["a", "b"], start: "2026-09-30T08:00", end: "2026-10-01T16:00", notes: "", status: "planned" as const };
+    const m = moveEvent(e, { row: { type: "member", id: "a" }, day: "2026-09-30" }, { row: { type: "member", id: "c" }, day: "2026-10-02" });
+    expect(m.start).toBe("2026-10-02T08:00");
+    expect(m.end).toBe("2026-10-03T16:00");
+    expect(m.memberIds).toEqual(["b", "c"]);
+    const v = moveEvent(m, { row: { type: "none", id: "" }, day: "2026-10-02" }, { row: { type: "vehicle", id: "van" }, day: "2026-10-02" });
+    expect(v.vehicleIds).toEqual(["van"]);
+    expect(v.memberIds).toEqual(["b", "c"]);
+  });
+});

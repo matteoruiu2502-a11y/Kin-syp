@@ -16,6 +16,7 @@ import { Badge, Empty, Stat, SubTabs } from "./ui";
 import { JobForm } from "./JobForm";
 import { PhotosPanel } from "./PhotosPanel";
 import { JobProfitPanel } from "./JobProfitPanel";
+import { mapsEmbed, mapsRoute, wazeRoute } from "@/lib/app/geo";
 import { ExpensesList } from "./ExpensesPanel";
 import { ChatPanel, FilesPanel, ReportsPanel, TimePanel } from "./FieldPanels";
 
@@ -28,6 +29,7 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
   const { data, update, run } = useAppData();
   const [tab, setTab] = useState<Tab>(initialTab);
   const [editing, setEditing] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const client = data.clients.find((c) => c.id === job.clientId);
   const docs = data.docs.filter((d) => d.jobId === job.id).sort((a, b) => b.issueDate.localeCompare(a.issueDate) || (b.number ?? "~").localeCompare(a.number ?? "~"));
   const fin = jobFinance(data, job.id);
@@ -80,9 +82,17 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
           )}
           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-slate-400">
             {address && (
-              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-white">
-                <MapPin className="h-3.5 w-3.5" /> {address}
-              </a>
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <button onClick={() => setShowMap((v) => !v)} className="flex items-center gap-1.5 hover:text-white">
+                  <MapPin className="h-3.5 w-3.5" /> {address}
+                </button>
+                <a href={mapsRoute(address)} target="_blank" rel="noreferrer" className="text-cyan hover:underline">
+                  Maps
+                </a>
+                <a href={wazeRoute(address)} target="_blank" rel="noreferrer" className="text-cyan hover:underline">
+                  Waze
+                </a>
+              </span>
             )}
             {client?.phone && (
               <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-white">
@@ -114,6 +124,9 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
         </div>
       </div>
 
+      {showMap && address && (
+        <iframe title={t("Carte du chantier")} src={mapsEmbed(address)} className="h-72 w-full rounded-2xl border border-white/10" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+      )}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label={t("Devis signé (HTVA)")} value={f.money0(fin.quoted)} />
         <Stat label={t("Facturé (HTVA)")} value={f.money0(fin.invoiced)} />

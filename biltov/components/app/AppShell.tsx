@@ -7,6 +7,7 @@ import {
   Blocks,
   Boxes,
   Car,
+  Handshake,
   Calculator,
   Landmark,
   CreditCard,
@@ -51,6 +52,7 @@ import { TeamTab } from "./TeamTab";
 import { PurchasesTab } from "./PurchasesTab";
 import { StockTab } from "./StockTab";
 import { FleetTab } from "./FleetTab";
+import { SubcontractorsTab } from "./SubcontractorsTab";
 import { AccountingTab } from "./AccountingTab";
 import { BankTab } from "./BankTab";
 import { ModulesTab } from "./ModulesTab";
@@ -59,10 +61,10 @@ import { JobForm } from "./JobForm";
 import { DocEditor } from "./DocEditor";
 import { WorkerLogin, WorkerMode } from "./WorkerMode";
 
-type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "modules" | "module" | "parametres";
+type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "modules" | "module" | "parametres";
 type Route = { page: Page; id?: string; sub?: string };
 
-const PAGES: Page[] = ["apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "banque", "comptabilite", "modules", "module", "parametres"];
+const PAGES: Page[] = ["apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "banque", "comptabilite", "sous-traitants", "modules", "module", "parametres"];
 const parse = (hash: string): Route => {
   const [a, b, c] = hash.replace(/^#/, "").split("/");
   const page = (PAGES as string[]).includes(a) ? (a as Page) : "apercu";
@@ -75,7 +77,7 @@ const toHash = (r: Route) => `#${r.page}${r.id ? `/${r.id}` : ""}${r.sub ? `/${r
 const ROLE_PAGES: Record<Exclude<Role, "worker">, Page[] | "all"> = {
   owner: "all",
   office: PAGES.filter((p) => p !== "parametres"),
-  accountant: ["apercu", "documents", "achats", "clients", "client", "comptabilite", "banque"],
+  accountant: ["apercu", "documents", "achats", "clients", "client", "sous-traitants", "comptabilite", "banque"],
 };
 
 const MEMBER_KEY = "biltov.member";
@@ -248,6 +250,7 @@ function Shell() {
     { page: "flotte", label: t("Flotte"), icon: Car, on: mods.fleet, group: 1 },
     { page: "banque", label: t("Banque"), icon: Landmark, on: true, group: 1 },
     { page: "comptabilite", label: t("Comptabilité"), icon: Calculator, on: true, group: 1 },
+    { page: "sous-traitants", label: t("Sous-traitants"), icon: Handshake, on: mods.purchases, group: 1 },
     { page: "modules", label: t("Modules"), icon: Blocks, on: true, group: 2 },
     { page: "parametres", label: t("Paramètres"), icon: Settings, on: true, group: 2 },
   ];
@@ -409,6 +412,7 @@ function Shell() {
               {page === "flotte" && <FleetTab />}
               {page === "banque" && <BankTab />}
               {page === "comptabilite" && <AccountingTab />}
+              {page === "sous-traitants" && <SubcontractorsTab />}
               {(page === "modules" || page === "module") && <ModulesTab module={page === "module" && route.id && route.id in MODULES ? (route.id as ModuleId) : null} onOpen={(m) => go({ page: "module", id: m })} onBack={() => go({ page: "modules" })} go={goPage} onOpenJob={openJob} />}
               {page === "parametres" && <SettingsTab />}
               </>

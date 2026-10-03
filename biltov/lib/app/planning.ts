@@ -21,11 +21,35 @@ export const onDay = (e: PlanningEvent, day: string) => e.start.slice(0, 10) <= 
 
 const overlaps = (a: PlanningEvent, b: PlanningEvent) => a.start < b.end && b.start < a.end;
 
-/** Conflits : même personne sur deux événements qui se chevauchent (congé approuvé ou demandé compris). */
+/** Conflits : même personne ou même véhicule sur deux événements qui se chevauchent (congés compris). */
 export function conflicts(d: AccountData, e: PlanningEvent) {
   return d.events
     .filter((x) => x.id !== e.id && x.status !== "cancelled" && x.status !== "refused" && overlaps(x, e))
-    .flatMap((x) => x.memberIds.filter((m) => e.memberIds.includes(m)).map((memberId) => ({ memberId, event: x })));
+    .flatMap((x) => [
+      ...x.memberIds.filter((m) => e.memberIds.includes(m)).map((memberId) => ({ memberId, vehicleId: null as string | null, event: x })),
+      ...(x.vehicleIds ?? []).filter((v) => (e.vehicleIds ?? []).includes(v)).map((vehicleId) => ({ memberId: null as string | null, vehicleId, event: x })),
+    ]);
+}
+
+export type PlanningRow = { type: "member" | "vehicle" | "none"; id: string };
+
+const shiftDay = (dt: string, days: number) => {
+  const d = new Date(`${dt.slice(0, 10)}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return `${d.toISOString().slice(0, 10)}${dt.slice(10)}`;
+};
+
+/** Glisser-déposer : déplace l'événement d'un jour à l'autre et le réaffecte à la ligne d'arrivée. */
+export function moveEvent(e: PlanningEvent, from: { row: PlanningRow; day: string }, to: { row: PlanningRow; day: string }): PlanningEvent {
+  const delta = Math.round((Date.parse(`${to.day}T12:00:00Z`) - Date.parse(`${from.day}T12:00:00Z`)) / 864e5);
+  let memberIds = e.memberIds;
+  let vehicleIds = e.vehicleIds ?? [];
+  if (from.row.type === "member") memberIds = memberIds.filter((m) => m !== from.row.id);
+  if (from.row.type === "vehicle") vehicleIds = vehicleIds.filter((v) => v !== from.row.id);
+  if (to.row.type === "member" && !memberIds.includes(to.row.id)) memberIds = [...memberIds, to.row.id];
+  if (to.row.type === "vehicle" && !vehicleIds.includes(to.row.id)) vehicleIds = [...vehicleIds, to.row.id];
+  // déposer depuis « non assigné » sur une ligne véhicule ne retire personne ; vers « non assigné » : retire la ressource d'origine
+  return { ...e, start: shiftDay(e.start, delta), end: shiftDay(e.end, delta), memberIds, vehicleIds };
 }
 
 const icsDate = (s: string) => s.replace(/[-:]/g, "").slice(0, 13).padEnd(13, "0") + "00";

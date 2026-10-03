@@ -28,11 +28,11 @@ export function guessFromText(text: string): ReceiptGuess {
   return { supplier, date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : "", total, text };
 }
 
-export async function readReceipt(image: Blob, onProgress?: (p: number) => void): Promise<ReceiptGuess> {
+/** Texte d'une image (OCR Tesseract dans le navigateur, fichiers servis par le site, sans CDN). */
+export async function recognizeText(image: Blob, onProgress?: (p: number) => void, lang = "fra"): Promise<string> {
   const { createWorker } = await import("tesseract.js");
-  // Fichiers servis par le site lui-même (scripts/copy-ocr.mjs) : aucun CDN nécessaire
   const base = `${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ""}/ocr/`;
-  const worker = await createWorker("fra", 1, {
+  const worker = await createWorker(lang, 1, {
     workerPath: `${base}worker.min.js`,
     corePath: base,
     langPath: base,
@@ -41,8 +41,12 @@ export async function readReceipt(image: Blob, onProgress?: (p: number) => void)
   });
   try {
     const { data } = await worker.recognize(image);
-    return guessFromText(data.text);
+    return data.text;
   } finally {
     await worker.terminate();
   }
+}
+
+export async function readReceipt(image: Blob, onProgress?: (p: number) => void): Promise<ReceiptGuess> {
+  return guessFromText(await recognizeText(image, onProgress));
 }
