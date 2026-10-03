@@ -28,7 +28,7 @@ Ce fichier dit honnêtement ce qui fonctionne aujourd'hui.
 | Devis hors établissement (droit de rétractation) | ✅ | Mention ajoutée au devis |
 | Obligation de retenue sous-traitants (art. 30bis ONSS, art. 403 CIR) | 🟡 | Calcul des montants à retenir après votre vérification ; ⏳ consultation automatique du service officiel |
 | Banque : extraits CODA, lettrage (#banque) | ✅ | Mouvements conservés, doublons ignorés, communication structurée validée (modulo 97), lettrage automatique (communication, n° de facture), proposition par montant, partiels et surplus, paiements fournisseurs, lettrage manuel multi-factures, annulation. ⏳ Synchronisation Ponto (interface prête, nécessite le serveur) |
-| Garden / parcs & jardins | 🟡 | Entretien de jardin à 21 %, aménagement exclu du 6 % (autoliquidation si client assujetti) — règles marquées « à valider par le comptable » |
+| Parcs & jardins (TVA) | 🟡 | Entretien de jardin à 21 %, aménagement exclu du 6 % (autoliquidation si client assujetti) — règles marquées « à valider par le comptable » |
 | Aide à la déclaration TVA (grilles 00–03, 45, 49, 54, 56, 59, 64, 81, 82, 87) | 🟡 | Estimation à valider par le comptable ; pas de dépôt Intervat |
 | Conservation des documents | 🟡 | Documents émis immuables, journal d'audit ; ⏳ archivage à valeur probante |
 
