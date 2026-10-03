@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { AlertTriangle, CalendarDays, Check, ChevronLeft, ChevronRight, CloudRain, Download, Plus, Sun, X } from "lucide-react";
+import { AlertTriangle, CalendarDays, Check, ChevronLeft, ChevronRight, CloudRain, Download, Plus, Sun, Truck, X } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { addDays, todayIso, uid } from "@/lib/app/defaults";
-import { badWeather, conflicts, fetchWeather, mondayOf, onDay, toIcs, weekDays, type DayWeather } from "@/lib/app/planning";
+import { badWeather, conflicts, fetchWeather, mondayOf, moveEvent, onDay, toIcs, weekDays, type DayWeather, type PlanningRow } from "@/lib/app/planning";
 import { downloadBlob } from "@/lib/app/send";
 import type { EventKind, PlanningEvent } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
@@ -112,6 +112,21 @@ export function EventForm({ event, onClose }: { event: PlanningEvent; onClose: (
             {!data.members.length && <span className="text-sm text-slate-500">{t("Ajoutez votre équipe dans l'onglet Équipe.")}</span>}
           </div>
         </div>
+        {data.vehicles.length > 0 && (
+          <div className="sm:col-span-2">
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("Véhicules")}</p>
+            <div className="flex flex-wrap gap-2">
+              {data.vehicles.map((v) => {
+                const on = (e.vehicleIds ?? []).includes(v.id);
+                return (
+                  <button key={v.id} type="button" onClick={() => set("vehicleIds", on ? (e.vehicleIds ?? []).filter((x) => x !== v.id) : [...(e.vehicleIds ?? []), v.id])} className={cn("flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm", on ? "border-cyan/60 bg-cyan/10 text-white" : "border-white/10 text-slate-400")}>
+                    <Truck className="h-3.5 w-3.5" /> {v.plate}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         {e.kind === "leave" && (
           <Field label={t("Statut de la demande")}>
             <select className={inputClass} value={e.status} onChange={(ev) => set("status", ev.target.value as PlanningEvent["status"])}>
@@ -137,7 +152,7 @@ export function EventForm({ event, onClose }: { event: PlanningEvent; onClose: (
           <div className="sm:col-span-2">
             <Notice tone="warn">
               {t("Conflit d'affectation")} :{" "}
-              {clash.map((c) => `${name(c.memberId)} — ${c.event.title} (${f.date(c.event.start.slice(0, 10))})`).join(" · ")}
+              {clash.map((c) => `${c.memberId ? name(c.memberId) : data.vehicles.find((v) => v.id === c.vehicleId)?.plate} — ${c.event.title} (${f.date(c.event.start.slice(0, 10))})`).join(" · ")}
             </Notice>
           </div>
         )}
@@ -168,8 +183,30 @@ export function PlanningTab() {
       .catch(() => setWeatherErr(true));
   }, [data.company.address.city, data.company.address.postcode]);
 
-  const rows = useMemo(() => [...members.map((m) => ({ id: m.id, name: m.name, color: m.color })), { id: "", name: t("Non assigné"), color: "#475569" }], [members, t]);
-  const eventsFor = (memberId: string, day: string) => data.events.filter((e) => e.status !== "cancelled" && e.status !== "refused" && onDay(e, day) && (memberId ? e.memberIds.includes(memberId) : !e.memberIds.length));
+  const rows = useMemo(
+    () => [
+      ...members.map((m) => ({ row: { type: "member" as const, id: m.id }, name: m.name, color: m.color })),
+      ...data.vehicles.map((v) => ({ row: { type: "vehicle" as const, id: v.id }, name: `${v.plate}`, color: "#64748b" })),
+      { row: { type: "none" as const, id: "" }, name: t("Non assigné"), color: "#475569" },
+    ],
+    [members, data.vehicles, t],
+  );
+  const eventsFor = (row: PlanningRow, day: string) =>
+    data.events.filter(
+      (e) =>
+        e.status !== "cancelled" &&
+        e.status !== "refused" &&
+        onDay(e, day) &&
+        (row.type === "member" ? e.memberIds.includes(row.id) : row.type === "vehicle" ? (e.vehicleIds ?? []).includes(row.id) : !e.memberIds.length && !(e.vehicleIds ?? []).length),
+    );
+  const [drag, setDrag] = useState<{ id: string; row: PlanningRow; day: string } | null>(null);
+  const [over, setOver] = useState<string | null>(null);
+  const drop = (row: PlanningRow, day: string) => {
+    const e = data.events.find((x) => x.id === drag?.id);
+    if (e && drag && (drag.day !== day || drag.row.type !== row.type || drag.row.id !== row.id)) upsert("events", moveEvent(e, drag, { row, day }));
+    setDrag(null);
+    setOver(null);
+  };
   const leaveRequests = data.events.filter((e) => e.kind === "leave" && e.status === "requested");
   const w = (day: string) => weather?.find((x) => x.date === day);
   const riskyJobs = days.flatMap((day) =>
@@ -260,21 +297,33 @@ export function PlanningTab() {
           </thead>
           <tbody className="divide-y divide-white/5">
             {rows.map((r) => (
-              <tr key={r.id || "none"}>
+              <tr key={`${r.row.type}-${r.row.id}`}>
                 <td className="p-3 align-top">
                   <span className="flex items-center gap-2 font-medium text-slate-200">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: r.color }} />
+                    {r.row.type === "vehicle" ? <Truck className="h-3.5 w-3.5 shrink-0 text-slate-400" /> : <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: r.color }} />}
                     <span className="truncate">{r.name}</span>
                   </span>
                 </td>
                 {days.map((d) => (
-                  <td key={d} className={cn("group h-20 p-1.5 align-top", d === today && "bg-cyan/[0.03]")}>
+                  <td
+                    key={d}
+                    onDragOver={(ev) => {
+                      ev.preventDefault();
+                      setOver(`${r.row.type}-${r.row.id}-${d}`);
+                    }}
+                    onDragLeave={() => setOver(null)}
+                    onDrop={() => drop(r.row, d)}
+                    className={cn("group h-20 p-1.5 align-top transition-colors", d === today && "bg-cyan/[0.03]", over === `${r.row.type}-${r.row.id}-${d}` && "bg-cyan/10 ring-1 ring-inset ring-cyan/50")}
+                  >
                     <div className="space-y-1">
-                      {eventsFor(r.id, d).map((e) => (
+                      {eventsFor(r.row, d).map((e) => (
                         <button
                           key={e.id}
+                          draggable
+                          onDragStart={() => setDrag({ id: e.id, row: r.row, day: d })}
+                          onDragEnd={() => (setDrag(null), setOver(null))}
                           onClick={() => setEditing(e)}
-                          className={cn("theme-fixed block w-full truncate rounded-lg px-2 py-1 text-left text-xs font-medium text-white", e.status === "requested" && "opacity-60 ring-1 ring-dashed ring-amber-300", e.status === "done" && "opacity-50 line-through")}
+                          className={cn("theme-fixed block w-full cursor-grab truncate rounded-lg px-2 py-1 text-left text-xs font-medium text-white active:cursor-grabbing", e.status === "requested" && "opacity-60 ring-1 ring-dashed ring-amber-300", e.status === "done" && "opacity-50 line-through")}
                           style={{ background: `${EVENT_KIND[e.kind].color}cc` }}
                           title={`${e.title} · ${e.start.slice(11)}–${e.end.slice(11)}`}
                         >
@@ -282,7 +331,7 @@ export function PlanningTab() {
                           {e.title}
                         </button>
                       ))}
-                      <button onClick={() => setEditing(blankEvent(d, { memberIds: r.id ? [r.id] : [] }))} className="hidden w-full rounded-lg border border-dashed border-white/10 py-1 text-xs text-slate-500 hover:border-cyan/50 hover:text-cyan group-hover:block" aria-label={t("Planifier")}>
+                      <button onClick={() => setEditing(blankEvent(d, { memberIds: r.row.type === "member" ? [r.row.id] : [], vehicleIds: r.row.type === "vehicle" ? [r.row.id] : [] }))} className="hidden w-full rounded-lg border border-dashed border-white/10 py-1 text-xs text-slate-500 hover:border-cyan/50 hover:text-cyan group-hover:block" aria-label={t("Planifier")}>
                         +
                       </button>
                     </div>

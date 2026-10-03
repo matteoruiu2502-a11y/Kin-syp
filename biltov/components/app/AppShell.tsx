@@ -7,6 +7,11 @@ import {
   Blocks,
   Boxes,
   Car,
+  Repeat,
+  Wrench,
+  Handshake,
+  Calculator,
+  Landmark,
   CreditCard,
   FileText,
   HardHat,
@@ -49,29 +54,34 @@ import { TeamTab } from "./TeamTab";
 import { PurchasesTab } from "./PurchasesTab";
 import { StockTab } from "./StockTab";
 import { FleetTab } from "./FleetTab";
+import { ContractsTab } from "./ContractsTab";
+import { ToolsTab } from "./ToolsTab";
+import { SubcontractorsTab } from "./SubcontractorsTab";
+import { AccountingTab } from "./AccountingTab";
+import { BankTab } from "./BankTab";
 import { ModulesTab } from "./ModulesTab";
 import { SettingsTab } from "./SettingsTab";
 import { JobForm } from "./JobForm";
 import { DocEditor } from "./DocEditor";
 import { WorkerLogin, WorkerMode } from "./WorkerMode";
 
-type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "modules" | "module" | "parametres";
-type Route = { page: Page; id?: string };
+type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "outils" | "contrats" | "modules" | "module" | "parametres";
+type Route = { page: Page; id?: string; sub?: string };
 
-const PAGES: Page[] = ["apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "modules", "module", "parametres"];
+const PAGES: Page[] = ["apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "banque", "comptabilite", "sous-traitants", "outils", "contrats", "modules", "module", "parametres"];
 const parse = (hash: string): Route => {
-  const [a, b] = hash.replace(/^#/, "").split("/");
+  const [a, b, c] = hash.replace(/^#/, "").split("/");
   const page = (PAGES as string[]).includes(a) ? (a as Page) : "apercu";
   if ((page === "chantier" || page === "client" || page === "module") && !b) return { page: page === "chantier" ? "chantiers" : page === "client" ? "clients" : "modules" };
-  return { page, id: b };
+  return { page, id: b, sub: c };
 };
-const toHash = (r: Route) => `#${r.page}${r.id ? `/${r.id}` : ""}`;
+const toHash = (r: Route) => `#${r.page}${r.id ? `/${r.id}` : ""}${r.sub ? `/${r.sub}` : ""}`;
 
 /** Pages accessibles selon le rôle de la personne connectée sur l'appareil. */
 const ROLE_PAGES: Record<Exclude<Role, "worker">, Page[] | "all"> = {
   owner: "all",
   office: PAGES.filter((p) => p !== "parametres"),
-  accountant: ["apercu", "documents", "achats", "clients", "client"],
+  accountant: ["apercu", "documents", "achats", "clients", "client", "sous-traitants", "comptabilite", "banque"],
 };
 
 const MEMBER_KEY = "biltov.member";
@@ -231,7 +241,7 @@ function Shell() {
   const allowed = role === "worker" ? [] : ROLE_PAGES[role];
   const can = (p: Page) => allowed === "all" || allowed.includes(p);
 
-  const nav: { page: Page; label: string; icon: typeof HardHat; badge?: number; on: boolean; group: 0 | 1 | 2 }[] = [
+  const nav: { page: Page; label: string; icon: typeof HardHat; badge?: number; on: boolean; group: 0 | 1 | 2 | 3 }[] = [
     { page: "apercu", label: t("Argent à recevoir"), icon: HandCoins, badge: reminders || undefined, on: true, group: 0 },
     { page: "chantiers", label: t("Chantiers"), icon: HardHat, on: true, group: 0 },
     { page: "clients", label: t("Clients"), icon: Contact, on: mods.clients, group: 0 },
@@ -239,11 +249,16 @@ function Shell() {
     { page: "catalogue", label: t("Catalogue"), icon: Package, on: mods.catalog, group: 0 },
     { page: "planning", label: t("Planning"), icon: CalendarDays, on: mods.planning, group: 1 },
     { page: "equipe", label: t("Équipe"), icon: Users, on: mods.planning || mods.time || mods.expenses, group: 1 },
-    { page: "achats", label: t("Achats"), icon: ShoppingCart, on: mods.purchases, group: 1 },
+    { page: "achats", label: t("Achats"), icon: ShoppingCart, on: mods.purchases, group: 2 },
     { page: "stock", label: t("Stock"), icon: Boxes, on: mods.stock, group: 1 },
     { page: "flotte", label: t("Flotte"), icon: Car, on: mods.fleet, group: 1 },
-    { page: "modules", label: t("Modules"), icon: Blocks, on: true, group: 2 },
-    { page: "parametres", label: t("Paramètres"), icon: Settings, on: true, group: 2 },
+    { page: "banque", label: t("Banque"), icon: Landmark, on: true, group: 2 },
+    { page: "comptabilite", label: t("Comptabilité"), icon: Calculator, on: true, group: 2 },
+    { page: "sous-traitants", label: t("Sous-traitants"), icon: Handshake, on: mods.purchases, group: 2 },
+    { page: "outils", label: t("Outils"), icon: Wrench, on: true, group: 1 },
+    { page: "contrats", label: t("Contrats"), icon: Repeat, on: true, group: 1 },
+    { page: "modules", label: t("Modules"), icon: Blocks, on: true, group: 3 },
+    { page: "parametres", label: t("Paramètres"), icon: Settings, on: true, group: 3 },
   ];
   const visible = nav.filter((n) => n.on && can(n.page));
   const active = (p: Page) => route.page === p || (route.page === "chantier" && p === "chantiers") || (route.page === "client" && p === "clients") || (route.page === "module" && p === "modules");
@@ -260,7 +275,7 @@ function Shell() {
 
   const NavList = ({ onPick }: { onPick?: () => void }) => (
     <nav className="space-y-5" aria-label={t("Navigation")}>
-      {[0, 1, 2].map((g) => (
+      {[0, 1, 2, 3].map((g) => (
         <div key={g} className="space-y-1">
           {visible
             .filter((n) => n.group === g)
@@ -391,7 +406,7 @@ function Shell() {
               <>
               {page === "apercu" && <MoneyTab onOpenDoc={setDocId} onOpenJob={openJob} />}
               {page === "chantiers" && <JobsTab onOpen={openJob} onAdd={() => setNewJob({})} />}
-              {page === "chantier" && (job ? <JobDetail job={job} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
+              {page === "chantier" && (job ? <JobDetail key={job.id + (route.sub ?? "")} job={job} initialTab={route.sub === "rentabilite" ? "finance" : "docs"} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
               {page === "clients" && <ClientsTab onOpen={openClient} />}
               {page === "client" && (client ? <ClientDetail client={client} onBack={() => go({ page: "clients" })} onOpenJob={openJob} onOpenDoc={setDocId} onNewJob={(clientId) => setNewJob({ clientId })} /> : <NotFound onBack={() => go({ page: "clients" })} />)}
               {page === "documents" && <DocsTab onOpenDoc={setDocId} />}
@@ -401,6 +416,11 @@ function Shell() {
               {page === "achats" && <PurchasesTab />}
               {page === "stock" && <StockTab />}
               {page === "flotte" && <FleetTab />}
+              {page === "banque" && <BankTab />}
+              {page === "comptabilite" && <AccountingTab />}
+              {page === "sous-traitants" && <SubcontractorsTab />}
+              {page === "outils" && <ToolsTab />}
+              {page === "contrats" && <ContractsTab onOpenDoc={setDocId} />}
               {(page === "modules" || page === "module") && <ModulesTab module={page === "module" && route.id && route.id in MODULES ? (route.id as ModuleId) : null} onOpen={(m) => go({ page: "module", id: m })} onBack={() => go({ page: "modules" })} go={goPage} onOpenJob={openJob} />}
               {page === "parametres" && <SettingsTab />}
               </>

@@ -15,18 +15,21 @@ import type { Job } from "@/lib/app/types";
 import { Badge, Empty, Stat, SubTabs } from "./ui";
 import { JobForm } from "./JobForm";
 import { PhotosPanel } from "./PhotosPanel";
+import { JobProfitPanel } from "./JobProfitPanel";
+import { mapsEmbed, mapsRoute, wazeRoute } from "@/lib/app/geo";
 import { ExpensesList } from "./ExpensesPanel";
 import { ChatPanel, FilesPanel, ReportsPanel, TimePanel } from "./FieldPanels";
 
 type Tab = "docs" | "finance" | "time" | "reports" | "photos" | "costs" | "files" | "chat";
 
-export function JobDetail({ job, onBack, onOpenDoc, onOpenClient }: { job: Job; onBack: () => void; onOpenDoc: (id: string) => void; onOpenClient: (id: string) => void }) {
+export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "docs" }: { job: Job; onBack: () => void; onOpenDoc: (id: string) => void; onOpenClient: (id: string) => void; initialTab?: "docs" | "finance" }) {
   const { t } = useTr();
   const f = useFmt();
   const { t: land } = useI18n();
   const { data, update, run } = useAppData();
-  const [tab, setTab] = useState<Tab>("docs");
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [editing, setEditing] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const client = data.clients.find((c) => c.id === job.clientId);
   const docs = data.docs.filter((d) => d.jobId === job.id).sort((a, b) => b.issueDate.localeCompare(a.issueDate) || (b.number ?? "~").localeCompare(a.number ?? "~"));
   const fin = jobFinance(data, job.id);
@@ -79,9 +82,17 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient }: { job: Job; 
           )}
           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-slate-400">
             {address && (
-              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-white">
-                <MapPin className="h-3.5 w-3.5" /> {address}
-              </a>
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <button onClick={() => setShowMap((v) => !v)} className="flex items-center gap-1.5 hover:text-white">
+                  <MapPin className="h-3.5 w-3.5" /> {address}
+                </button>
+                <a href={mapsRoute(address)} target="_blank" rel="noreferrer" className="text-cyan hover:underline">
+                  Maps
+                </a>
+                <a href={wazeRoute(address)} target="_blank" rel="noreferrer" className="text-cyan hover:underline">
+                  Waze
+                </a>
+              </span>
             )}
             {client?.phone && (
               <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-white">
@@ -113,6 +124,9 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient }: { job: Job; 
         </div>
       </div>
 
+      {showMap && address && (
+        <iframe title={t("Carte du chantier")} src={mapsEmbed(address)} className="h-72 w-full rounded-2xl border border-white/10" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+      )}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label={t("Devis signé (HTVA)")} value={f.money0(fin.quoted)} />
         <Stat label={t("Facturé (HTVA)")} value={f.money0(fin.invoiced)} />
@@ -155,42 +169,7 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient }: { job: Job; 
           )}
         </div>
       )}
-      {tab === "finance" && (
-        <div className="card overflow-x-auto p-5">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wider text-slate-500">
-                <th className="py-2">{t("Poste")}</th>
-                <th className="py-2 text-right">{t("Prévu (devis)")}</th>
-                <th className="py-2 text-right">{t("Réel")}</th>
-                <th className="py-2 text-right">{t("Écart")}</th>
-              </tr>
-            </thead>
-            <tbody className="tabular-nums">
-              {[
-                [t("Chiffre d'affaires HTVA"), fin.quoted, Math.max(fin.quoted, fin.invoiced)],
-                [t("Achats matériaux et sous-traitance"), fin.plannedCost, fin.purchases],
-                [t("Tickets et dépenses"), 0, fin.expenses],
-                [t("Main-d'œuvre (heures × coût horaire)"), 0, fin.labour],
-              ].map(([k, a, b]) => (
-                <tr key={k as string} className="border-t border-white/5">
-                  <td className="py-2 text-slate-300">{k}</td>
-                  <td className="py-2 text-right">{f.money(a as number)}</td>
-                  <td className="py-2 text-right">{f.money(b as number)}</td>
-                  <td className={`py-2 text-right ${(b as number) - (a as number) > 0 ? "text-amber-300" : "text-slate-400"}`}>{f.money((b as number) - (a as number))}</td>
-                </tr>
-              ))}
-              <tr className="border-t border-white/10 font-bold text-white">
-                <td className="py-2">{t("Marge")}</td>
-                <td className="py-2 text-right">{f.money(fin.quoted - fin.plannedCost)}</td>
-                <td className="py-2 text-right text-emerald">{f.money(fin.margin)}</td>
-                <td className="py-2 text-right">{fin.marginRate} %</td>
-              </tr>
-            </tbody>
-          </table>
-          <p className="mt-3 text-xs text-slate-500">{t("Le réel additionne les factures d'achat imputées au chantier, les tickets et les heures pointées.")}</p>
-        </div>
-      )}
+      {tab === "finance" && <JobProfitPanel job={job} />}
       {tab === "time" && <TimePanel job={job} />}
       {tab === "reports" && <ReportsPanel job={job} />}
       {tab === "photos" && <PhotosPanel job={job} />}

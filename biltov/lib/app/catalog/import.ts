@@ -87,9 +87,11 @@ export const ARTICLE_FIELDS: FieldDef[] = [
   { key: "name_de", label: "Désignation DE", type: "text", synonyms: ["bezeichnung", "beschreibung", "designation de", "de"] },
   { key: "family", label: "Famille", type: "text", synonyms: ["famille", "categorie", "catégorie", "category", "groupe", "familie", "categorie nl", "kategorie", "warengruppe", "productgroep"] },
   { key: "unit", label: "Unité", type: "text", synonyms: ["unite", "unité", "unit", "eenheid", "einheit", "u", "uom"] },
-  { key: "purchasePrice", label: "Prix d'achat HTVA", type: "number", synonyms: ["prix achat", "prix d'achat", "achat", "cout", "coût", "purchase", "aankoopprijs", "inkoopprijs", "einkaufspreis", "prix net", "netto", "prix fournisseur"] },
+  { key: "purchasePrice", label: "Prix d'achat HTVA", type: "number", synonyms: ["prix achat", "prix d'achat", "achat", "cout", "coût", "purchase", "aankoopprijs", "inkoopprijs", "einkaufspreis", "prix net", "netto", "prix fournisseur", "nettoprijs", "netto prijs", "nettopreis", "prix net htva", "net price"] },
+  { key: "listPrice", label: "Prix brut grossiste", type: "number", synonyms: ["prix brut", "brut", "prix catalogue", "bruto", "brutoprijs", "listenpreis", "bruttopreis", "prix liste", "list price"] },
+  { key: "discountPercent", label: "Remise grossiste %", type: "number", synonyms: ["remise", "remise %", "korting", "rabatt", "discount", "remise client"] },
   { key: "marginPercent", label: "Marge %", type: "number", synonyms: ["marge", "margin", "coefficient", "winstmarge", "aufschlag"] },
-  { key: "salePrice", label: "Prix de vente HTVA", type: "number", synonyms: ["prix vente", "prix de vente", "vente", "pv", "prix", "price", "verkoopprijs", "prijs", "verkaufspreis", "preis", "tarif", "prix public"] },
+  { key: "salePrice", label: "Prix de vente HTVA", type: "number", synonyms: ["prix vente", "prix de vente", "vente", "pv", "prix", "price", "verkoopprijs", "prijs", "verkaufspreis", "preis", "prix public"] },
   { key: "type", label: "Type", type: "enum", values: ["fourniture", "main-d'oeuvre", "location", "sous-traitance", "forfait"], synonyms: ["type", "nature", "soort", "art"] },
   { key: "supplierRef", label: "Réf. fournisseur", type: "text", synonyms: ["ref fournisseur", "référence fournisseur", "leveranciersreferentie", "lieferantennummer"] },
   { key: "ean", label: "EAN", type: "text", synonyms: ["ean", "gtin", "code barre", "barcode", "streepjescode"] },
@@ -206,7 +208,10 @@ export function planArticleImport(parsed: Parsed[], existing: Article[], opts: {
   for (const { values } of parsed) {
     const ref = String(values.ref ?? "").trim();
     const type = TYPE_MAP[norm(String(values.type ?? ""))] ?? "supply";
-    const purchase = typeof values.purchasePrice === "number" ? values.purchasePrice : null;
+    // tarif grossiste : prix net, sinon prix brut moins la remise
+    const list = typeof values.listPrice === "number" ? values.listPrice : null;
+    const disc = typeof values.discountPercent === "number" ? values.discountPercent : 0;
+    const purchase = typeof values.purchasePrice === "number" ? values.purchasePrice : list !== null ? round2(list * (1 - disc / 100)) : null;
     const sale = typeof values.salePrice === "number" ? values.salePrice : null;
     const margin = typeof values.marginPercent === "number" ? values.marginPercent : opts.defaultMargin;
     const fields: Partial<Article> = {

@@ -1,6 +1,6 @@
 // Contenu de référence (FR). Les traductions EN / DE suivent exactement la même forme.
 
-export type TradeId = "plombier" | "electricien" | "peintre" | "macon" | "menuisier";
+export type TradeId = "plombier" | "electricien" | "peintre" | "macon" | "menuisier" | "paysagiste";
 
 export type QuoteLine = { label: string; qty: number; unit: string; price: number };
 
@@ -136,6 +136,20 @@ export const fr = {
         supplies: ["Châssis PVC / alu", "Compribande", "Mousse PU", "Couvre-joints", "Vis", "Quincaillerie"],
         jargon: ["châssis", "dormant", "ouvrant", "Uw", "compribande"],
         vat: "6 % (logement privé de plus de 10 ans)",
+      },
+      {
+        id: "paysagiste",
+        name: "Paysagiste / jardinier",
+        voice: "Pour la villa Lambert à Waterloo, 120 m² de gazon en rouleaux, 8 m³ de terre arable, 25 m² de pavés de terrasse et l'entretien mensuel des haies.",
+        lines: [
+          { label: "Terre arable criblée livrée et étalée", qty: 8, unit: "m³", price: 48 },
+          { label: "Gazon en rouleaux posé", qty: 120, unit: "m²", price: 11.5 },
+          { label: "Pavés de terrasse posés sur empierrement", qty: 25, unit: "m²", price: 78 },
+          { label: "Taille des haies (entretien mensuel)", qty: 3, unit: "h", price: 45 },
+        ],
+        supplies: ["Terre arable", "Gazon en rouleaux", "Paillis", "Pavés et bordures", "Empierrement", "Végétaux"],
+        jargon: ["empierrement", "paillage", "scarification", "bordure", "drainage"],
+        vat: "21 % (jardin : exclu du 6 %)",
       },
     ] as Trade[],
   },

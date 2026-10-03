@@ -5,6 +5,7 @@ import { Camera, FileDown, Loader2, MoveHorizontal, Trash2, Upload } from "lucid
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
+import { currentGeo } from "@/lib/app/geo";
 import { buildPhotoReport } from "@/lib/app/pdf";
 import { downloadBlob } from "@/lib/app/send";
 import type { Job, Photo, PhotoPhase } from "@/lib/app/types";
@@ -39,7 +40,9 @@ function Thumb({ photo, onRemove, onCaption, selected, onSelect }: { photo: Phot
     <figure className={cn("group overflow-hidden rounded-xl border bg-ink/60 transition-colors", selected ? "border-cyan" : "border-white/10")}>
       <button type="button" onClick={onSelect} className="relative block aspect-[4/3] w-full bg-white/5" aria-label={t("Choisir pour la comparaison")}>
         {url && <img src={url} alt={photo.caption || t("Photo du chantier")} className="h-full w-full object-cover" />}
-        <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] text-white">{new Date(photo.takenAt).toLocaleString(f.locale, { dateStyle: "short", timeStyle: "short" })}</span>
+        <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] text-white">{new Date(photo.takenAt).toLocaleString(f.locale, { dateStyle: "short", timeStyle: "short" })}
+          {photo.geo && " 📍"}
+        </span>
       </button>
       <figcaption className="flex items-center gap-1 p-1.5">
         <input className="min-w-0 flex-1 bg-transparent px-1 text-xs text-slate-300 outline-none placeholder:text-slate-600" placeholder={t("Légende…")} defaultValue={photo.caption} onBlur={(e) => onCaption(e.target.value)} />
@@ -94,7 +97,7 @@ export function PhotosPanel({ job }: { job: Job }) {
     if (!files?.length) return;
     setBusy(true);
     try {
-      await addPhotos(job.id, phase, [...files]);
+      await addPhotos(job.id, phase, [...files], await currentGeo(5000));
     } finally {
       setBusy(false);
     }

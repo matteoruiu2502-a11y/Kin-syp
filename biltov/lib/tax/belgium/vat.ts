@@ -15,7 +15,7 @@ export const vatRate = (code: VatCode) => (code === "21" ? 21 : code === "12" ? 
 export type ClientKind = "particulier" | "assujetti" | "franchise" | "public" | "etranger";
 
 /** Nature d'une ligne. */
-export type LineCategory = "labour" | "installed_material" | "supply_only" | "fossil_boiler_install" | "fossil_boiler_service" | "heat_pump" | "other";
+export type LineCategory = "labour" | "installed_material" | "supply_only" | "fossil_boiler_install" | "fossil_boiler_service" | "heat_pump" | "garden_creation" | "garden_maintenance" | "other";
 
 export type VatContext = {
   date: string; // date de la (première) facture
@@ -42,6 +42,13 @@ export function decideVat(ctx: VatContext, category: LineCategory): VatDecision 
 
   if (ctx.clientKind === "etranger")
     return { code: "21", reason: "Client étranger : taux normal par défaut.", warning: "Règles de localisation à vérifier (autoliquidation possible si le client est assujetti UE)." };
+
+  // Parcs & jardins : l'entretien est une prestation de services, l'aménagement de jardin est exclu du 6 %.
+  if (category === "garden_maintenance") return { code: "21", reason: "Entretien de jardin (tonte, taille…) : prestation de services au taux normal.", warning: "Règle « jardin » à valider par votre comptable." };
+  if (category === "garden_creation") {
+    if (ctx.clientKind === "assujetti") return { code: "reverse", reason: "Aménagement de jardin pour un assujetti déposant : autoliquidation par le client si les travaux sont immobiliers.", warning: "Qualification « travaux immobiliers » à valider par votre comptable." };
+    return { code: "21", reason: "Création / aménagement de jardin : exclu du taux réduit de 6 %, taux normal.", warning: "Règle « jardin » à valider par votre comptable." };
+  }
 
   const immovable = ctx.workKind === "immobilier" && category !== "supply_only";
 

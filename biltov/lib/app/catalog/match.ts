@@ -80,14 +80,54 @@ function similarity(a: string, b: string) {
 
 export type Match = { article: Article; confidence: number };
 
+// Index de recherche pour les gros catalogues de grossistes (Cebeo, Facq, BigMat… : dizaines de milliers d'articles).
+// Construit une fois par version du catalogue ; la dictée ne compare ensuite que les meilleurs candidats.
+type CatalogIndex = { tri: Map<string, number[]>; tok: Map<string, number[]> };
+const indexCache = new WeakMap<Article[], CatalogIndex>();
+const LINEAR_MAX = 1500;
+
+function indexOf(articles: Article[]): CatalogIndex {
+  const hit = indexCache.get(articles);
+  if (hit) return hit;
+  const tri = new Map<string, number[]>();
+  const tok = new Map<string, number[]>();
+  const push = (m: Map<string, number[]>, k: string, i: number) => {
+    const l = m.get(k);
+    if (!l) m.set(k, [i]);
+    else if (l[l.length - 1] !== i) l.push(i);
+  };
+  articles.forEach((a, i) => {
+    const text = [a.name.fr, a.name.nl, a.name.de, a.ref].filter(Boolean).join(" ");
+    for (const g of trigrams(text)) push(tri, g, i);
+    for (const t of tokens(text)) push(tok, t, i);
+  });
+  const idx = { tri, tok };
+  indexCache.set(articles, idx);
+  return idx;
+}
+
+/** Articles candidats pour une recherche (tous si le catalogue est petit). */
+export function candidates(label: string, articles: Article[], limit = 300): Article[] {
+  if (articles.length <= LINEAR_MAX) return articles;
+  const idx = indexOf(articles);
+  const score = new Map<number, number>();
+  for (const t of tokens(label)) for (const i of idx.tok.get(t) ?? []) score.set(i, (score.get(i) ?? 0) + 3);
+  for (const g of trigrams(label)) for (const i of idx.tri.get(g) ?? []) score.set(i, (score.get(i) ?? 0) + 1);
+  return [...score.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([i]) => articles[i]);
+}
+
 /** Meilleure correspondance (toutes langues du catalogue + référence). Seuil par défaut : 0,45. */
 export function bestMatch(label: string, articles: Article[], opts: { unit?: string; threshold?: number } = {}): Match | null {
   let best: Match | null = null;
-  for (const a of articles) {
+  const nLabel = normalize(label);
+  for (const a of candidates(label, articles)) {
     if (!a.active) continue;
     const names = (Object.keys(a.name) as Lang[]).map((l) => a.name[l]).filter(Boolean);
     let score = Math.max(0, ...names.map((n) => similarity(label, n)));
-    if (a.ref && normalize(label).includes(normalize(a.ref))) score = Math.max(score, 0.95);
+    if (a.ref && nLabel.includes(normalize(a.ref))) score = Math.max(score, 0.95);
     if (opts.unit && a.unit === opts.unit) score = Math.min(1, score + 0.05);
     if (!best || score > best.confidence) best = { article: a, confidence: Math.round(score * 100) / 100 };
   }
@@ -97,7 +137,7 @@ export function bestMatch(label: string, articles: Article[], opts: { unit?: str
 export function searchArticles(query: string, articles: Article[]) {
   const q = normalize(query).trim();
   if (!q) return articles;
-  return articles
+  return candidates(query, articles, 500)
     .map((a) => ({ a, s: Math.max(similarity(query, a.name.fr), similarity(query, a.name.nl), similarity(query, a.name.de), normalize(a.ref).includes(q) ? 1 : 0, normalize(a.family).includes(q) ? 0.6 : 0) }))
     .filter((x) => x.s >= 0.3)
     .sort((x, y) => y.s - x.s)

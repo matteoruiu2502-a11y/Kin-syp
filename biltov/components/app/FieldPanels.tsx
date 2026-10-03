@@ -8,6 +8,7 @@ import { ClipboardCheck, Clock, FileDown, FolderOpen, MessageSquare, Plus, Send,
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
+import { geoLink } from "@/lib/app/geo";
 import { nowIso, todayIso, uid } from "@/lib/app/defaults";
 import { buildReportPdf } from "@/lib/app/pdf";
 import { downloadBlob } from "@/lib/app/send";
@@ -115,6 +116,11 @@ export function TimePanel({ job }: { job: Job }) {
               <button onClick={() => setForm(x)} className="min-w-0 flex-1 text-left">
                 <span className="text-slate-100">{member(x.memberId)?.name}</span> <span className="text-slate-500">· {f.date(x.date)} · {x.start}–{x.end} · {x.note}</span>
               </button>
+              {x.geoStart && (
+                <a href={geoLink(x.geoStart)} target="_blank" rel="noreferrer" className="text-xs text-cyan" title={t("Position au début du pointage")}>
+                  📍 GPS
+                </a>
+              )}
               <span className="tabular-nums text-white">{f.num(x.hours)} h</span>
               <span className="w-20 text-right tabular-nums text-slate-400">{f.money((member(x.memberId)?.hourlyCost ?? 0) * x.hours)}</span>
               <button onClick={() => remove("timeEntries", x.id)} className="p-1 text-slate-500 hover:text-rose-400" aria-label={t("Supprimer")}>

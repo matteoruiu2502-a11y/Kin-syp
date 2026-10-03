@@ -9,7 +9,7 @@ import { idbDel, idbGet, idbSet } from "./db";
 import { currentAccount, setSession } from "./auth";
 import { DEMO_ID, buildDemoData } from "./demo";
 import { emptyAccountData, uid } from "./defaults";
-import type { Account, AccountData, CollectionKey, PhotoPhase, Photo } from "./types";
+import type { Account, AccountData, CollectionKey, Geo, PhotoPhase, Photo } from "./types";
 
 type Ctx = {
   account: Account | null;
@@ -27,7 +27,7 @@ type Ctx = {
   putBlob: (key: string, blob: Blob) => Promise<void>;
   blobUrl: (key: string) => Promise<string | null>;
   getBlob: (key: string) => Promise<Blob | undefined>;
-  addPhotos: (jobId: string, phase: PhotoPhase, files: File[]) => Promise<void>;
+  addPhotos: (jobId: string, phase: PhotoPhase, files: File[], geo?: Geo | null) => Promise<void>;
 };
 
 const AppContext = createContext<Ctx | null>(null);
@@ -159,11 +159,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         cache.set(key, url);
         return url;
       },
-      addPhotos: async (jobId, phase, files) => {
+      addPhotos: async (jobId, phase, files, geo = null) => {
         const added: Photo[] = [];
         for (const file of files) {
           const { blob, width, height } = await compressImage(file);
-          const photo: Photo = { id: uid(), jobId, phase, caption: "", takenAt: new Date(file.lastModified || Date.now()).toISOString(), addedAt: new Date().toISOString(), width, height };
+          const photo: Photo = { id: uid(), jobId, phase, caption: "", takenAt: new Date(file.lastModified || Date.now()).toISOString(), addedAt: new Date().toISOString(), width, height, geo };
           await idbSet(`blob:photo:${photo.id}`, blob);
           added.push(photo);
         }

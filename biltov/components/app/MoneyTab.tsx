@@ -2,21 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { AlarmClock, ArrowDownRight, ArrowUpRight, Banknote, Calculator, CheckCircle2, Download, FileSpreadsheet, Landmark, Upload } from "lucide-react";
+import { AlarmClock, ArrowDownRight, ArrowUpRight, Calculator, CheckCircle2, Download, FileSpreadsheet, Landmark } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { dueReminders, STEP_LABEL } from "@/lib/app/reminders";
 import { cashed, cashForecast, paymentsJournal, pendingQuotes, periodRange, purchaseJournal, receivables, retentionsHeld, salesJournal, toCsv, toInvoiceByJob, vatGrids, type Bucket, type Period } from "@/lib/app/finance";
-import { parseCoda, matchMovements, type CodaMovement } from "@/lib/app/coda";
-import { addPayment } from "@/lib/app/ops";
-import { computeTotals } from "@/lib/app/money";
 import { downloadBlob } from "@/lib/app/send";
 import { workbookBlob } from "@/lib/app/catalog/import";
 import { todayIso } from "@/lib/app/defaults";
 import type { Doc } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
-import { Field, Modal, Notice, PageHeader, Stat, SubTabs, Toggle, inputClass } from "./ui";
+import { Field, Notice, PageHeader, Stat, SubTabs, Toggle, inputClass } from "./ui";
 import { SendDialog } from "./SendDialog";
 
 const BUCKETS: { id: Bucket; label: string; tone: string }[] = [
@@ -50,7 +47,6 @@ export function MoneyTab({ onOpenDoc, onOpenJob }: { onOpenDoc: (id: string) => 
   const [tab, setTab] = useState<"receive" | "cash" | "vat" | "export">("receive");
   const [period, setPeriod] = useState<Period>("month");
   const [reminderDoc, setReminderDoc] = useState<Doc | null>(null);
-  const [coda, setCoda] = useState(false);
   const [bucket, setBucket] = useState<Bucket | "all">("all");
   const today = todayIso();
 
@@ -71,9 +67,9 @@ export function MoneyTab({ onOpenDoc, onOpenJob }: { onOpenDoc: (id: string) => 
         title={t("Argent à recevoir")}
         subtitle={t("Ce que vos clients vous doivent, ce qu'il reste à facturer et ce qui arrive sur le compte.")}
         actions={
-          <button onClick={() => setCoda(true)} className="btn-ghost !py-2.5 text-sm">
+          <a href="#banque" className="btn-ghost !py-2.5 text-sm">
             <Landmark className="h-4 w-4" /> {t("Importer un extrait CODA")}
-          </button>
+          </a>
         }
       />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -199,7 +195,6 @@ export function MoneyTab({ onOpenDoc, onOpenJob }: { onOpenDoc: (id: string) => 
 
       <AnimatePresence>
         {reminderDoc && <SendDialog doc={reminderDoc} reminder onClose={() => setReminderDoc(null)} />}
-        {coda && <CodaImport onClose={() => setCoda(false)} />}
       </AnimatePresence>
     </div>
   );
@@ -362,106 +357,3 @@ function Exports() {
     </div>
   );
 }
-
-/** Rapprochement bancaire : extrait CODA (format belge) → paiements affectés aux factures. */
-function CodaImport({ onClose }: { onClose: () => void }) {
-  const { t } = useTr();
-  const f = useFmt();
-  const { data, update } = useAppData();
-  const [moves, setMoves] = useState<CodaMovement[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [picked, setPicked] = useState<Record<number, string>>({});
-  const [done, setDone] = useState<number | null>(null);
-  const matches = useMemo(() => (moves ? matchMovements(data, moves) : []), [data, moves]);
-  const open = data.docs.filter((x) => x.type === "invoice" && x.lockedAt && (x.status === "issued" || x.status === "partial"));
-
-  const read = async (file: File | undefined) => {
-    if (!file) return;
-    setError(null);
-    try {
-      const m = parseCoda(await file.text());
-      if (!m.length) throw new Error();
-      setMoves(m);
-      setPicked({});
-    } catch {
-      setError(t("Fichier non reconnu : exportez l'extrait au format CODA (.cod) depuis votre banque."));
-    }
-  };
-
-  const apply = () => {
-    let n = 0;
-    update((d) => {
-      let next = d;
-      matches.forEach((m, i) => {
-        const id = picked[i] ?? m.doc?.id;
-        if (!id) return;
-        next = addPayment(next, id, { date: m.movement.date, amount: m.movement.amount, method: "virement", reference: m.movement.communication || m.movement.ref });
-        n++;
-      });
-      return next;
-    });
-    setDone(n);
-  };
-
-  return (
-    <Modal
-      title={t("Importer un extrait bancaire CODA")}
-      onClose={onClose}
-      wide
-      footer={
-        <>
-          <button onClick={onClose} className="btn-ghost text-sm">
-            {t("Fermer")}
-          </button>
-          {moves && done === null && (
-            <button onClick={apply} className="btn-primary text-sm">
-              <Banknote className="h-4 w-4" /> {t("Enregistrer les paiements")}
-            </button>
-          )}
-        </>
-      }
-    >
-      <div className="space-y-4">
-        {done !== null ? (
-          <Notice tone="ok">{t("{n} paiement(s) enregistré(s). Les factures soldées passent en « payée ».", { n: done })}</Notice>
-        ) : !moves ? (
-          <>
-            <label className="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border border-dashed border-white/15 p-8 text-center hover:border-cyan/60">
-              <Upload className="h-6 w-6 text-cyan" />
-              <span className="text-sm font-semibold text-slate-200">{t("Choisir le fichier CODA (.cod, .txt)")}</span>
-              <span className="text-xs text-slate-500">{t("Biltov associe chaque virement à sa facture grâce à la communication structurée +++…+++, sinon au montant exact.")}</span>
-              <input type="file" accept=".cod,.coda,.txt,.cod2" className="sr-only" onChange={(e) => read(e.target.files?.[0])} />
-            </label>
-            {error && <Notice tone="danger">{error}</Notice>}
-          </>
-        ) : !matches.length ? (
-          <Notice>{t("Aucun crédit dans cet extrait.")}</Notice>
-        ) : (
-          <ul className="divide-y divide-white/5 rounded-2xl border border-white/10 text-sm">
-            {matches.map((m, i) => (
-              <li key={i} className="grid gap-2 px-4 py-3 sm:grid-cols-[1fr_auto_16rem] sm:items-center">
-                <span className="min-w-0">
-                  <span className="block truncate text-slate-200">{m.movement.counterparty || m.movement.account || "—"}</span>
-                  <span className="block truncate text-xs text-slate-500">
-                    {f.date(m.movement.date)} · {m.movement.communication || "—"}
-                  </span>
-                </span>
-                <span className="font-semibold tabular-nums text-emerald">+{f.money(m.movement.amount)}</span>
-                <select className={inputClass} value={picked[i] ?? m.doc?.id ?? ""} onChange={(e) => setPicked((p) => ({ ...p, [i]: e.target.value }))}>
-                  <option value="">{t("Ne pas affecter")}</option>
-                  {open.map((x) => (
-                    <option key={x.id} value={x.id}>
-                      {x.number} — {data.clients.find((c) => c.id === x.clientId)?.name} ({f.money(computeTotals(x).due)})
-                      {m.doc?.id === x.id ? (m.how === "structured" ? " ✓ +++" : " ✓ €") : ""}
-                    </option>
-                  ))}
-                </select>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </Modal>
-  );
-}
-

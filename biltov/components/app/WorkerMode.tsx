@@ -4,13 +4,16 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { ArrowLeft, CalendarPlus, Camera, ClipboardCheck, LogOut, MapPin, MessageSquare, Phone, Play, Receipt, Square } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarPlus, Camera, ClipboardCheck, LogOut, MapPin, MessageSquare, Navigation, Phone, Play, Receipt, Square } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { addDays, todayIso, uid } from "@/lib/app/defaults";
 import { onDay } from "@/lib/app/planning";
-import type { Job, Member } from "@/lib/app/types";
+import type { Geo, Job, Member } from "@/lib/app/types";
+import { currentGeo, mapsRoute, wazeRoute } from "@/lib/app/geo";
+import { toIcs } from "@/lib/app/planning";
+import { downloadBlob } from "@/lib/app/send";
 import { cn } from "@/lib/utils";
 import { Field, Modal, Notice, inputClass } from "./ui";
 import { hoursBetween, ChatPanel, ReportsPanel } from "./FieldPanels";
@@ -18,7 +21,7 @@ import { ExpenseForm } from "./ExpensesPanel";
 import { PhotosPanel } from "./PhotosPanel";
 
 const CLOCK = "biltov.clock";
-type Clock = { memberId: string; jobId: string; date: string; start: string };
+type Clock = { memberId: string; jobId: string; date: string; start: string; geo?: Geo | null };
 const readClock = (): Clock | null => {
   try {
     return JSON.parse(localStorage.getItem(CLOCK) ?? "null");
@@ -87,15 +90,16 @@ export function WorkerMode({ member, onExit }: { member: Member; onExit: () => v
   const job = data.jobs.find((j) => j.id === jobId);
   const myHours = data.timeEntries.filter((e) => e.memberId === member.id && e.date >= addDays(today, -6)).reduce((s, e) => s + e.hours, 0);
 
-  const start = (j: Job) => {
-    const c = { memberId: member.id, jobId: j.id, date: today, start: hhmm() };
+  const start = async (j: Job) => {
+    const c: Clock = { memberId: member.id, jobId: j.id, date: today, start: hhmm(), geo: await currentGeo() };
     localStorage.setItem(CLOCK, JSON.stringify(c));
     setClock(c);
   };
-  const stop = () => {
+  const stop = async () => {
     if (!clock) return;
     const end = hhmm();
-    upsert("timeEntries", { id: uid(), memberId: clock.memberId, jobId: clock.jobId, date: clock.date, start: clock.start, end, hours: hoursBetween(clock.start, end), note: t("Pointage mobile") });
+    const geoEnd = await currentGeo();
+    upsert("timeEntries", { id: uid(), memberId: clock.memberId, jobId: clock.jobId, date: clock.date, start: clock.start, end, hours: hoursBetween(clock.start, end), note: t("Pointage mobile"), geoStart: clock.geo ?? null, geoEnd });
     localStorage.removeItem(CLOCK);
     setClock(null);
   };
@@ -165,6 +169,9 @@ export function WorkerMode({ member, onExit }: { member: Member; onExit: () => v
               <CalendarPlus className="h-5 w-5 text-cyan" /> {t("Demander un congé")}
             </button>
           </div>
+          <button onClick={() => downloadBlob(new Blob([toIcs(mine.filter((e) => e.end.slice(0, 10) >= today), data)], { type: "text/calendar" }), `planning-${member.name}.ics`)} className="btn-ghost w-full !py-2 text-sm">
+            <CalendarDays className="h-4 w-4" /> {t("Ajouter mon planning à mon agenda (.ics)")}
+          </button>
           <p className="text-center text-xs text-slate-500">{t("{h} h pointées ces 7 derniers jours", { h: f.num(myHours, 1) })}</p>
         </>
       ) : (
@@ -184,6 +191,7 @@ function WorkerJob({ job, member, running, onStart, onBack }: { job: Job; member
   const { data } = useAppData();
   const [panel, setPanel] = useState<"photos" | "reports" | "chat">("photos");
   const client = data.clients.find((c) => c.id === job.clientId);
+  const missions = data.events.filter((e) => e.jobId === job.id && e.memberIds.includes(member.id) && e.end.slice(0, 10) >= todayIso() && e.status !== "cancelled").slice(0, 5);
   const address = job.siteAddress || [client?.billing.street, client?.billing.postcode, client?.billing.city].filter(Boolean).join(", ");
   return (
     <div className="space-y-4">
@@ -193,9 +201,30 @@ function WorkerJob({ job, member, running, onStart, onBack }: { job: Job; member
       <div className="card space-y-3 p-4">
         <h2 className="font-display text-xl font-bold text-white">{job.name}</h2>
         {address && (
-          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-cyan">
-            <MapPin className="h-4 w-4" /> {address}
-          </a>
+          <>
+            <p className="flex items-center gap-2 text-sm text-slate-300">
+              <MapPin className="h-4 w-4 text-cyan" /> {address}
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <a href={mapsRoute(address)} target="_blank" rel="noreferrer" className="btn-ghost !py-2 text-sm">
+                <Navigation className="h-4 w-4" /> Google Maps
+              </a>
+              <a href={wazeRoute(address)} target="_blank" rel="noreferrer" className="btn-ghost !py-2 text-sm">
+                <Navigation className="h-4 w-4" /> Waze
+              </a>
+            </div>
+          </>
+        )}
+        {missions.length > 0 && (
+          <div className="rounded-xl border border-white/10 p-3 text-sm">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("Ordre de mission")}</p>
+            {missions.map((e) => (
+              <p key={e.id} className="text-slate-300">
+                {new Date(e.start).toLocaleDateString(undefined, { weekday: "short", day: "numeric" })} {e.start.slice(11)}–{e.end.slice(11)} · {e.title}
+                {e.notes && <span className="block whitespace-pre-line text-xs text-slate-500">{e.notes}</span>}
+              </p>
+            ))}
+          </div>
         )}
         {client?.phone && (
           <a href={`tel:${client.phone}`} className="flex items-center gap-2 text-sm text-slate-300">

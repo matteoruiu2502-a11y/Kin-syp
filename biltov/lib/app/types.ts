@@ -61,6 +61,22 @@ export type ModuleId =
 
 export type ReminderTemplate = { subject: Record<Lang, string>; body: Record<Lang, string> };
 
+/** Plan comptable (PCMN belge) utilisé pour les exports — modifiable dans les paramètres. */
+export type AccountingSettings = {
+  salesJournal: string; // « VEN »
+  purchasesJournal: string; // « ACH »
+  bankJournal: string; // « BNK »
+  sales: string; // 700000
+  customers: string; // 400000
+  purchases: string; // 600000 (approvisionnements)
+  subcontracting: string; // 604000 (sous-traitance)
+  generalExpenses: string; // 610000
+  suppliers: string; // 440000
+  vatDue: string; // 451000
+  vatDeductible: string; // 411000
+  bank: string; // 550000
+};
+
 export type Settings = {
   quoteValidityDays: number;
   paymentTermsDays: number;
@@ -72,6 +88,7 @@ export type Settings = {
   priceLists: PriceList[];
   retentionGuaranteePercent: number;
   terms: { b2c: string; b2b: string }; // conditions générales (texte libre de l'artisan)
+  accounting: AccountingSettings;
 };
 
 export type PriceList = { id: string; name: string; discountPercent: number; familyDiscounts: Record<string, number> };
@@ -216,6 +233,9 @@ export type Article = {
 };
 
 export type SupplierKind = "supplier" | "subcontractor";
+
+export type AttestationKind = "insurance_rc" | "insurance_decennial" | "onss" | "tax" | "registration" | "other";
+export type Attestation = { id: string; kind: AttestationKind; reference: string; validUntil: ISODate | null; fileId: string | null };
 export type Supplier = {
   id: string;
   kind: SupplierKind;
@@ -227,14 +247,20 @@ export type Supplier = {
   trade: TradeId | "";
   importMapping: Record<string, string> | null; // profil d'import mémorisé
   notes: string;
+  vatNumber?: string;
+  iban?: string;
+  attestations?: Attestation[];
+  retentionChecks?: RetentionCheck[]; // historique des consultations « obligation de retenue »
 };
 
 export type RetentionCheck = { checkedAt: ISODate; taxDebt: boolean; onssDebt: boolean; inastiDebt: boolean; attestationId: string | null };
 
-export type PurchaseStatus = "draft" | "ordered" | "received" | "to_pay" | "paid";
+/** Commande : brouillon → commandé → en préparation → livré sur chantier → vérifié. Facture : à payer → payé. */
+export type PurchaseStatus = "draft" | "ordered" | "preparing" | "delivered" | "verified" | "received" | "to_pay" | "paid";
+export type PurchaseType = "order" | "delivery" | "invoice";
 export type Purchase = {
   id: string;
-  type: "order" | "invoice";
+  type: PurchaseType;
   supplierId: string;
   jobId: string | null;
   number: string;
@@ -246,20 +272,24 @@ export type Purchase = {
   retention: RetentionCheck | null;
   paidAt: ISODate | null;
   fileId: string | null;
+  orderId?: string | null; // bon de commande d'origine (bon de livraison, facture)
+  iban?: string;
+  structuredComm?: string;
 };
 
 export type Expense = { id: string; jobId: string | null; memberId: string | null; date: ISODate; supplier: string; label: string; amountTTC: number; vat: number; receiptId: string | null; reimbursable: boolean; status: "draft" | "submitted" | "approved" | "reimbursed" };
 
 export type PhotoPhase = "avant" | "pendant" | "apres";
-export type Photo = { id: string; jobId: string; phase: PhotoPhase; caption: string; takenAt: string; addedAt: string; width: number; height: number };
+export type Geo = { lat: number; lng: number; accuracy: number };
+export type Photo = { id: string; jobId: string; phase: PhotoPhase; caption: string; takenAt: string; addedAt: string; width: number; height: number; geo?: Geo | null };
 
 export type Role = "owner" | "office" | "worker" | "accountant";
 export type Member = { id: string; name: string; role: Role; phone: string; email: string; lang: Lang; hourlyCost: number; color: string; pin: string; active: boolean };
 
-export type TimeEntry = { id: string; memberId: string; jobId: string; date: ISODate; start: string; end: string; hours: number; note: string };
+export type TimeEntry = { id: string; memberId: string; jobId: string; date: ISODate; start: string; end: string; hours: number; note: string; geoStart?: Geo | null; geoEnd?: Geo | null };
 
 export type EventKind = "job" | "visit" | "appointment" | "leave" | "maintenance";
-export type PlanningEvent = { id: string; kind: EventKind; title: string; jobId: string | null; clientId: string | null; memberIds: string[]; start: string; end: string; notes: string; status: "planned" | "done" | "cancelled" | "requested" | "approved" | "refused" };
+export type PlanningEvent = { id: string; kind: EventKind; title: string; jobId: string | null; clientId: string | null; memberIds: string[]; vehicleIds?: string[]; start: string; end: string; notes: string; status: "planned" | "done" | "cancelled" | "requested" | "approved" | "refused" };
 
 export type Report = {
   id: string;
@@ -280,6 +310,59 @@ export type StockLocation = { id: string; name: string; kind: "depot" | "vehicle
 export type StockMove = { id: string; articleId: string; locationId: string; qty: number; date: ISODate; reason: string; jobId: string | null };
 
 export type Vehicle = { id: string; plate: string; model: string; memberId: string | null; nextInspection: ISODate; nextService: ISODate; mileage: number; costs: { date: ISODate; label: string; amount: number; jobId: string | null }[] };
+
+/** Mouvement bancaire importé (CODA, Ponto) et son lettrage. */
+export type BankMatch = { kind: "invoice" | "purchase"; id: string; amount: number };
+export type BankMoveStatus = "unmatched" | "matched" | "partial" | "surplus" | "ignored";
+export type BankMove = {
+  id: string;
+  date: ISODate;
+  amount: number; // positif = crédit, négatif = débit
+  communication: string;
+  structured: boolean;
+  counterparty: string;
+  account: string;
+  ref: string;
+  source: "coda" | "ponto" | "manual";
+  importedAt: string;
+  matches: BankMatch[];
+  status: BankMoveStatus;
+  note: string;
+};
+
+/** Parc d'outils et de machines, avec affectation et historique. */
+export type ToolAssignment = { type: "depot" | "vehicle" | "member" | "job"; id: string | null };
+export type Tool = {
+  id: string;
+  name: string;
+  category: string;
+  serial: string;
+  purchaseDate: ISODate | null;
+  value: number;
+  assignment: ToolAssignment;
+  history: { at: string; assignment: ToolAssignment; note: string }[];
+  serviceIntervalDays: number | null;
+  lastService: ISODate | null;
+  status: "ok" | "repair" | "lost" | "retired";
+  notes: string;
+};
+
+/** Contrat d'entretien récurrent (tonte, taille, entretien chaudière…). */
+export type ContractFrequency = "weekly" | "monthly" | "quarterly" | "yearly";
+export type Contract = {
+  id: string;
+  clientId: string;
+  jobId: string | null;
+  title: string;
+  frequency: ContractFrequency;
+  startDate: ISODate;
+  nextDate: ISODate;
+  endDate: ISODate | null;
+  lines: { label: string; qty: number; unit: string; unitPrice: number; category: LineCategory }[];
+  memberIds: string[];
+  active: boolean;
+  history: { date: ISODate; invoiceId: string | null; eventId: string | null }[];
+};
 
 /** Enregistrements génériques des modules complémentaires (SAV, congés, recrutement…). */
 export type GenericRecord = { id: string; module: ModuleId; title: string; status: string; fields: Record<string, string | number | boolean>; jobId: string | null; clientId: string | null; memberId: string | null; createdAt: string; updatedAt: string };
@@ -307,6 +390,9 @@ export type AccountData = {
   stockMoves: StockMove[];
   vehicles: Vehicle[];
   records: GenericRecord[];
+  bankMoves: BankMove[];
+  tools: Tool[];
+  contracts: Contract[];
   audit: AuditEntry[];
 };
 
