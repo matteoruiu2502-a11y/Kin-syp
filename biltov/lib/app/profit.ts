@@ -44,7 +44,8 @@ export function jobProfit(d: AccountData, jobId: string): JobProfit {
   for (const q of signed)
     for (const l of q.lines.filter(countsInTotal)) {
       const art = l.articleId ? d.articles.find((a) => a.id === l.articleId) : undefined;
-      const post: CostPost = art?.type === "subcontract" ? "subcontracting" : art?.type === "equipment" ? "equipment" : l.category === "labour" || art?.type === "labour" ? "labour" : "materials";
+      const subLine = !!l.executedBy && d.suppliers.some((s) => s.id === l.executedBy && s.kind === "subcontractor");
+      const post: CostPost = subLine || art?.type === "subcontract" ? "subcontracting" : art?.type === "equipment" ? "equipment" : l.category === "labour" || art?.type === "labour" ? "labour" : "materials";
       planned[post] += (l.costPrice || 0) * (l.qty || 0);
     }
 

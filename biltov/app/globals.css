@@ -172,7 +172,10 @@
    de la palette (texte « blanc » → encre, gris inversés, fond « ink » → clair).
    `.theme-fixed` garde les couleurs d'origine (feuilles de devis blanches,
    zone de signature, boutons curseurs…). */
-:root[data-theme="light"] {
+:root[data-theme="light"],
+/* fenêtres posées sur un voile sombre : leur contenu reste en mode jour */
+:root[data-theme="light"] [class*="bg-black"] > [role="dialog"],
+:root[data-theme="light"] [class*="bg-black"] > .card {
   color-scheme: light;
   --color-ink: #f4f6fb;
   --color-night: #e9eef6;

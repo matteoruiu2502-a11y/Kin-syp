@@ -9,6 +9,7 @@ import { useFmt } from "@/lib/app/format";
 import { todayIso, uid } from "@/lib/app/defaults";
 import { ATTESTATION_LABEL, REQUIRED_ATTESTATIONS, attestationState, lastCheck, recordRetentionCheck, subcontractorAlerts, subcontractorSummary, type AttestationState } from "@/lib/app/subcontractors";
 import { purchaseTotals, retentionFor } from "@/lib/app/finance";
+import { subcontractorUsage } from "@/lib/app/execution";
 import { formatBce, isBce, isIban } from "@/lib/tax/belgium";
 import { emptyAddress, type Attestation, type AttestationKind, type RetentionCheck, type Supplier } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,83 @@ const STATE_STYLE: Record<AttestationState, { label: string; style: string }> = 
   expired: { label: "Expirée", style: "bg-rose-500/10 text-rose-300 ring-rose-500/30" },
   missing: { label: "Manquante", style: "bg-white/5 text-slate-400 ring-white/10" },
 };
+
+/** Création rapide d'un sous-traitant (depuis une ligne de devis). */
+export function NewSubcontractorDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Supplier) => void }) {
+  const { t } = useTr();
+  const { upsert } = useAppData();
+  const [s, setS] = useState<Supplier>({ id: uid(), kind: "subcontractor", name: "", bce: "", email: "", phone: "", address: emptyAddress(), trade: "", importMapping: null, notes: "", vatNumber: "", attestations: [], retentionChecks: [] });
+  const set = <K extends keyof Supplier>(k: K, v: Supplier[K]) => setS((x) => ({ ...x, [k]: v }));
+  const bceErr = s.bce && !isBce(s.bce);
+  return (
+    <Modal
+      title={t("Nouveau sous-traitant")}
+      onClose={onClose}
+      footer={
+        <>
+          <button onClick={onClose} className="btn-ghost text-sm">
+            {t("Annuler")}
+          </button>
+          <button
+            disabled={!s.name.trim() || !!bceErr}
+            onClick={() => {
+              const created = { ...s, bce: s.bce ? formatBce(s.bce) : "" };
+              upsert("suppliers", created);
+              onCreated(created);
+            }}
+            className="btn-primary text-sm disabled:opacity-40"
+          >
+            {t("Créer")}
+          </button>
+        </>
+      }
+    >
+      <SubcontractorFields s={s} set={set} />
+    </Modal>
+  );
+}
+
+/** Coordonnées d'un sous-traitant (fiche complète et création rapide). */
+function SubcontractorFields({ s, set }: { s: Supplier; set: <K extends keyof Supplier>(k: K, v: Supplier[K]) => void }) {
+  const { t } = useTr();
+  const { data } = useAppData();
+  const bceErr = s.bce && !isBce(s.bce);
+  const ibanErr = s.iban && !isIban(s.iban);
+  return (
+    <div className="grid gap-4 sm:grid-cols-3">
+      <Field label={`${t("Nom")} *`}>
+        <input autoFocus className={inputClass} value={s.name} onChange={(e) => set("name", e.target.value)} />
+      </Field>
+      <Field label={t("Numéro d'entreprise (BCE)")} error={bceErr && t("Numéro BCE invalide (contrôle modulo 97).")}>
+        <input className={inputClass} value={s.bce} onChange={(e) => set("bce", e.target.value)} placeholder="0123.456.789" />
+      </Field>
+      <Field label={t("N° de TVA")}>
+        <input className={inputClass} value={s.vatNumber ?? ""} onChange={(e) => set("vatNumber", e.target.value.toUpperCase())} placeholder={s.bce ? `BE${s.bce.replace(/\D/g, "")}` : "BE0123456789"} />
+      </Field>
+      <Field label={t("E-mail")}>
+        <input type="email" className={inputClass} value={s.email} onChange={(e) => set("email", e.target.value)} />
+      </Field>
+      <Field label={t("Téléphone")}>
+        <input type="tel" className={inputClass} value={s.phone} onChange={(e) => set("phone", e.target.value)} />
+      </Field>
+      <Field label="IBAN" error={ibanErr && t("IBAN invalide")}>
+        <input className={inputClass} value={s.iban ?? ""} onChange={(e) => set("iban", e.target.value.toUpperCase())} />
+      </Field>
+      <Field label={t("Rue et numéro")}>
+        <input className={inputClass} value={s.address.street} onChange={(e) => set("address", { ...s.address, street: e.target.value })} />
+      </Field>
+      <Field label={t("Code postal")}>
+        <input className={inputClass} value={s.address.postcode} onChange={(e) => set("address", { ...s.address, postcode: e.target.value })} />
+      </Field>
+      <Field label={t("Localité")}>
+        <input className={inputClass} value={s.address.city} onChange={(e) => set("address", { ...s.address, city: e.target.value })} />
+      </Field>
+      <Field label={t("Marge par défaut (%)")} hint={t("Appliquée aux lignes de devis confiées à ce sous-traitant. Vide : {m} % (réglage général).", { m: data.settings.defaultMargins.subcontract })}>
+        <input type="number" step="0.5" className={inputClass} value={s.marginPercent ?? ""} onChange={(e) => set("marginPercent", Number.isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : null)} />
+      </Field>
+    </div>
+  );
+}
 
 function SubcontractorDetail({ supplier, onClose }: { supplier: Supplier; onClose: () => void }) {
   const { t } = useTr();
@@ -38,6 +116,18 @@ function SubcontractorDetail({ supplier, onClose }: { supplier: Supplier; onClos
     upsert("suppliers", { ...s, bce: s.bce ? formatBce(s.bce) : "" });
     onClose();
   };
+  const exists = data.suppliers.some((x) => x.id === s.id);
+  const del = () => {
+    const u = subcontractorUsage(data, s.id);
+    if (u.purchases) return window.alert(t("Impossible de supprimer : {n} facture(s) ou commande(s) de ce sous-traitant sont enregistrées.", { n: u.purchases }));
+    if (!window.confirm(u.lines ? t("{n} ligne(s) de devis lui sont confiées : elles repasseront à « Notre société ». Supprimer ?", { n: u.lines }) : t("Supprimer ce sous-traitant ?"))) return;
+    update((d) => ({
+      ...d,
+      suppliers: d.suppliers.filter((x) => x.id !== s.id),
+      docs: d.docs.map((x) => (!x.lockedAt && x.lines.some((l) => l.executedBy === s.id) ? { ...x, lines: x.lines.map((l) => (l.executedBy === s.id ? { ...l, executedBy: null } : l)) } : x)),
+    }));
+    onClose();
+  };
 
   return (
     <Modal
@@ -46,6 +136,11 @@ function SubcontractorDetail({ supplier, onClose }: { supplier: Supplier; onClos
       onClose={onClose}
       footer={
         <>
+          {exists && (
+            <button onClick={del} className="btn-ghost mr-auto text-sm text-rose-300">
+              <Trash2 className="h-4 w-4" /> {t("Supprimer")}
+            </button>
+          )}
           <button onClick={onClose} className="btn-ghost text-sm">
             {t("Annuler")}
           </button>
@@ -56,26 +151,7 @@ function SubcontractorDetail({ supplier, onClose }: { supplier: Supplier; onClos
       }
     >
       <div className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Field label={`${t("Nom")} *`}>
-            <input className={inputClass} value={s.name} onChange={(e) => set("name", e.target.value)} />
-          </Field>
-          <Field label={t("Numéro d'entreprise (BCE)")} error={bceErr && t("Numéro BCE invalide (contrôle modulo 97).")}>
-            <input className={inputClass} value={s.bce} onChange={(e) => set("bce", e.target.value)} placeholder="0123.456.789" />
-          </Field>
-          <Field label={t("N° de TVA")}>
-            <input className={inputClass} value={s.vatNumber ?? ""} onChange={(e) => set("vatNumber", e.target.value.toUpperCase())} placeholder={s.bce ? `BE${s.bce.replace(/\D/g, "")}` : "BE0123456789"} />
-          </Field>
-          <Field label="IBAN" error={ibanErr && t("IBAN invalide")}>
-            <input className={inputClass} value={s.iban ?? ""} onChange={(e) => set("iban", e.target.value.toUpperCase())} />
-          </Field>
-          <Field label={t("E-mail")}>
-            <input className={inputClass} value={s.email} onChange={(e) => set("email", e.target.value)} />
-          </Field>
-          <Field label={t("Téléphone")}>
-            <input className={inputClass} value={s.phone} onChange={(e) => set("phone", e.target.value)} />
-          </Field>
-        </div>
+        <SubcontractorFields s={s} set={set} />
 
         <div>
           <div className="mb-2 flex items-center justify-between">

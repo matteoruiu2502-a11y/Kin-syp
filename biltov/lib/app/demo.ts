@@ -141,7 +141,9 @@ export async function buildDemoData(): Promise<AccountData> {
   d = logSend(d, q.id, { channel: "whatsapp", kind: "document" });
 
   // Bouw & Co : autoliquidation, facture de situation émise (prête pour Peppol)
-  [d, q] = createQuote(d, jBouw.id, [lineNl(boiler, 6), lineNl(moPlomb, 48)], { issueDate: d0(-50) });
+  // ligne confiée au sous-traitant électricien, avec sa propre marge
+  const elecLine = newLine({ label: "Elektrische aansluitingen boilers (onderaanneming)", qty: 1, unit: "forfait", category: "labour", costPrice: 1650, marginPercent: 15, unitPrice: 1897.5, executedBy: soustraitant.id });
+  [d, q] = createQuote(d, jBouw.id, [lineNl(boiler, 6), lineNl(moPlomb, 48), elecLine], { issueDate: d0(-50) });
   d = signQuote(d, q.id, { image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", name: "Dhr. Jansens", at: new Date(Date.now() - 48 * 864e5).toISOString() });
   const qb = d.docs.find((x) => x.id === q.id)!;
   [d, inv] = quoteToInvoice(d, q.id, "situation", { progress: Object.fromEntries(qb.lines.map((l) => [l.id, 50])) });

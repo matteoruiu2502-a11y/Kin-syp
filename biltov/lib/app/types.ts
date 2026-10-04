@@ -89,6 +89,7 @@ export type Settings = {
   retentionGuaranteePercent: number;
   terms: { b2c: string; b2b: string }; // conditions générales (texte libre de l'artisan)
   accounting: AccountingSettings;
+  defaultMargins: { own: number; subcontract: number }; // marge par défaut : nos ouvriers / sous-traitance
   rolePermissions?: Partial<Record<AssignableRole, Partial<Permissions>>>; // droits par rôle modifiés par le super admin
 };
 
@@ -160,6 +161,8 @@ export type Line = {
   confidence: number | null; // correspondance catalogue lors de la dictée (0-1)
   costPrice: number; // prix de revient (rentabilité)
   progressPercent: number; // situations : avancement cumulé
+  executedBy?: string | null; // null = notre société (nos ouvriers) ; sinon id du sous-traitant
+  marginPercent?: number | null; // marge de la ligne sur le prix de revient : PU = coût × (1 + marge)
 };
 
 export type DocType = "quote" | "invoice" | "credit" | "proforma";
@@ -252,6 +255,7 @@ export type Supplier = {
   iban?: string;
   attestations?: Attestation[];
   retentionChecks?: RetentionCheck[]; // historique des consultations « obligation de retenue »
+  marginPercent?: number | null; // marge par défaut des lignes confiées à ce sous-traitant
 };
 
 export type RetentionCheck = { checkedAt: ISODate; taxDebt: boolean; onssDebt: boolean; inastiDebt: boolean; attestationId: string | null };

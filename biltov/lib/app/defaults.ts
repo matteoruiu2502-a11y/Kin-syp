@@ -76,6 +76,7 @@ export const defaultSettings = (): Settings => ({
     { id: "pro", name: "Professionnels", discountPercent: 5, familyDiscounts: {} },
   ],
   retentionGuaranteePercent: 5,
+  defaultMargins: { own: 30, subcontract: 15 },
   terms: { b2c: "", b2b: "" },
   accounting: defaultAccounting(),
 });

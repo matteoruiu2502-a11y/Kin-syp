@@ -5,6 +5,7 @@ import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { jobProfit, type CostPost } from "@/lib/app/profit";
+import { OWN, executionBreakdown, type ExecutionBreakdown, type ExecutionRow } from "@/lib/app/execution";
 import type { Job } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
 import { Stat } from "./ui";
@@ -24,6 +25,7 @@ export function JobProfitPanel({ job }: { job: Job }) {
   const p = jobProfit(data, job.id);
   const max = Math.max(1, ...p.rows.flatMap((r) => [r.planned, r.actual + r.committed]));
   const better = p.actualMargin >= p.plannedMargin;
+  const ex = executionBreakdown(data, job.id);
 
   return (
     <div className="space-y-5">
@@ -120,6 +122,83 @@ export function JobProfitPanel({ job }: { job: Job }) {
           {t("Prévu : prix de revient des lignes des devis et avenants signés. Réel : factures d'achat, tickets, sorties de stock, heures pointées, location et véhicules imputés au chantier. Engagé : commandes livrées dont la facture fournisseur n'est pas encore encodée.")}
         </p>
       </div>
+
+      <ExecutionTable ex={ex} />
+    </div>
+  );
+}
+
+/** Réalisé par nous / par chaque sous-traitant : CA, coûts, marge et rentabilité, avec totaux. */
+function ExecutionTable({ ex }: { ex: ExecutionBreakdown }) {
+  const { t } = useTr();
+  const f = useFmt();
+  const label = (r: ExecutionRow) => (r.key === OWN ? t("Réalisé par nous (nos ouvriers)") : r.key === "subcontracting" ? t("Total sous-traitance") : r.key === "total" ? t("Total chantier") : t(r.name));
+  const tone = (m: number) => (m < -0.005 ? "text-rose-300" : "text-emerald");
+  const rows: { r: ExecutionRow; kind: "own" | "sub" | "subtotal" | "total" }[] = [
+    { r: ex.own, kind: "own" },
+    ...ex.subcontractors.map((r) => ({ r, kind: "sub" as const })),
+    ...(ex.subcontractors.length ? [{ r: ex.subTotal, kind: "subtotal" as const }] : []),
+    { r: ex.total, kind: "total" },
+  ];
+  return (
+    <div className="card p-5">
+      <p className="font-semibold text-white">{t("Réalisé par nous et par les sous-traitants")}</p>
+      <p className="mb-4 mt-1 text-xs text-slate-500">{t("Selon l'exécutant choisi sur chaque ligne des devis signés. Coût réel d'un sous-traitant : ses factures imputées au chantier.")}</p>
+
+      {/* mobile : une carte par exécutant */}
+      <div className="space-y-2 md:hidden">
+        {rows.map(({ r, kind }) => (
+          <div key={r.key} className={cn("rounded-xl border p-3 text-sm", kind === "total" ? "border-cyan/40 bg-cyan/5" : kind === "subtotal" ? "border-violet-400/30 bg-violet-500/5" : "border-white/10")}>
+            <p className={cn("font-semibold", kind === "sub" ? "text-violet-300" : "text-white")}>{label(r)}</p>
+            <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 tabular-nums">
+              <dt className="text-slate-500">{t("CA HTVA")}</dt>
+              <dd className="text-right text-white">{f.money(r.revenue)}</dd>
+              <dt className="text-slate-500">{t("Coût prévu / réel")}</dt>
+              <dd className="text-right text-slate-300">
+                {f.money0(r.plannedCost)} / {f.money0(r.actualCost)}
+              </dd>
+              <dt className="text-slate-500">{t("Marge réelle")}</dt>
+              <dd className={cn("text-right font-semibold", tone(r.actualMargin))}>
+                {f.money(r.actualMargin)} · {r.actualMarginRate} %
+              </dd>
+            </dl>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[760px] text-sm">
+          <thead className="text-left text-xs uppercase tracking-wider text-slate-500">
+            <tr>
+              <th className="py-2">{t("Exécution")}</th>
+              <th className="py-2 text-right">{t("Lignes")}</th>
+              <th className="py-2 text-right">{t("CA HTVA")}</th>
+              <th className="py-2 text-right">{t("Coût prévu")}</th>
+              <th className="py-2 text-right">{t("Coût réel")}</th>
+              <th className="py-2 text-right">{t("Marge prévue")}</th>
+              <th className="py-2 text-right">{t("Marge réelle")}</th>
+              <th className="py-2 text-right">{t("Rentabilité")}</th>
+            </tr>
+          </thead>
+          <tbody className="tabular-nums">
+            {rows.map(({ r, kind }) => (
+              <tr key={r.key} className={cn("border-t", kind === "total" ? "border-white/20 font-bold text-white" : kind === "subtotal" ? "border-white/10 font-semibold text-violet-300" : "border-white/5")}>
+                <td className={cn("py-2", kind === "sub" ? "pl-4 text-violet-300" : kind === "own" ? "text-slate-200" : "")}>{label(r)}</td>
+                <td className="py-2 text-right text-slate-400">{r.lines}</td>
+                <td className="py-2 text-right">{f.money(r.revenue)}</td>
+                <td className="py-2 text-right text-slate-400">{f.money(r.plannedCost)}</td>
+                <td className={cn("py-2 text-right", r.actualCost > r.plannedCost + 0.005 && r.plannedCost > 0 ? "text-rose-300" : "")}>{f.money(r.actualCost)}</td>
+                <td className="py-2 text-right text-slate-400">
+                  {f.money(r.plannedMargin)} <span className="text-xs">({r.plannedMarginRate} %)</span>
+                </td>
+                <td className={cn("py-2 text-right", tone(r.actualMargin))}>{f.money(r.actualMargin)}</td>
+                <td className={cn("py-2 text-right", tone(r.actualMargin))}>{r.actualMarginRate} %</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {ex.subcontractors.some((r) => r.revenue === 0 && r.actualCost > 0) && <p className="mt-3 text-xs text-amber-300">{t("Un sous-traitant a facturé ce chantier sans ligne de devis qui lui est confiée : vérifiez l'exécutant des lignes.")}</p>}
     </div>
   );
 }
