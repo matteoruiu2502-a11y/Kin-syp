@@ -51,10 +51,12 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
   const job = doc ? jobOf(data, doc.jobId) : undefined;
   const client = doc ? clientOf(data, doc.clientId) : undefined;
   const results = useMemo(() => (search.trim() ? searchArticles(search, data.articles.filter((a) => a.active)).slice(0, 8) : []), [search, data.articles]);
-  if (!doc || !job) return null;
+  const docModule = doc?.type === "quote" ? "quotes" : "invoices";
+  if (!doc || !job || !app.can(docModule)) return null;
 
   const priceList = data.settings.priceLists.find((p) => p.id === client?.priceListId);
-  const locked = !!doc.lockedAt || (doc.type === "quote" && doc.status === "accepted");
+  const canEditDoc = app.can(docModule, "edit");
+  const locked = !canEditDoc || !!doc.lockedAt || (doc.type === "quote" && doc.status === "accepted");
   const totals = computeTotals(doc);
   const ctx = vatContext(data, job, client, doc.issueDate);
   const blockers = issueBlockers(data, doc);
@@ -105,7 +107,7 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
   const footer = (
     <div className="flex w-full flex-wrap items-center justify-between gap-2">
       <div className="flex flex-wrap gap-2">
-        {!doc.lockedAt && !(doc.type === "quote" && doc.status === "accepted") && (
+        {canEditDoc && !doc.lockedAt && !(doc.type === "quote" && doc.status === "accepted") && (
           <button
             onClick={() => {
               if (!window.confirm(t("Supprimer ce brouillon ?"))) return;
@@ -131,6 +133,8 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
         )}
       </div>
       <div className="relative flex flex-wrap justify-end gap-2">
+        {canEditDoc && (
+        <>
         {doc.type === "quote" && (
           <button onClick={() => setMenu((m) => !m)} className="btn-ghost text-sm">
             <GitBranch className="h-4 w-4" /> {t("Plus")}
@@ -224,6 +228,9 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
             <Send className="h-4 w-4" /> {t("Envoyer")}
           </button>
         )}
+        </>
+        )}
+        {!canEditDoc && <span className="flex items-center gap-1.5 text-xs text-slate-500"><Lock className="h-3.5 w-3.5" /> {t("Lecture seule")}</span>}
       </div>
     </div>
   );
@@ -610,7 +617,7 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
               {totals.retention > 0 && <Row k={t("Retenue de garantie")} v={`- ${f.money(totals.retention)}`} />}
               {totals.paid > 0 && <Row k={t("Déjà payé")} v={`- ${f.money(totals.paid)}`} />}
               {doc.type === "invoice" && (totals.paid > 0 || totals.retention > 0) && <Row k={t("Reste à payer")} v={f.money(totals.due)} strong />}
-              {totals.cost > 0 && (
+              {totals.cost > 0 && (canEditDoc || app.can("profit")) && (
                 <p className="mt-2 border-t border-white/5 pt-2 text-xs text-slate-500">
                   {t("Coût estimé")} {f.money(totals.cost)} · {t("marge")} <span className="text-emerald">{f.money(totals.margin)} ({totals.htva ? Math.round((totals.margin / totals.htva) * 100) : 0} %)</span> — {t("visible uniquement par vous")}
                 </p>

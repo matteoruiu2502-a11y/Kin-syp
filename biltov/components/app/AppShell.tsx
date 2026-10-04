@@ -28,15 +28,19 @@ import {
   Users,
   CalendarDays,
   Contact,
+  Eye,
+  Lock,
   X,
 } from "lucide-react";
 import { AppProvider, useApp, useAppData } from "@/lib/app/store";
 import { TrProvider, useTr } from "@/lib/app/tr";
 import { PRICE_MONTHLY, PRICE_YEARLY, TRIAL_DAYS, paymentConfigured, readSubscription, subscribeHref, trialDaysLeft } from "@/lib/checkout";
-import { Notice } from "./ui";
+import { Field, Modal, Notice, ReadOnlyContext, inputClass } from "./ui";
 import { dueReminders } from "@/lib/app/reminders";
 import { MODULES } from "@/lib/app/labels";
-import type { Lang, Member, ModuleId, Role } from "@/lib/app/types";
+import type { Lang, Member, ModuleId, PermModule } from "@/lib/app/types";
+import { PERM_LABEL, docVisible, isSuperAdmin, workerOnly } from "@/lib/app/permissions";
+import { logIn } from "@/lib/app/auth";
 import { cn } from "@/lib/utils";
 import { BiltovLogo } from "../BiltovLogo";
 import { ThemeToggle } from "../ThemeToggle";
@@ -65,10 +69,10 @@ import { JobForm } from "./JobForm";
 import { DocEditor } from "./DocEditor";
 import { WorkerLogin, WorkerMode } from "./WorkerMode";
 
-type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "outils" | "contrats" | "modules" | "module" | "parametres";
+type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "outils" | "contrats" | "modules" | "module" | "parametres" | "mon-espace";
 type Route = { page: Page; id?: string; sub?: string };
 
-const PAGES: Page[] = ["apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "banque", "comptabilite", "sous-traitants", "outils", "contrats", "modules", "module", "parametres"];
+const PAGES: Page[] = ["apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "banque", "comptabilite", "sous-traitants", "outils", "contrats", "modules", "module", "parametres", "mon-espace"];
 const parse = (hash: string): Route => {
   const [a, b, c] = hash.replace(/^#/, "").split("/");
   const page = (PAGES as string[]).includes(a) ? (a as Page) : "apercu";
@@ -78,13 +82,30 @@ const parse = (hash: string): Route => {
 const toHash = (r: Route) => `#${r.page}${r.id ? `/${r.id}` : ""}${r.sub ? `/${r.sub}` : ""}`;
 
 /** Pages accessibles selon le rôle de la personne connectée sur l'appareil. */
-const ROLE_PAGES: Record<Exclude<Role, "worker">, Page[] | "all"> = {
-  owner: "all",
-  office: PAGES.filter((p) => p !== "parametres"),
-  accountant: ["apercu", "documents", "achats", "clients", "client", "sous-traitants", "comptabilite", "banque"],
+/** Module de droits qui ouvre chaque page (au moins un en lecture). */
+const PAGE_MODULES: Record<Page, PermModule[]> = {
+  apercu: ["money"],
+  chantiers: ["jobs"],
+  chantier: ["jobs"],
+  clients: ["clients"],
+  client: ["clients"],
+  documents: ["quotes", "invoices"],
+  catalogue: ["catalog"],
+  planning: ["planning"],
+  equipe: ["team", "time"],
+  achats: ["purchases"],
+  stock: ["stock"],
+  flotte: ["fleet"],
+  banque: ["bank"],
+  comptabilite: ["accounting"],
+  "sous-traitants": ["subcontractors"],
+  outils: ["tools"],
+  contrats: ["contracts"],
+  modules: ["modules"],
+  module: ["modules"],
+  parametres: ["settings"],
+  "mon-espace": ["worker"],
 };
-
-const MEMBER_KEY = "biltov.member";
 
 /** Installation sur l'écran d'accueil et fonctionnement hors ligne (production uniquement). */
 function useServiceWorker() {
@@ -137,7 +158,7 @@ function LangSwitch() {
 
 function GlobalSearch({ go, openDoc }: { go: (r: Route) => void; openDoc: (id: string) => void }) {
   const { t } = useTr();
-  const { data } = useAppData();
+  const { data, can, perms } = useAppData();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
@@ -156,11 +177,11 @@ function GlobalSearch({ go, openDoc }: { go: (r: Route) => void; openDoc: (id: s
     if (s.length < 2) return [];
     const has = (...xs: string[]) => xs.some((x) => x.toLowerCase().includes(s));
     return [
-      ...data.clients.filter((c) => has(c.name, c.email, c.phone, c.bce, c.billing.city)).slice(0, 5).map((c) => ({ key: c.id, label: c.name, sub: t("Client"), act: () => go({ page: "client", id: c.id }) })),
-      ...data.jobs.filter((j) => has(j.name, j.siteAddress)).slice(0, 5).map((j) => ({ key: j.id, label: j.name, sub: t("Chantier"), act: () => go({ page: "chantier", id: j.id }) })),
-      ...data.docs.filter((d) => d.number && has(d.number, d.structuredComm)).slice(0, 5).map((d) => ({ key: d.id, label: d.number!, sub: data.clients.find((c) => c.id === d.clientId)?.name ?? "", act: () => openDoc(d.id) })),
+      ...data.clients.filter(() => can("clients")).filter((c) => has(c.name, c.email, c.phone, c.bce, c.billing.city)).slice(0, 5).map((c) => ({ key: c.id, label: c.name, sub: t("Client"), act: () => go({ page: "client", id: c.id }) })),
+      ...data.jobs.filter(() => can("jobs")).filter((j) => has(j.name, j.siteAddress)).slice(0, 5).map((j) => ({ key: j.id, label: j.name, sub: t("Chantier"), act: () => go({ page: "chantier", id: j.id }) })),
+      ...data.docs.filter(docVisible(perms)).filter((d) => d.number && has(d.number, d.structuredComm)).slice(0, 5).map((d) => ({ key: d.id, label: d.number!, sub: data.clients.find((c) => c.id === d.clientId)?.name ?? "", act: () => openDoc(d.id) })),
     ];
-  }, [s, data, go, openDoc, t]);
+  }, [s, data, go, openDoc, t, can, perms]);
   return (
     <div className="relative hidden w-72 lg:block">
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
@@ -191,21 +212,16 @@ function GlobalSearch({ go, openDoc }: { go: (r: Route) => void; openDoc: (id: s
 
 function Shell() {
   const { t } = useTr();
-  const { data, account, logOut, isDemo, resetDemo } = useAppData();
+  const { data, account, logOut, isDemo, resetDemo, actor: member, setActor, perms, can: canModule, denied, clearDenied } = useAppData();
   const [route, setRoute] = useState<Route>({ page: "apercu" });
   const [subscribed, setSubscribed] = useState(false);
   const [newJob, setNewJob] = useState<{ clientId?: string } | null>(null);
   const [docId, setDocId] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
-  const [member, setMember] = useState<Member | null>(null);
   const [switching, setSwitching] = useState(false);
 
   useEffect(() => {
     setSubscribed(readSubscription());
-    try {
-      const id = sessionStorage.getItem(MEMBER_KEY);
-      if (id) setMember(data.members.find((m) => m.id === id) ?? null);
-    } catch {}
     const sync = () => setRoute(parse(window.location.hash));
     sync();
     window.addEventListener("hashchange", sync);
@@ -225,21 +241,25 @@ function Shell() {
   const goPage = useCallback((p: string) => go(parse(`#${p}`)), [go]);
 
   const enter = (m: Member | null) => {
-    setMember(m);
+    setActor(m?.id ?? null);
     setSwitching(false);
-    try {
-      if (m) sessionStorage.setItem(MEMBER_KEY, m.id);
-      else sessionStorage.removeItem(MEMBER_KEY);
-    } catch {}
+    go({ page: "apercu" });
   };
+
+  // le message de refus disparaît seul
+  useEffect(() => {
+    if (!denied) return;
+    const id = setTimeout(clearDenied, 6000);
+    return () => clearTimeout(id);
+  }, [denied, clearDenied]);
 
   const trialLeft = account ? trialDaysLeft(account.createdAt) : TRIAL_DAYS;
   const trialOver = !isDemo && !subscribed && trialLeft === 0;
   const mods = data.settings.modules;
   const reminders = dueReminders(data).length;
-  const role: Role = member?.role ?? "owner";
-  const allowed = role === "worker" ? [] : ROLE_PAGES[role];
-  const can = (p: Page) => allowed === "all" || allowed.includes(p);
+  const superAdmin = isSuperAdmin(member);
+  const can = (p: Page) => (p === "mon-espace" ? !superAdmin && canModule("worker") : PAGE_MODULES[p].some((m) => canModule(m)));
+  const canEdit = (p: Page) => PAGE_MODULES[p].some((m) => canModule(m, "edit"));
 
   const nav: { page: Page; label: string; icon: typeof HardHat; badge?: number; on: boolean; group: 0 | 1 | 2 | 3 }[] = [
     { page: "apercu", label: t("Argent à recevoir"), icon: HandCoins, badge: reminders || undefined, on: true, group: 0 },
@@ -257,6 +277,7 @@ function Shell() {
     { page: "sous-traitants", label: t("Sous-traitants"), icon: Handshake, on: mods.purchases, group: 2 },
     { page: "outils", label: t("Outils"), icon: Wrench, on: true, group: 1 },
     { page: "contrats", label: t("Contrats"), icon: Repeat, on: true, group: 1 },
+    { page: "mon-espace", label: t("Mon espace"), icon: HardHat, on: true, group: 3 },
     { page: "modules", label: t("Modules"), icon: Blocks, on: true, group: 3 },
     { page: "parametres", label: t("Paramètres"), icon: Settings, on: true, group: 3 },
   ];
@@ -264,12 +285,30 @@ function Shell() {
   const active = (p: Page) => route.page === p || (route.page === "chantier" && p === "chantiers") || (route.page === "client" && p === "clients") || (route.page === "module" && p === "modules");
   const job = route.page === "chantier" ? data.jobs.find((j) => j.id === route.id) : undefined;
   const client = route.page === "client" ? data.clients.find((c) => c.id === route.id) : undefined;
-  const page: Page = can(route.page) ? route.page : "apercu";
+  // Page demandée sans droit (lien, favori, adresse tapée) : première page autorisée.
+  const firstAllowed = visible[0]?.page ?? "apercu";
+  const routeOk = can(route.page) && !(route.page === "chantier" && route.sub === "rentabilite" && !canModule("profit"));
+  const page: Page = routeOk ? route.page : firstAllowed;
+  const readOnly = !superAdmin && page !== "mon-espace" && !canEdit(page);
 
-  if (member?.role === "worker")
+  if (member && !member.active)
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="card max-w-sm space-y-4 p-6 text-center">
+          <p className="font-semibold text-white">{t("Cet utilisateur a été désactivé ou supprimé.")}</p>
+          <p className="text-sm text-slate-400">{t("Le super admin doit se reconnecter avec son mot de passe.")}</p>
+          <button onClick={logOut} className="btn-primary w-full text-sm">
+            {t("Connexion du super admin")}
+          </button>
+        </div>
+      </div>
+    );
+
+  if (member && workerOnly(perms))
     return (
       <div className="min-h-screen px-4 py-6">
-        <WorkerMode member={member} onExit={() => enter(null)} />
+        <WorkerMode member={member} onExit={() => setSwitching(true)} />
+        <AnimatePresence>{switching && <SwitchUser current={member} onPick={enter} onSuperAdmin={() => enter(null)} onClose={() => setSwitching(false)} />}</AnimatePresence>
       </div>
     );
 
@@ -318,7 +357,7 @@ function Shell() {
             <ThemeToggle labels={{ light: t("Mode jour"), dark: t("Mode nuit") }} />
             {data.members.length > 0 && (
               <button onClick={() => setSwitching(true)} className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-400 hover:text-white" title={t("Changer d'utilisateur sur cet appareil")}>
-                <UserCog className="h-4 w-4" /> <span className="hidden lg:inline">{member?.name ?? t("Patron")}</span>
+                <UserCog className="h-4 w-4" /> <span className="hidden lg:inline">{member?.name ?? t("Super admin")}</span>
               </button>
             )}
             <button onClick={logOut} className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-400 hover:text-white" title={`${t("Se déconnecter")} (${account?.email})`}>
@@ -403,7 +442,12 @@ function Shell() {
               {trialOver && paymentConfigured && page !== "parametres" ? (
                 <Paywall onBackup={() => go({ page: "parametres" })} />
               ) : (
-              <>
+              <ReadOnlyContext.Provider value={readOnly}>
+              {readOnly && (
+                <p className="mb-4 flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-slate-300">
+                  <Eye className="h-4 w-4 text-cyan" /> {t("Lecture seule : vous pouvez consulter cette page, pas la modifier.")}
+                </p>
+              )}
               {page === "apercu" && <MoneyTab onOpenDoc={setDocId} onOpenJob={openJob} />}
               {page === "chantiers" && <JobsTab onOpen={openJob} onAdd={() => setNewJob({})} />}
               {page === "chantier" && (job ? <JobDetail key={job.id + (route.sub ?? "")} job={job} initialTab={route.sub === "rentabilite" ? "finance" : "docs"} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
@@ -423,7 +467,8 @@ function Shell() {
               {page === "contrats" && <ContractsTab onOpenDoc={setDocId} />}
               {(page === "modules" || page === "module") && <ModulesTab module={page === "module" && route.id && route.id in MODULES ? (route.id as ModuleId) : null} onOpen={(m) => go({ page: "module", id: m })} onBack={() => go({ page: "modules" })} go={goPage} onOpenJob={openJob} />}
               {page === "parametres" && <SettingsTab />}
-              </>
+              {page === "mon-espace" && member && <WorkerMode member={member} onExit={() => go({ page: firstAllowed })} />}
+              </ReadOnlyContext.Provider>
               )}
             </motion.div>
           </AnimatePresence>
@@ -462,38 +507,73 @@ function Shell() {
       </AnimatePresence>
       <AnimatePresence>{docId && <DocEditor key={docId} docId={docId} onClose={() => setDocId(null)} onOpen={setDocId} />}</AnimatePresence>
       <AnimatePresence>
-        {switching && (
-          <SwitchUser
-            current={member}
-            onPick={(m) => enter(m)}
-            onOwner={() => {
-              enter(null);
-              logOut();
-            }}
-            onClose={() => setSwitching(false)}
-          />
+        {switching && <SwitchUser current={member} onPick={enter} onSuperAdmin={() => enter(null)} onClose={() => setSwitching(false)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {denied && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} role="alert" className="fixed inset-x-4 bottom-20 z-[70] mx-auto flex max-w-md items-start gap-3 rounded-2xl border border-rose-500/40 bg-ink p-4 text-sm shadow-2xl md:bottom-6">
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-rose-300" />
+            <p className="flex-1 text-slate-200">
+              <strong className="text-rose-300">{t("Action refusée.")}</strong> {t("Vous n'avez pas le droit de modifier : {m}. Demandez au super admin.", { m: denied.map((d) => (d === "users" ? t("Utilisateurs et accès") : t(PERM_LABEL[d].label))).join(", ") })}
+            </p>
+            <button onClick={clearDenied} className="text-slate-500 hover:text-white" aria-label={t("Fermer")}>
+              <X className="h-4 w-4" />
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
 
-function SwitchUser({ current, onPick, onOwner, onClose }: { current: Member | null; onPick: (m: Member) => void; onOwner: () => void; onClose: () => void }) {
+function SwitchUser({ current, onPick, onSuperAdmin, onClose }: { current: Member | null; onPick: (m: Member) => void; onSuperAdmin: () => void; onClose: () => void }) {
   const { t } = useTr();
-  const [pick, setPick] = useState(false);
-  if (pick) return <WorkerLogin onEnter={onPick} onCancel={onClose} />;
+  const { account, isDemo } = useAppData();
+  const [mode, setMode] = useState<"menu" | "member" | "admin">("menu");
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState(false);
+  const [busy, setBusy] = useState(false);
+  if (mode === "member") return <WorkerLogin onEnter={onPick} onCancel={onClose} />;
+  if (mode === "admin")
+    return (
+      <Modal title={t("Connexion du super admin")} onClose={onClose}>
+        <form
+          className="space-y-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!account) return;
+            setBusy(true);
+            try {
+              await logIn(account.email, pw);
+              onSuperAdmin();
+            } catch {
+              setErr(true);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <Field label={t("Mot de passe du compte {e}", { e: account?.email ?? "" })} error={err && t("Mot de passe incorrect.")}>
+            <input autoFocus type="password" autoComplete="current-password" className={inputClass} value={pw} onChange={(e) => (setPw(e.target.value), setErr(false))} />
+          </Field>
+          <button disabled={!pw || busy} className="btn-primary w-full disabled:opacity-40">
+            {t("Entrer")}
+          </button>
+        </form>
+      </Modal>
+    );
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
       <div className="card w-full max-w-sm space-y-3 p-5" onClick={(e) => e.stopPropagation()}>
         <p className="font-semibold text-white">{t("Qui utilise cet appareil ?")}</p>
-        <p className="text-xs text-slate-500">{t("Les droits dépendent du rôle : les ouvriers voient leur espace sans prix, le comptable les chiffres et exports.")}</p>
+        <p className="text-xs text-slate-500">{t("Chaque utilisateur ne voit et ne modifie que les modules autorisés par le super admin.")}</p>
         {current && (
-          <button onClick={onOwner} className="btn-ghost w-full text-sm">
-            {t("Revenir au compte du patron (mot de passe)")}
+          <button onClick={() => (isDemo ? onSuperAdmin() : setMode("admin"))} className="btn-ghost w-full text-sm">
+            {isDemo ? t("Super admin (démo : sans mot de passe)") : t("Super admin (mot de passe)")}
           </button>
         )}
-        <button onClick={() => setPick(true)} className="btn-primary w-full text-sm">
-          {t("Choisir un membre de l'équipe (PIN)")}
+        <button onClick={() => setMode("member")} className="btn-primary w-full text-sm">
+          {t("Utilisateur de l'équipe (code PIN)")}
         </button>
       </div>
     </div>

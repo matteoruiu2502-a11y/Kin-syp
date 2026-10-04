@@ -51,7 +51,7 @@ export const VAT_LABEL: Record<VatCode, string> = { "21": "21 %", "12": "12 %", 
 
 export const ARTICLE_TYPE: Record<ArticleType, string> = { supply: "Fourniture", labour: "Main-d'œuvre", equipment: "Équipement / location", subcontract: "Sous-traitance", package: "Ouvrage / forfait" };
 
-export const ROLE: Record<Role, string> = { owner: "Patron", office: "Secrétariat", worker: "Ouvrier", accountant: "Comptable" };
+export const ROLE: Record<Role, string> = { owner: "Super admin", admin: "Administrateur", employee: "Employé", secretary: "Secrétaire", accountant: "Comptable", worker: "Ouvrier" };
 
 export const UNITS = ["u", "m²", "m³", "ml", "h", "j", "forfait", "lot", "kg", "L", "km"];
 

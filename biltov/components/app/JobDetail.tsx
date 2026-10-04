@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { ArrowLeft, CloudSun, FilePlus2, FileText, Mail, MapPin, Pencil, Phone, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useAppData } from "@/lib/app/store";
+import { docVisible } from "@/lib/app/permissions";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { computeTotals } from "@/lib/app/money";
@@ -26,12 +27,14 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
   const { t } = useTr();
   const f = useFmt();
   const { t: land } = useI18n();
-  const { data, update, run } = useAppData();
-  const [tab, setTab] = useState<Tab>(initialTab);
+  const { data, update, run, can, perms } = useAppData();
+  const canEdit = can("jobs", "edit");
+  const seeMoney = can("quotes") || can("invoices");
+  const [tab, setTab] = useState<Tab>(initialTab === "finance" && !can("profit") ? "docs" : initialTab);
   const [editing, setEditing] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const client = data.clients.find((c) => c.id === job.clientId);
-  const docs = data.docs.filter((d) => d.jobId === job.id).sort((a, b) => b.issueDate.localeCompare(a.issueDate) || (b.number ?? "~").localeCompare(a.number ?? "~"));
+  const docs = data.docs.filter((d) => d.jobId === job.id).filter(docVisible(perms)).sort((a, b) => b.issueDate.localeCompare(a.issueDate) || (b.number ?? "~").localeCompare(a.number ?? "~"));
   const fin = jobFinance(data, job.id);
   const site = client?.sites.find((s) => s.id === job.siteId);
   const address = site ? `${site.street}, ${site.postcode} ${site.city}` : job.siteAddress || (client ? `${client.billing.street}, ${client.billing.postcode} ${client.billing.city}` : "");
@@ -45,8 +48,8 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
   };
 
   const tabs: { id: Tab; label: string; count?: number; on?: boolean }[] = [
-    { id: "docs", label: t("Devis & factures"), count: docs.length },
-    { id: "finance", label: t("Rentabilité") },
+    { id: "docs", label: t("Devis & factures"), count: docs.length, on: seeMoney },
+    { id: "finance", label: t("Rentabilité"), on: can("profit") },
     { id: "time", label: t("Heures"), count: data.timeEntries.filter((x) => x.jobId === job.id).length, on: m.time },
     { id: "reports", label: t("Rapports"), count: data.reports.filter((r) => r.jobId === job.id).length, on: m.reports },
     { id: "photos", label: t("Photos"), count: data.photos.filter((p) => p.jobId === job.id).length },
@@ -114,26 +117,26 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
             {t("TVA")} : {job.workKind === "immobilier" ? t("travaux immobiliers") : t("livraison")} · {job.privateHousing ? t("logement privé") : t("non résidentiel")} · {t("1re occupation")} {job.firstOccupationYear ?? "?"}
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        {canEdit && <div className="flex shrink-0 gap-2">
           <button onClick={() => setEditing(true)} className="btn-ghost !px-3 text-sm">
             <Pencil className="h-4 w-4" /> {t("Modifier")}
           </button>
           <button onClick={remove} className="btn-ghost !px-3 text-sm text-rose-300" aria-label={t("Supprimer")}>
             <Trash2 className="h-4 w-4" />
           </button>
-        </div>
+        </div>}
       </div>
 
       {showMap && address && (
         <iframe title={t("Carte du chantier")} src={mapsEmbed(address)} className="h-72 w-full rounded-2xl border border-white/10" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
       )}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      {seeMoney && <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label={t("Devis signé (HTVA)")} value={f.money0(fin.quoted)} />
         <Stat label={t("Facturé (HTVA)")} value={f.money0(fin.invoiced)} />
         <Stat label={t("Reste à facturer")} value={f.money0(fin.toInvoice)} tone={fin.toInvoice > 0 ? "warn" : undefined} />
         <Stat label={t("Reste à encaisser")} value={f.money0(fin.toCash)} tone={fin.toCash > 0 ? "warn" : undefined} />
-        <Stat label={t("Marge réelle")} value={`${f.money0(fin.margin)}`} sub={`${fin.marginRate} %`} tone={fin.margin >= 0 ? "ok" : "danger"} />
-      </div>
+        {can("profit") && <Stat label={t("Marge réelle")} value={`${f.money0(fin.margin)}`} sub={`${fin.marginRate} %`} tone={fin.margin >= 0 ? "ok" : "danger"} />}
+      </div>}
 
       <SubTabs<Tab> value={tab} onChange={setTab} tabs={tabs.filter((x) => x.on !== false)} />
 
@@ -169,7 +172,7 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
           )}
         </div>
       )}
-      {tab === "finance" && <JobProfitPanel job={job} />}
+      {tab === "finance" && can("profit") && <JobProfitPanel job={job} />}
       {tab === "time" && <TimePanel job={job} />}
       {tab === "reports" && <ReportsPanel job={job} />}
       {tab === "photos" && <PhotosPanel job={job} />}

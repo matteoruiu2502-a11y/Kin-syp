@@ -73,7 +73,9 @@ export async function buildDemoData(): Promise<AccountData> {
   const patron = { id: uid(), name: "Jean Dupont", role: "owner" as const, phone: "0470 00 00 01", email: "jean@dupont.be", lang: "fr" as const, hourlyCost: 0, color: "#0066FF", pin: "1111", active: true };
   const karim = { id: uid(), name: "Karim B.", role: "worker" as const, phone: "0470 00 00 02", email: "", lang: "fr" as const, hourlyCost: 38, color: "#10B981", pin: "2222", active: true };
   const piotr = { id: uid(), name: "Piotr K.", role: "worker" as const, phone: "0470 00 00 03", email: "", lang: "nl" as const, hourlyCost: 36, color: "#F59E0B", pin: "3333", active: true };
-  d.members = [patron, karim, piotr];
+  const sophie = { id: uid(), name: "Sophie L.", role: "secretary" as const, phone: "0470 00 00 04", email: "sophie@dupont.be", lang: "fr" as const, hourlyCost: 32, color: "#8B5CF6", pin: "4444", active: true };
+  const marc = { id: uid(), name: "Marc V. (comptable)", role: "accountant" as const, phone: "", email: "compta@fiduciaire.be", lang: "fr" as const, hourlyCost: 0, color: "#06B6D4", pin: "5555", active: true };
+  d.members = [patron, karim, piotr, sophie, marc];
 
   // Fournisseurs et sous-traitants
   const negoce = { id: uid(), kind: "supplier" as const, name: "Négoce Matériaux (démo)", bce: "0712.345.036", email: "commandes@negoce.be", phone: "04 000 00 00", address: { street: "Quai 5", postcode: "4020", city: "Liège", country: "BE" }, trade: "" as const, importMapping: null, notes: "" };

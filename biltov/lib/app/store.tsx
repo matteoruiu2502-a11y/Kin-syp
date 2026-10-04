@@ -9,7 +9,8 @@ import { idbDel, idbGet, idbSet } from "./db";
 import { currentAccount, setSession } from "./auth";
 import { DEMO_ID, buildDemoData } from "./demo";
 import { emptyAccountData, uid } from "./defaults";
-import type { Account, AccountData, CollectionKey, Geo, PhotoPhase, Photo } from "./types";
+import { PermissionError, allows, deniedWrites, migrateRoles, permissionsOf, type Denied } from "./permissions";
+import type { Access, Account, AccountData, CollectionKey, Geo, Member, PermModule, Permissions, PhotoPhase, Photo } from "./types";
 
 type Ctx = {
   account: Account | null;
@@ -28,11 +29,28 @@ type Ctx = {
   blobUrl: (key: string) => Promise<string | null>;
   getBlob: (key: string) => Promise<Blob | undefined>;
   addPhotos: (jobId: string, phase: PhotoPhase, files: File[], geo?: Geo | null) => Promise<void>;
+  /** Utilisateur actif sur l'appareil (null = super admin, titulaire du compte). */
+  actor: Member | null;
+  setActor: (memberId: string | null) => void;
+  perms: Permissions;
+  can: (m: PermModule, need?: Access) => boolean;
+  /** Dernière écriture refusée faute de droits. */
+  denied: Denied[] | null;
+  clearDenied: () => void;
 };
 
 const AppContext = createContext<Ctx | null>(null);
 const KEYS = Object.keys(emptyAccountData("")) as (keyof AccountData)[];
 const k = (acc: string, key: string) => `v2:${acc}:${key}`;
+const actorKey = (acc: string) => `biltov.actor.${acc}`;
+
+function readActor(acc: string) {
+  try {
+    return localStorage.getItem(actorKey(acc));
+  } catch {
+    return null;
+  }
+}
 
 /** Réduit une image (max 2000 px, JPEG) pour un stockage léger et des PDF rapides. */
 export async function compressImage(file: Blob, max = 2000, quality = 0.85): Promise<{ blob: Blob; width: number; height: number }> {
@@ -72,10 +90,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const ref = useRef<AccountData | null>(null);
   const saved = useRef<AccountData | null>(null);
   const urlCache = useRef(new Map<string, string>());
+  const [actorId, setActorId] = useState<string | null>(null);
+  const actorRef = useRef<Member | null>(null);
+  const [denied, setDenied] = useState<Denied[] | null>(null);
+  // Utilisateur supprimé ou désactivé : aucun droit (jamais de retour silencieux au super admin).
+  const actor = useMemo<Member | null>(() => {
+    if (!actorId || !data) return null;
+    const m = data.members.find((x) => x.id === actorId);
+    return m && m.active ? m : { id: actorId, name: "", role: "worker", phone: "", email: "", lang: "fr", hourlyCost: 0, color: "#64748b", pin: "", active: false, permissions: { worker: "none" } };
+  }, [actorId, data?.members]);
+  actorRef.current = actor;
 
   const commit = useCallback((next: AccountData) => {
     ref.current = next;
     setData(next);
+  }, []);
+
+  /** Écriture contrôlée : refusée (et signalée) si l'utilisateur actif n'a pas le droit de modifier. */
+  const write = useCallback(
+    (next: AccountData) => {
+      const prev = ref.current!;
+      const missing = deniedWrites(prev, next, actorRef.current);
+      if (missing.length) {
+        setDenied(missing);
+        throw new PermissionError(missing);
+      }
+      commit(next);
+    },
+    [commit],
+  );
+
+  // Une écriture refusée interrompt l'action en cours : l'erreur est attendue et déjà signalée.
+  useEffect(() => {
+    const swallow = (e: ErrorEvent | PromiseRejectionEvent) => {
+      const err = "reason" in e ? e.reason : e.error;
+      if (err instanceof PermissionError) e.preventDefault();
+    };
+    window.addEventListener("error", swallow);
+    window.addEventListener("unhandledrejection", swallow);
+    return () => {
+      window.removeEventListener("error", swallow);
+      window.removeEventListener("unhandledrejection", swallow);
+    };
   }, []);
 
   const load = useCallback(
@@ -85,8 +141,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         stored = a.id === DEMO_ID ? await buildDemoData() : { ...emptyAccountData(a.email) };
         await saveAll(a.id, stored);
       }
+      stored = migrateRoles(stored);
       saved.current = stored;
       commit(stored);
+      setActorId(readActor(a.id));
       setAccount(a);
     },
     [commit],
@@ -109,6 +167,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(id);
   }, [account, data]);
 
+  const perms = useMemo(() => permissionsOf(data?.settings ?? {}, actor), [data?.settings, actor]);
+
   const ctx = useMemo<Ctx>(() => {
     const cur = () => ref.current!;
     return {
@@ -119,6 +179,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       signedIn: load,
       logOut: () => {
         setSession(null);
+        setActorId(null);
         setAccount(null);
         ref.current = null;
         setData(null);
@@ -131,19 +192,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       run: (op) => {
         const [next, result] = op(cur());
-        commit(next);
+        write(next);
         return result;
       },
-      update: (fn) => commit(fn(cur())),
+      update: (fn) => write(fn(cur())),
       upsert: (key, item) => {
         const d = cur();
         const list = d[key] as { id: string }[];
         const next = list.some((x) => x.id === item.id) ? list.map((x) => (x.id === item.id ? item : x)) : [item, ...list];
-        commit({ ...d, [key]: next });
+        write({ ...d, [key]: next });
       },
       remove: (key, id) => {
         const d = cur();
-        commit({ ...d, [key]: (d[key] as { id: string }[]).filter((x) => x.id !== id) });
+        write({ ...d, [key]: (d[key] as { id: string }[]).filter((x) => x.id !== id) });
       },
       putBlob: async (key, blob) => {
         await idbSet(`blob:${key}`, blob);
@@ -160,6 +221,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return url;
       },
       addPhotos: async (jobId, phase, files, geo = null) => {
+        const p = permissionsOf(cur().settings, actorRef.current);
+        if (!allows(p, "jobs", "edit") && !allows(p, "worker", "edit")) {
+          setDenied(["jobs"]);
+          throw new PermissionError(["jobs"]);
+        }
         const added: Photo[] = [];
         for (const file of files) {
           const { blob, width, height } = await compressImage(file);
@@ -168,10 +234,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
           added.push(photo);
         }
         const d = cur();
-        commit({ ...d, photos: [...d.photos, ...added] });
+        write({ ...d, photos: [...d.photos, ...added] });
       },
+      actor,
+      setActor: (memberId) => {
+        setActorId(memberId);
+        try {
+          if (!account) return;
+          if (memberId) localStorage.setItem(actorKey(account.id), memberId);
+          else localStorage.removeItem(actorKey(account.id));
+        } catch {}
+      },
+      perms,
+      can: (m, need = "read") => allows(perms, m, need),
+      denied,
+      clearDenied: () => setDenied(null),
     };
-  }, [account, data, loading, load, commit]);
+  }, [account, data, loading, load, commit, write, actor, perms, denied]);
 
   return <AppContext.Provider value={ctx}>{children}</AppContext.Provider>;
 }

@@ -89,6 +89,7 @@ export type Settings = {
   retentionGuaranteePercent: number;
   terms: { b2c: string; b2b: string }; // conditions générales (texte libre de l'artisan)
   accounting: AccountingSettings;
+  rolePermissions?: Partial<Record<AssignableRole, Partial<Permissions>>>; // droits par rôle modifiés par le super admin
 };
 
 export type PriceList = { id: string; name: string; discountPercent: number; familyDiscounts: Record<string, number> };
@@ -283,8 +284,49 @@ export type PhotoPhase = "avant" | "pendant" | "apres";
 export type Geo = { lat: number; lng: number; accuracy: number };
 export type Photo = { id: string; jobId: string; phase: PhotoPhase; caption: string; takenAt: string; addedAt: string; width: number; height: number; geo?: Geo | null };
 
-export type Role = "owner" | "office" | "worker" | "accountant";
-export type Member = { id: string; name: string; role: Role; phone: string; email: string; lang: Lang; hourlyCost: number; color: string; pin: string; active: boolean };
+/** « owner » = super admin : le titulaire du compte, unique, non attribuable et non supprimable. */
+export type Role = "owner" | "admin" | "employee" | "worker" | "accountant" | "secretary";
+export type AssignableRole = Exclude<Role, "owner">;
+
+/** Modules soumis aux droits d'accès. */
+export type PermModule =
+  | "money"
+  | "jobs"
+  | "profit"
+  | "clients"
+  | "quotes"
+  | "invoices"
+  | "catalog"
+  | "planning"
+  | "team"
+  | "time"
+  | "worker"
+  | "purchases"
+  | "subcontractors"
+  | "stock"
+  | "fleet"
+  | "tools"
+  | "contracts"
+  | "bank"
+  | "accounting"
+  | "modules"
+  | "settings";
+export type Access = "none" | "read" | "edit";
+export type Permissions = Record<PermModule, Access>;
+
+export type Member = {
+  id: string;
+  name: string;
+  role: Role;
+  phone: string;
+  email: string;
+  lang: Lang;
+  hourlyCost: number;
+  color: string;
+  pin: string;
+  active: boolean;
+  permissions?: Partial<Permissions> | null; // exceptions propres à cette personne (sinon : droits du rôle)
+};
 
 export type TimeEntry = { id: string; memberId: string; jobId: string; date: ISODate; start: string; end: string; hours: number; note: string; geoStart?: Geo | null; geoEnd?: Geo | null };
 
