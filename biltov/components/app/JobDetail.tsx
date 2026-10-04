@@ -6,6 +6,7 @@ import { ArrowLeft, CloudSun, FilePlus2, FileText, Mail, MapPin, Pencil, Phone, 
 import { useI18n } from "@/lib/i18n";
 import { useAppData } from "@/lib/app/store";
 import { docVisible } from "@/lib/app/permissions";
+import { MaterialsPanel } from "./MaterialsPanel";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { computeTotals } from "@/lib/app/money";
@@ -21,16 +22,16 @@ import { mapsEmbed, mapsRoute, wazeRoute } from "@/lib/app/geo";
 import { ExpensesList } from "./ExpensesPanel";
 import { ChatPanel, FilesPanel, ReportsPanel, TimePanel } from "./FieldPanels";
 
-type Tab = "docs" | "finance" | "time" | "reports" | "photos" | "costs" | "files" | "chat";
+type Tab = "docs" | "finance" | "materials" | "time" | "reports" | "photos" | "costs" | "files" | "chat";
 
-export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "docs" }: { job: Job; onBack: () => void; onOpenDoc: (id: string) => void; onOpenClient: (id: string) => void; initialTab?: "docs" | "finance" }) {
+export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "docs" }: { job: Job; onBack: () => void; onOpenDoc: (id: string) => void; onOpenClient: (id: string) => void; initialTab?: "docs" | "finance" | "materials" }) {
   const { t } = useTr();
   const f = useFmt();
   const { t: land } = useI18n();
   const { data, update, run, can, perms } = useAppData();
   const canEdit = can("jobs", "edit");
   const seeMoney = can("quotes") || can("invoices");
-  const [tab, setTab] = useState<Tab>(initialTab === "finance" && !can("profit") ? "docs" : initialTab);
+  const [tab, setTab] = useState<Tab>(initialTab !== "docs" && !can("profit") ? "docs" : initialTab);
   const [editing, setEditing] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const client = data.clients.find((c) => c.id === job.clientId);
@@ -50,6 +51,7 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
   const tabs: { id: Tab; label: string; count?: number; on?: boolean }[] = [
     { id: "docs", label: t("Devis & factures"), count: docs.length, on: seeMoney },
     { id: "finance", label: t("Rentabilité"), on: can("profit") },
+    { id: "materials", label: t("Matériaux prévu / réel"), on: can("profit") },
     { id: "time", label: t("Heures"), count: data.timeEntries.filter((x) => x.jobId === job.id).length, on: m.time },
     { id: "reports", label: t("Rapports"), count: data.reports.filter((r) => r.jobId === job.id).length, on: m.reports },
     { id: "photos", label: t("Photos"), count: data.photos.filter((p) => p.jobId === job.id).length },
@@ -173,6 +175,7 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
         </div>
       )}
       {tab === "finance" && can("profit") && <JobProfitPanel job={job} />}
+      {tab === "materials" && can("profit") && <MaterialsPanel job={job} />}
       {tab === "time" && <TimePanel job={job} />}
       {tab === "reports" && <ReportsPanel job={job} />}
       {tab === "photos" && <PhotosPanel job={job} />}

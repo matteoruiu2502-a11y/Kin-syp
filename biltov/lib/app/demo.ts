@@ -184,6 +184,8 @@ export async function buildDemoData(): Promise<AccountData> {
     { id: uid(), type: "invoice", supplierId: soustraitant.id, jobId: jBouw.id, number: "EM-114", date: d0(-10), dueDate: d0(20), lines: [{ id: uid(), articleId: null, label: "Raccordements électriques boilers", qty: 1, unitPrice: 1800, vat: 0 }], status: "to_pay", source: "manual", retention: null, paidAt: null, fileId: null },
     { id: uid(), type: "order", supplierId: negoce.id, jobId: jBouw.id, number: "BC-2026-0001", date: d0(-1), dueDate: d0(6), lines: [{ id: uid(), articleId: boiler.id, label: "Boiler 200 L", qty: 3, unitPrice: 390, vat: 21 }], status: "ordered", source: "manual", retention: null, paidAt: null, fileId: null },
   ];
+  // second achat Durand : descriptions saisies différemment (faute de frappe, majuscules) et un article non prévu
+  d.purchases.push({ id: uid(), type: "invoice", supplierId: negoce.id, jobId: jDurand.id, number: "NM-2026-1240", date: d0(-15), dueDate: d0(15), lines: [{ id: uid(), articleId: null, label: "COLLE CARRELAGE C2 25KG", qty: 4, unitPrice: 17, vat: 21 }, { id: uid(), articleId: null, label: "Mitigeur thermostatiqe douche", qty: 1, unitPrice: 152, vat: 21 }, { id: uid(), articleId: null, label: "Mortier joint gris 5kg", qty: 2, unitPrice: 11, vat: 21 }, { id: uid(), articleId: null, label: "Silicone sanitaire blanc", qty: 3, unitPrice: 7.5, vat: 21 }], status: "to_pay", source: "manual", retention: null, paidAt: null, fileId: null });
   d.expenses = [{ id: uid(), jobId: jDurand.id, memberId: karim.id, date: d0(-3), supplier: "Brico", label: "Silicone + embouts", amountTTC: 24.2, vat: 21, receiptId: null, reimbursable: true, status: "submitted" }];
 
   // Stock et flotte

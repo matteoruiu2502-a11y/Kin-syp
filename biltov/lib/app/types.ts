@@ -139,6 +139,7 @@ export type Job = {
   probability: number; // % de chance de signature (pipeline)
   salesRep: string;
   weatherSensitive: boolean;
+  materialLinks?: Record<string, string>; // analyse matériaux : description achetée → matériau du devis (ou « __none »)
 };
 
 export type LineKind = "item" | "section" | "text";

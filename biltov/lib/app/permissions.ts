@@ -105,6 +105,7 @@ function itemNeed(key: keyof AccountData, before: Item | undefined, after: Item 
       return ["clients"];
     case "jobs":
       // montant et statut du chantier suivent le devis (modification, signature)
+      if (before && after && changedKeys(before, after).every((k) => k === "materialLinks")) return ["jobs", "purchases"];
       return before && after && changedKeys(before, after).every((k) => k === "amount" || k === "status") ? ["jobs", "quotes"] : ["jobs"];
     case "docs":
       return item.type === "quote" ? ["quotes"] : ["invoices", "bank"];

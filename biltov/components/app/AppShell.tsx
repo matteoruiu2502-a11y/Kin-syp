@@ -287,7 +287,7 @@ function Shell() {
   const client = route.page === "client" ? data.clients.find((c) => c.id === route.id) : undefined;
   // Page demandée sans droit (lien, favori, adresse tapée) : première page autorisée.
   const firstAllowed = visible[0]?.page ?? "apercu";
-  const routeOk = can(route.page) && !(route.page === "chantier" && route.sub === "rentabilite" && !canModule("profit"));
+  const routeOk = can(route.page) && !(route.page === "chantier" && (route.sub === "rentabilite" || route.sub === "materiaux") && !canModule("profit"));
   const page: Page = routeOk ? route.page : firstAllowed;
   const readOnly = !superAdmin && page !== "mon-espace" && !canEdit(page);
 
@@ -450,7 +450,7 @@ function Shell() {
               )}
               {page === "apercu" && <MoneyTab onOpenDoc={setDocId} onOpenJob={openJob} />}
               {page === "chantiers" && <JobsTab onOpen={openJob} onAdd={() => setNewJob({})} />}
-              {page === "chantier" && (job ? <JobDetail key={job.id + (route.sub ?? "")} job={job} initialTab={route.sub === "rentabilite" ? "finance" : "docs"} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
+              {page === "chantier" && (job ? <JobDetail key={job.id + (route.sub ?? "")} job={job} initialTab={route.sub === "rentabilite" ? "finance" : route.sub === "materiaux" ? "materials" : "docs"} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
               {page === "clients" && <ClientsTab onOpen={openClient} />}
               {page === "client" && (client ? <ClientDetail client={client} onBack={() => go({ page: "clients" })} onOpenJob={openJob} onOpenDoc={setDocId} onNewJob={(clientId) => setNewJob({ clientId })} /> : <NotFound onBack={() => go({ page: "clients" })} />)}
               {page === "documents" && <DocsTab onOpenDoc={setDocId} />}
