@@ -119,6 +119,12 @@ export function SettingsTab() {
             <Field label={t("Retenue de garantie par défaut (%)")}>
               <input type="number" className={inputClass} value={settings.retentionGuaranteePercent} onChange={(e) => set("retentionGuaranteePercent", e.target.valueAsNumber || 0)} />
             </Field>
+            <Field label={t("Marge par défaut — nos ouvriers (%)")} hint={t("Prix de vente = coût × (1 + marge).")}>
+              <input type="number" step="0.5" className={inputClass} value={settings.defaultMargins.own} onChange={(e) => set("defaultMargins", { ...settings.defaultMargins, own: e.target.valueAsNumber || 0 })} />
+            </Field>
+            <Field label={t("Marge par défaut — sous-traitance (%)")} hint={t("Modifiable par sous-traitant et par ligne.")}>
+              <input type="number" step="0.5" className={inputClass} value={settings.defaultMargins.subcontract} onChange={(e) => set("defaultMargins", { ...settings.defaultMargins, subcontract: e.target.valueAsNumber || 0 })} />
+            </Field>
           </div>
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("Préfixes de numérotation")}</p>

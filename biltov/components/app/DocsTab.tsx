@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { AlarmClock, Download, FileText, Send } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
+import { docVisible } from "@/lib/app/permissions";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { computeTotals } from "@/lib/app/money";
@@ -23,7 +24,9 @@ type Filter = "quotes" | "open" | "paid" | "draft" | "credit" | "templates" | "a
 export function DocsTab({ onOpenDoc, initial = "open" }: { onOpenDoc: (id: string) => void; initial?: Filter }) {
   const { t } = useTr();
   const f = useFmt();
-  const { data } = useAppData();
+  const { data: full, perms } = useAppData();
+  // seuls les documents autorisés (devis / factures) sont listés
+  const data = useMemo(() => ({ ...full, docs: full.docs.filter(docVisible(perms)) }), [full, perms]);
   const [filter, setFilter] = useState<Filter>(initial);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState({ key: "date", dir: "desc" as "asc" | "desc" });

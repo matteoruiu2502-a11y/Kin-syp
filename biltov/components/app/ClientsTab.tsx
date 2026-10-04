@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft, Download, Mail, MapPin, Pencil, Phone, Plus, Upload, Users } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
+import { docVisible } from "@/lib/app/permissions";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { CLIENT_FIELDS, clientsFromParsed, workbookBlob } from "@/lib/app/catalog/import";
@@ -121,10 +122,10 @@ export function ClientsTab({ onOpen }: { onOpen: (id: string) => void }) {
 export function ClientDetail({ client, onBack, onOpenJob, onOpenDoc, onNewJob }: { client: Client; onBack: () => void; onOpenJob: (id: string) => void; onOpenDoc: (id: string) => void; onNewJob: (clientId: string) => void }) {
   const { t } = useTr();
   const f = useFmt();
-  const { data } = useAppData();
+  const { data, perms, can } = useAppData();
   const [edit, setEdit] = useState(false);
   const jobs = data.jobs.filter((j) => j.clientId === client.id);
-  const docs = data.docs.filter((d) => d.clientId === client.id).sort((a, b) => b.issueDate.localeCompare(a.issueDate));
+  const docs = data.docs.filter((d) => d.clientId === client.id).filter(docVisible(perms)).sort((a, b) => b.issueDate.localeCompare(a.issueDate));
   const bal = clientBalance(data, client.id);
   const history = [
     ...docs.flatMap((d) => d.sends.map((s) => ({ at: s.at, text: `${docTitle(d, "fr")} ${d.number ?? ""} — ${s.kind === "reminder" ? t("relance") : t("envoi")} (${s.channel})` }))),
@@ -163,12 +164,16 @@ export function ClientDetail({ client, onBack, onOpenJob, onOpenDoc, onNewJob }:
           {client.notes && <p className="mt-3 whitespace-pre-line text-sm text-slate-300">{client.notes}</p>}
         </div>
         <div className="flex shrink-0 gap-2">
-          <button onClick={() => setEdit(true)} className="btn-ghost !px-3 text-sm">
-            <Pencil className="h-4 w-4" /> {t("Modifier")}
-          </button>
-          <button onClick={() => onNewJob(client.id)} className="btn-primary !px-4 text-sm">
-            <Plus className="h-4 w-4" /> {t("Nouveau chantier")}
-          </button>
+          {can("clients", "edit") && (
+            <button onClick={() => setEdit(true)} className="btn-ghost !px-3 text-sm">
+              <Pencil className="h-4 w-4" /> {t("Modifier")}
+            </button>
+          )}
+          {can("jobs", "edit") && (
+            <button onClick={() => onNewJob(client.id)} className="btn-primary !px-4 text-sm">
+              <Plus className="h-4 w-4" /> {t("Nouveau chantier")}
+            </button>
+          )}
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import { ArrowLeft, CalendarDays, CalendarPlus, Camera, ClipboardCheck, LogOut, MapPin, MessageSquare, Navigation, Phone, Play, Receipt, Square } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
+import { ROLE } from "@/lib/app/labels";
 import { useFmt } from "@/lib/app/format";
 import { addDays, todayIso, uid } from "@/lib/app/defaults";
 import { onDay } from "@/lib/app/planning";
@@ -38,17 +39,19 @@ export function WorkerLogin({ onEnter, onCancel }: { onEnter: (m: Member) => voi
   const [who, setWho] = useState<Member | null>(null);
   const [pin, setPin] = useState("");
   const [err, setErr] = useState(false);
-  const members = data.members.filter((m) => m.active);
+  // Le super admin se connecte avec le mot de passe du compte, jamais avec un PIN.
+  const members = data.members.filter((m) => m.active && m.role !== "owner");
   return (
-    <Modal title={t("Espace ouvrier")} onClose={onCancel}>
+    <Modal title={t("Connexion utilisateur")} onClose={onCancel}>
       {!who ? (
         <div className="grid gap-2">
           {members.map((m) => (
-            <button key={m.id} onClick={() => (m.pin ? setWho(m) : onEnter(m))} className="flex items-center gap-3 rounded-xl border border-white/10 p-3 text-left hover:border-cyan/50">
+            <button key={m.id} disabled={!m.pin} onClick={() => setWho(m)} className="flex items-center gap-3 rounded-xl border border-white/10 p-3 text-left hover:border-cyan/50 disabled:opacity-40">
               <span className="flex h-9 w-9 items-center justify-center rounded-full font-bold text-white theme-fixed" style={{ background: m.color }}>
                 {m.name.slice(0, 1)}
               </span>
               <span className="font-semibold text-white">{m.name}</span>
+              <span className="ml-auto text-xs text-slate-500">{m.pin ? t(ROLE[m.role]) : t("Aucun code PIN")}</span>
             </button>
           ))}
           {!members.length && <Notice>{t("Ajoutez d'abord votre équipe dans l'onglet Équipe.")}</Notice>}

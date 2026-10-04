@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useTr } from "@/lib/app/tr";
@@ -103,7 +103,12 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "warn" | "
   return <div className={cn("rounded-xl border px-4 py-3 text-sm", styles[tone])}>{children}</div>;
 }
 
-export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
+/** Page ouverte en lecture seule (droits de l'utilisateur actif) : les actions de création sont masquées. */
+export const ReadOnlyContext = createContext(false);
+export const useReadOnly = () => useContext(ReadOnlyContext);
+
+export function PageHeader({ title, subtitle, actions: given }: { title: string; subtitle?: string; actions?: ReactNode }) {
+  const actions = useReadOnly() ? null : given;
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>

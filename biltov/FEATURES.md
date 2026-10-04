@@ -85,6 +85,9 @@ Ce fichier dit honnêtement ce qui fonctionne aujourd'hui.
 | Rentabilité en temps réel (#chantier/<id>/rentabilite) : vendu (devis + avenants), facturé, matières, main-d'œuvre, sous-traitance, matériel, engagé, marge réelle contre prévue | ✅ |
 | Parc d'outils et machines (#outils) : affectation dépôt / camionnette / ouvrier / chantier, historique, rappels d'entretien | ✅ |
 | Contrats d'entretien récurrents (#contrats) : facture et intervention générées à chaque échéance | ✅ |
+| Exécution ligne par ligne (notre société ou un sous-traitant), marge propre à chaque ligne (PU = coût × (1 + marge)), marges par défaut nos ouvriers / sous-traitance / par sous-traitant | ✅ |
+| Rentabilité ventilée : réalisé par nous / par chaque sous-traitant (CA, coûts prévus et réels, marge, %), sous-total sous-traitance et total | ✅ |
+| Matériaux prévu (devis, ouvrages dépliés en fournitures) contre réel (factures fournisseurs, bons de livraison, sorties de stock) : regroupement par description normalisée, fautes de frappe rapprochées, association manuelle mémorisée, dépassements en rouge, économies en vert | ✅ |
 | Calculateur de quantités (surfaces, volumes, tonnages, carrelage avec perte et boîtes, gazon, linéaires) dans les devis | ✅ |
 | Météo défavorable pour les travaux extérieurs (Open-Meteo) | ✅ |
 | Pointage des heures, export pour le secrétariat social | ✅ (pas de calcul de salaire) |
@@ -123,7 +126,8 @@ Ce fichier dit honnêtement ce qui fonctionne aujourd'hui.
 | Prévision de trésorerie sur 13 semaines | ✅ |
 | Journaux des ventes, des achats et des paiements (CSV belge, Excel) | ✅ |
 | Comptabilité (#comptabilite) : écritures en partie double PCMN (700000, 400000, 451000, 600000/604000, 411000, 440000 — modifiables), export WinBooks ACT.DBF + CSF.DBF, UBL Peppol des ventes en ZIP (Yuki, Pennylane, Odoo, BOB50…), retenues 30bis à verser | 🟡 Format WinBooks à valider par un import test ; ⏳ connecteurs directs |
-| Rôles (patron, secrétariat, comptable, ouvrier) | 🟡 Restreint l'affichage sur l'appareil ; ⏳ comptes séparés et droits côté serveur |
+| Super admin unique (titulaire du compte, non supprimable, non transférable) et utilisateurs : administrateur, employé, secrétaire, comptable, ouvrier | ✅ Connexion par code PIN sur l'appareil, retour au super admin par mot de passe |
+| Droits par module (aucun / lecture / modification) : défauts par rôle modifiables, exceptions par personne ; menus masqués et toute écriture non autorisée refusée par le magasin de données | 🟡 Contrôlé dans l'application ; ⏳ comptes sur chaque téléphone et contrôle côté serveur (Supabase) |
 | Journal d'audit | ✅ |
 
 ## Modules complémentaires (inspirés d'Odoo / Vertuoza)

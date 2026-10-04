@@ -73,7 +73,9 @@ export async function buildDemoData(): Promise<AccountData> {
   const patron = { id: uid(), name: "Jean Dupont", role: "owner" as const, phone: "0470 00 00 01", email: "jean@dupont.be", lang: "fr" as const, hourlyCost: 0, color: "#0066FF", pin: "1111", active: true };
   const karim = { id: uid(), name: "Karim B.", role: "worker" as const, phone: "0470 00 00 02", email: "", lang: "fr" as const, hourlyCost: 38, color: "#10B981", pin: "2222", active: true };
   const piotr = { id: uid(), name: "Piotr K.", role: "worker" as const, phone: "0470 00 00 03", email: "", lang: "nl" as const, hourlyCost: 36, color: "#F59E0B", pin: "3333", active: true };
-  d.members = [patron, karim, piotr];
+  const sophie = { id: uid(), name: "Sophie L.", role: "secretary" as const, phone: "0470 00 00 04", email: "sophie@dupont.be", lang: "fr" as const, hourlyCost: 32, color: "#8B5CF6", pin: "4444", active: true };
+  const marc = { id: uid(), name: "Marc V. (comptable)", role: "accountant" as const, phone: "", email: "compta@fiduciaire.be", lang: "fr" as const, hourlyCost: 0, color: "#06B6D4", pin: "5555", active: true };
+  d.members = [patron, karim, piotr, sophie, marc];
 
   // Fournisseurs et sous-traitants
   const negoce = { id: uid(), kind: "supplier" as const, name: "Négoce Matériaux (démo)", bce: "0712.345.036", email: "commandes@negoce.be", phone: "04 000 00 00", address: { street: "Quai 5", postcode: "4020", city: "Liège", country: "BE" }, trade: "" as const, importMapping: null, notes: "" };
@@ -139,7 +141,9 @@ export async function buildDemoData(): Promise<AccountData> {
   d = logSend(d, q.id, { channel: "whatsapp", kind: "document" });
 
   // Bouw & Co : autoliquidation, facture de situation émise (prête pour Peppol)
-  [d, q] = createQuote(d, jBouw.id, [lineNl(boiler, 6), lineNl(moPlomb, 48)], { issueDate: d0(-50) });
+  // ligne confiée au sous-traitant électricien, avec sa propre marge
+  const elecLine = newLine({ label: "Elektrische aansluitingen boilers (onderaanneming)", qty: 1, unit: "forfait", category: "labour", costPrice: 1650, marginPercent: 15, unitPrice: 1897.5, executedBy: soustraitant.id });
+  [d, q] = createQuote(d, jBouw.id, [lineNl(boiler, 6), lineNl(moPlomb, 48), elecLine], { issueDate: d0(-50) });
   d = signQuote(d, q.id, { image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", name: "Dhr. Jansens", at: new Date(Date.now() - 48 * 864e5).toISOString() });
   const qb = d.docs.find((x) => x.id === q.id)!;
   [d, inv] = quoteToInvoice(d, q.id, "situation", { progress: Object.fromEntries(qb.lines.map((l) => [l.id, 50])) });
@@ -180,6 +184,8 @@ export async function buildDemoData(): Promise<AccountData> {
     { id: uid(), type: "invoice", supplierId: soustraitant.id, jobId: jBouw.id, number: "EM-114", date: d0(-10), dueDate: d0(20), lines: [{ id: uid(), articleId: null, label: "Raccordements électriques boilers", qty: 1, unitPrice: 1800, vat: 0 }], status: "to_pay", source: "manual", retention: null, paidAt: null, fileId: null },
     { id: uid(), type: "order", supplierId: negoce.id, jobId: jBouw.id, number: "BC-2026-0001", date: d0(-1), dueDate: d0(6), lines: [{ id: uid(), articleId: boiler.id, label: "Boiler 200 L", qty: 3, unitPrice: 390, vat: 21 }], status: "ordered", source: "manual", retention: null, paidAt: null, fileId: null },
   ];
+  // second achat Durand : descriptions saisies différemment (faute de frappe, majuscules) et un article non prévu
+  d.purchases.push({ id: uid(), type: "invoice", supplierId: negoce.id, jobId: jDurand.id, number: "NM-2026-1240", date: d0(-15), dueDate: d0(15), lines: [{ id: uid(), articleId: null, label: "COLLE CARRELAGE C2 25KG", qty: 4, unitPrice: 17, vat: 21 }, { id: uid(), articleId: null, label: "Mitigeur thermostatiqe douche", qty: 1, unitPrice: 152, vat: 21 }, { id: uid(), articleId: null, label: "Mortier joint gris 5kg", qty: 2, unitPrice: 11, vat: 21 }, { id: uid(), articleId: null, label: "Silicone sanitaire blanc", qty: 3, unitPrice: 7.5, vat: 21 }], status: "to_pay", source: "manual", retention: null, paidAt: null, fileId: null });
   d.expenses = [{ id: uid(), jobId: jDurand.id, memberId: karim.id, date: d0(-3), supplier: "Brico", label: "Silicone + embouts", amountTTC: 24.2, vat: 21, receiptId: null, reimbursable: true, status: "submitted" }];
 
   // Stock et flotte

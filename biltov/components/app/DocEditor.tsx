@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { ArrowDown, ArrowUp, BadgeEuro, Ban, Calculator, Eye, FileCheck2, FileCode2, FileMinus2, FileSpreadsheet, Flag, GitBranch, Heading, Lock, PenLine, Plus, Receipt, Save, Send, Sparkles, Trash2, Type } from "lucide-react";
+import { ArrowDown, ArrowUp, BadgeEuro, Ban, Calculator, HardHat, Eye, FileCheck2, FileCode2, FileMinus2, FileSpreadsheet, Flag, GitBranch, Heading, Lock, PenLine, Plus, Receipt, Save, Send, Sparkles, Trash2, Type } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
@@ -23,6 +23,8 @@ import { decideVat, VAT_CODES, type LineCategory, type VatCode } from "@/lib/tax
 import type { Doc, Lang, Line } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
 import { ordersFromQuote } from "@/lib/app/orders";
+import { OWN, lineMargin, quoteByExecution, withCost, withExecution, withMargin, withPrice } from "@/lib/app/execution";
+import { NewSubcontractorDialog } from "./SubcontractorsTab";
 import { QuantityCalculator } from "./QuantityCalculator";
 import { Badge, Field, Modal, Notice, cellClass, inputClass } from "./ui";
 import { VoiceInput } from "./VoiceInput";
@@ -51,10 +53,12 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
   const job = doc ? jobOf(data, doc.jobId) : undefined;
   const client = doc ? clientOf(data, doc.clientId) : undefined;
   const results = useMemo(() => (search.trim() ? searchArticles(search, data.articles.filter((a) => a.active)).slice(0, 8) : []), [search, data.articles]);
-  if (!doc || !job) return null;
+  const docModule = doc?.type === "quote" ? "quotes" : "invoices";
+  if (!doc || !job || !app.can(docModule)) return null;
 
   const priceList = data.settings.priceLists.find((p) => p.id === client?.priceListId);
-  const locked = !!doc.lockedAt || (doc.type === "quote" && doc.status === "accepted");
+  const canEditDoc = app.can(docModule, "edit");
+  const locked = !canEditDoc || !!doc.lockedAt || (doc.type === "quote" && doc.status === "accepted");
   const totals = computeTotals(doc);
   const ctx = vatContext(data, job, client, doc.issueDate);
   const blockers = issueBlockers(data, doc);
@@ -67,6 +71,11 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
   const patch = (p: Partial<Doc>) => save({ ...doc, ...p });
   const setLines = (lines: Line[]) => save(applyVat(data, { ...doc, lines }));
   const setLine = (id: string, p: Partial<Line>) => setLines(doc.lines.map((l) => (l.id === id ? { ...l, ...p } : l)));
+  const mapLine = (id: string, fn: (l: Line) => Line) => setLines(doc.lines.map((l) => (l.id === id ? fn(l) : l)));
+  // coût, marge et exécutant : visibles par qui peut modifier le devis ou consulter la rentabilité
+  const showCost = canEditDoc || app.can("profit");
+  const subcontractors = data.suppliers.filter((x) => x.kind === "subcontractor");
+  const [newSubFor, setNewSubFor] = useState<string | null>(null);
   const addLines = (lines: Line[]) => setLines([...doc.lines, ...lines]);
   const [calc, setCalc] = useState(false);
   const move = (i: number, dir: -1 | 1) => {
@@ -105,7 +114,7 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
   const footer = (
     <div className="flex w-full flex-wrap items-center justify-between gap-2">
       <div className="flex flex-wrap gap-2">
-        {!doc.lockedAt && !(doc.type === "quote" && doc.status === "accepted") && (
+        {canEditDoc && !doc.lockedAt && !(doc.type === "quote" && doc.status === "accepted") && (
           <button
             onClick={() => {
               if (!window.confirm(t("Supprimer ce brouillon ?"))) return;
@@ -131,6 +140,8 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
         )}
       </div>
       <div className="relative flex flex-wrap justify-end gap-2">
+        {canEditDoc && (
+        <>
         {doc.type === "quote" && (
           <button onClick={() => setMenu((m) => !m)} className="btn-ghost text-sm">
             <GitBranch className="h-4 w-4" /> {t("Plus")}
@@ -224,6 +235,9 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
             <Send className="h-4 w-4" /> {t("Envoyer")}
           </button>
         )}
+        </>
+        )}
+        {!canEditDoc && <span className="flex items-center gap-1.5 text-xs text-slate-500"><Lock className="h-3.5 w-3.5" /> {t("Lecture seule")}</span>}
       </div>
     </div>
   );
@@ -452,6 +466,39 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
                       )}
                       <td className="px-2 py-2">
                         <textarea rows={1} className={cn(cellClass, "w-full resize-y")} value={l.label} disabled={locked} onChange={(e) => setLine(l.id, { label: e.target.value })} />
+                        {showCost && (doc.type === "quote" || l.executedBy || l.costPrice > 0) && (
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-slate-400">
+                            <label className="flex items-center gap-1.5">
+                              <HardHat className="h-3.5 w-3.5 text-slate-500" />
+                              <span className="sr-only">{t("Exécution")}</span>
+                              <select
+                                aria-label={t("Exécution")}
+                                className={cn(cellClass, "!py-1 text-xs", l.executedBy && "border-violet-400/50 text-violet-300")}
+                                value={l.executedBy ?? ""}
+                                disabled={locked}
+                                onChange={(e) => (e.target.value === "__new" ? setNewSubFor(l.id) : mapLine(l.id, (x) => withExecution(data, x, e.target.value || null)))}
+                              >
+                                <option value="">{t("Notre société")}</option>
+                                {subcontractors.map((sc) => (
+                                  <option key={sc.id} value={sc.id}>
+                                    {sc.name}
+                                  </option>
+                                ))}
+                                {l.executedBy && !subcontractors.some((sc) => sc.id === l.executedBy) && <option value={l.executedBy}>{t("Sous-traitant supprimé")}</option>}
+                                {!locked && <option value="__new">{t("+ Nouveau sous-traitant…")}</option>}
+                              </select>
+                            </label>
+                            <label className="flex items-center gap-1">
+                              {t("Coût")}
+                              <input type="number" step="0.01" aria-label={t("Coût unitaire")} className={cn(cellClass, "!w-24 !py-1 text-right text-xs")} value={l.costPrice || ""} disabled={locked} onChange={(e) => mapLine(l.id, (x) => withCost(data, x, e.target.valueAsNumber || 0))} />
+                            </label>
+                            <label className="flex items-center gap-1">
+                              {t("Marge")}
+                              <input type="number" step="0.5" aria-label={t("Marge %")} className={cn(cellClass, "!w-16 !py-1 text-right text-xs")} value={lineMargin(l) ?? ""} disabled={locked || !l.costPrice} title={!l.costPrice ? t("Indiquez d'abord le coût") : undefined} onChange={(e) => mapLine(l.id, (x) => withMargin(x, e.target.valueAsNumber || 0))} />
+                              %
+                            </label>
+                          </div>
+                        )}
                         {l.toPrice && <span className="text-[11px] text-amber-300">{t("À chiffrer : introuvable au catalogue, prix non dicté.")}</span>}
                         {!l.toPrice && l.confidence !== null && l.confidence > 0 && l.confidence < 0.7 && <span className="text-[11px] text-amber-300">{t("Correspondance catalogue incertaine ({p} %) — vérifiez.", { p: Math.round(l.confidence * 100) })}</span>}
                         {l.toPrice && !locked && (
@@ -480,7 +527,7 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
                         </select>
                       </td>
                       <td className="px-1 py-2">
-                        <input type="number" step="0.01" className={cn(cellClass, "w-full text-right")} value={Number.isFinite(l.unitPrice) ? l.unitPrice : ""} disabled={locked} onChange={(e) => setLine(l.id, { unitPrice: e.target.valueAsNumber, toPrice: false })} />
+                        <input type="number" step="0.01" className={cn(cellClass, "w-full text-right")} value={Number.isFinite(l.unitPrice) ? l.unitPrice : ""} disabled={locked} onChange={(e) => mapLine(l.id, (x) => withPrice(x, e.target.valueAsNumber))} />
                       </td>
                       <td className="px-1 py-2">
                         <input type="number" step="0.5" className={cn(cellClass, "w-full text-right")} value={l.discountPercent || ""} disabled={locked} onChange={(e) => setLine(l.id, { discountPercent: e.target.valueAsNumber || 0 })} />
@@ -610,10 +657,22 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
               {totals.retention > 0 && <Row k={t("Retenue de garantie")} v={`- ${f.money(totals.retention)}`} />}
               {totals.paid > 0 && <Row k={t("Déjà payé")} v={`- ${f.money(totals.paid)}`} />}
               {doc.type === "invoice" && (totals.paid > 0 || totals.retention > 0) && <Row k={t("Reste à payer")} v={f.money(totals.due)} strong />}
-              {totals.cost > 0 && (
+              {totals.cost > 0 && showCost && (
                 <p className="mt-2 border-t border-white/5 pt-2 text-xs text-slate-500">
                   {t("Coût estimé")} {f.money(totals.cost)} · {t("marge")} <span className="text-emerald">{f.money(totals.margin)} ({totals.htva ? Math.round((totals.margin / totals.htva) * 100) : 0} %)</span> — {t("visible uniquement par vous")}
                 </p>
+              )}
+              {showCost && doc.lines.some((l) => l.executedBy) && (
+                <ul className="mt-2 space-y-1 border-t border-white/5 pt-2 text-xs">
+                  {quoteByExecution(doc.lines, doc.globalDiscountPercent).map((x) => (
+                    <li key={x.key} className="flex justify-between gap-2 text-slate-400">
+                      <span className="truncate">{x.key === OWN ? t("Notre société") : (data.suppliers.find((s2) => s2.id === x.key)?.name ?? t("Sous-traitant supprimé"))}</span>
+                      <span className="shrink-0 tabular-nums">
+                        {f.money(x.revenue)} · <span className={x.margin >= 0 ? "text-emerald" : "text-rose-300"}>{f.money(x.margin)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           </div>
@@ -635,6 +694,19 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
             onInsert={(r) => {
               addLines([newLine({ label: r.label, qty: r.qty, unit: r.unit, category: r.category, toPrice: true })]);
               setCalc(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {newSubFor && (
+          <NewSubcontractorDialog
+            onClose={() => setNewSubFor(null)}
+            onCreated={(sc) => {
+              const id = newSubFor;
+              setNewSubFor(null);
+              // la fiche vient d'être créée : marge par défaut de la sous-traitance
+              mapLine(id, (x) => withExecution({ settings: data.settings, suppliers: [...data.suppliers, sc] }, x, sc.id));
             }}
           />
         )}
