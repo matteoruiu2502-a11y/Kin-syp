@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
  * puis <video> avec contrôles, lecture dans la page sur mobile (playsInline), préchargement des seules
  * métadonnées et aucune lecture automatique. Le cadre a ses proportions fixes : pas de décalage de mise en page.
  */
-export function VideoPlayer({ video, className }: { video: Video; className?: string }) {
+export function VideoPlayer({ video, className, style }: { video: Video; className?: string; style?: React.CSSProperties }) {
   const box = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLVideoElement>(null);
   const [near, setNear] = useState(false);
@@ -32,7 +32,7 @@ export function VideoPlayer({ video, className }: { video: Video; className?: st
   }, [wantPlay, near]);
 
   return (
-    <div ref={box} className={cn("relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#03060d] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)] theme-fixed", video.orientation === "portrait" ? "aspect-[9/16]" : "aspect-video", className)}>
+    <div ref={box} className={cn("relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#03060d] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)] theme-fixed", video.orientation === "portrait" ? "aspect-[9/16]" : "aspect-video", className)} style={style}>
       {!src ? (
         <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-slate-400">
           <Clapperboard className="h-8 w-8 text-cyan" />
