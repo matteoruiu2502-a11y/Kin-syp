@@ -7,8 +7,9 @@ import { cn } from "@/lib/utils";
  * Logo officiel Biltov, entièrement vectoriel (net à toutes les tailles).
  * Tracés repris du fichier fourni (biltov-logo-fond-sombre.pdf) ; les dégradés de l'hexagone,
  * qui étaient des images dans le PDF, sont recréés en dégradés SVG aux mêmes couleurs.
- * Le mot « Biltov » suit la couleur du texte (blanc en mode nuit, encre en mode jour).
- * Fichiers seuls : public/brand/biltov-logo.svg, biltov-logo-texte-sombre.svg, biltov-mark.svg.
+ * Couleurs fixes, identiques au fichier fourni, quel que soit le thème : le logo garde son fond
+ * sombre (#03050d) comme dans le PDF, invisible sur le site en mode nuit, en badge en mode jour.
+ * Fichiers seuls : public/brand/biltov-logo.svg, biltov-mark.svg.
  */
 export function BiltovLogo({
   size = 36,
@@ -21,15 +22,15 @@ export function BiltovLogo({
 }) {
   const id = useId().replace(/:/g, "");
   const k = size / 128; // l'hexagone mesure 128 unités de large
-  const [x, w] = wordmark ? [84, 444] : [84, 132];
+  const [x, w] = wordmark ? [72, 468] : [72, 156];
   return (
     <svg
-      viewBox={`${x} 84 ${w} 156`}
+      viewBox={`${x} 72 ${w} 180`}
       width={Math.round(w * k)}
-      height={Math.round(156 * k)}
+      height={Math.round(180 * k)}
       role="img"
       aria-label="Biltov"
-      className={cn("shrink-0 overflow-visible text-white", className)}
+      className={cn("shrink-0", className)}
     >
       <defs>
         <linearGradient
@@ -64,6 +65,7 @@ export function BiltovLogo({
           <feGaussianBlur stdDeviation="7" />
         </filter>
       </defs>
+      <rect x={x} y="72" width={w} height="180" rx="28" fill="#03050d" />
       <path
         transform="matrix(1,0,0,-1,0,792)"
         d="M151.7456 699.76 198.0219 673.3164 199.3442 658.7725 189.6482 642.0248 206.3958 631.4474 208.1586 596.1893 151.7456 560.0497 91.8068 593.5449V667.587Z"
@@ -139,28 +141,28 @@ export function BiltovLogo({
           <path
             transform="matrix(1,0,0,-1,0,792)"
             d="M231.0765 673.3164H275.1491C291.8967 673.3164 300.7113 663.1797 300.7113 652.1615 300.7113 643.7878 296.7447 638.499 290.1338 635.4139 299.8298 632.3288 305.1186 624.3958 305.1186 614.6998 305.1186 604.1223 296.304 597.0707 280.4378 597.0707H231.0765ZM249.587 657.0095H273.3862C279.1157 657.0095 282.2007 653.9245 282.2007 649.9579 282.2007 645.9914 279.1157 642.9062 273.3862 642.9062H249.587ZM249.587 628.803H276.0306C282.2007 628.803 285.7266 625.2772 285.7266 620.8699 285.7266 616.0219 282.2007 612.9369 276.0306 612.9369H249.587Z"
-            fill="currentColor"
+            fill="#f5f7fa"
             fillRule="evenodd"
           />
           <path
             transform="matrix(1,0,0,-1,0,792)"
             d="M308.6444 675.9608H322.3069C323.5239 675.9608 324.5106 674.9742 324.5106 673.7571V662.739C324.5106 661.5219 323.5239 660.5354 322.3069 660.5354H308.6444C307.4274 660.5354 306.4407 661.5219 306.4407 662.739V673.7571C306.4407 674.9742 307.4274 675.9608 308.6444 675.9608Z"
-            fill="currentColor"
+            fill="#f5f7fa"
           />
           <path
             transform="matrix(1,0,0,-1,0,792)"
             d="M306.4407 597.0707H324.51057V655.6873H306.4407Z"
-            fill="currentColor"
+            fill="#f5f7fa"
           />
           <path
             transform="matrix(1,0,0,-1,0,792)"
             d="M332.4436 597.0707H350.51344V675.96078H332.4436Z"
-            fill="currentColor"
+            fill="#f5f7fa"
           />
           <path
             transform="matrix(1,0,0,-1,0,792)"
             d="M358.0058 673.3164H376.5162V655.6874H393.2639V639.8212H376.5162V621.7514C376.5162 614.6998 380.0421 612.0554 386.2122 612.0554H393.2639V597.0707H382.6865C367.261 597.0707 358.0058 605.8852 358.0058 621.7514Z"
-            fill="currentColor"
+            fill="#f5f7fa"
           />
           <path
             transform="matrix(.4407267,0,0,.4407267,23.93488,-108.290409)"
@@ -169,13 +171,13 @@ export function BiltovLogo({
             strokeMiterlimit="4"
             strokeLinejoin="miter"
             fill="none"
-            stroke="currentColor"
+            stroke="#f5f7fa"
             d="M970 621C970 649.7188 946.7188 673 918 673 889.2812 673 866 649.7188 866 621 866 592.2812 889.2812 569 918 569 946.7188 569 970 592.2812 970 621Z"
           />
           <path
             transform="matrix(1,0,0,-1,0,792)"
             d="M462.458 656.5688H481.4093L492.4274 621.7514 505.6492 656.5688H524.6005L499.9198 597.0707H482.7314Z"
-            fill="currentColor"
+            fill="#f5f7fa"
           />
         </>
       )}
