@@ -219,7 +219,7 @@ export function LiveQuoteDemo() {
               <div className="flex h-full min-h-[520px] flex-col theme-fixed rounded-2xl bg-white p-6 text-slate-800 shadow-2xl sm:p-8">
                 <header className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
                   <div className="flex items-center gap-2">
-                    <img src={asset("/brand/biltov-mark-alpha.png")} alt="" className="h-9 w-8 object-contain" />
+                    <img src={asset("/brand/biltov-mark.svg")} alt="" className="h-9 w-8 object-contain" />
                     <div>
                       <p className="font-display text-sm font-bold">Dupont Rénovation</p>
                       <p className="text-[10px] text-slate-500">BCE 0403.170.701 · TVA BE 0403.170.701</p>
