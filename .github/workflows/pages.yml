@@ -48,6 +48,9 @@ jobs:
           # Vides : le bouton « Essai gratuit » ouvre le tableau de bord en mode démonstration.
           NEXT_PUBLIC_STRIPE_LINK_MONTHLY: ${{ vars.BILTOV_STRIPE_LINK_MONTHLY }}
           NEXT_PUBLIC_STRIPE_LINK_YEARLY: ${{ vars.BILTOV_STRIPE_LINK_YEARLY }}
+          # Fonction serveur IA (Supabase, voir biltov/supabase/README.md). Vide : chat et dictée en mode local.
+          NEXT_PUBLIC_AI_ENDPOINT: ${{ vars.BILTOV_AI_ENDPOINT }}
+          NEXT_PUBLIC_SUPPORT_EMAIL: ${{ vars.BILTOV_SUPPORT_EMAIL }}
         run: |
           npm ci
           npm run build

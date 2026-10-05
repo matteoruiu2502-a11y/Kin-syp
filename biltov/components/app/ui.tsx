@@ -54,7 +54,7 @@ export function Modal({ title, onClose, children, wide, footer }: { title: strin
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 40, opacity: 0 }}
         transition={{ type: "spring", stiffness: 380, damping: 34 }}
-        className={cn("card flex max-h-[94vh] w-full flex-col overflow-hidden rounded-b-none sm:rounded-3xl", wide === "xl" ? "max-w-7xl" : wide ? "max-w-5xl" : "max-w-2xl")}
+        className={cn("card flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-b-none pb-[env(safe-area-inset-bottom)] sm:rounded-3xl sm:pb-0", wide === "xl" ? "max-w-7xl" : wide ? "max-w-5xl" : "max-w-2xl")}
       >
         <div className="flex items-center justify-between gap-4 border-b border-white/5 px-5 py-4 sm:px-7">
           <h2 className="font-display text-xl font-bold text-white">{title}</h2>

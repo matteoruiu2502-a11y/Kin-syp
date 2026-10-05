@@ -323,12 +323,12 @@ export function SubcontractorsTab() {
           {subs.map((s, i) => {
             const last = lastCheck(s);
             return (
-              <button key={s.id} onClick={() => setOpen(s)} className="card space-y-3 p-5 text-left">
+              <button key={s.id} onClick={() => setOpen(s)} className="card min-w-0 space-y-3 p-5 text-left">
                 <div>
                   <p className="font-semibold text-white">{s.name}</p>
                   <p className="text-xs text-slate-500">{s.bce ? `BCE ${s.bce}` : t("BCE manquant")}</p>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 [&>*]:max-w-full [&>*]:whitespace-normal">
                   {REQUIRED_ATTESTATIONS.map((k) => {
                     const st = attestationState((s.attestations ?? []).find((a) => a.kind === k));
                     return <Badge key={k} label={`${t(ATTESTATION_LABEL[k]).split(" (")[0]} · ${t(STATE_STYLE[st].label)}`} style={STATE_STYLE[st].style} />;

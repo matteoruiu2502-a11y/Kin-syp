@@ -99,7 +99,7 @@ export function MoneyTab({ onOpenDoc, onOpenJob }: { onOpenDoc: (id: string) => 
 
       {tab === "receive" && (
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             <div className="card p-5">
               <p className="mb-3 text-sm font-semibold text-slate-200">{t("Ancienneté des créances")}</p>
               <div className="mb-4 flex h-3 overflow-hidden rounded-full bg-white/5">
@@ -153,7 +153,7 @@ export function MoneyTab({ onOpenDoc, onOpenJob }: { onOpenDoc: (id: string) => 
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             <div className="card p-5">
               <p className="mb-3 text-sm font-semibold text-slate-200">{t("Reste à facturer par chantier")}</p>
               {!toInvoice.length ? (

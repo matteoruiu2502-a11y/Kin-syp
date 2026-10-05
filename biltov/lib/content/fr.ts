@@ -22,6 +22,7 @@ export const fr = {
   },
   nav: {
     features: "Fonctionnalités",
+    videos: "Vidéos",
     trades: "Métiers",
     pricing: "Tarif",
     roi: "Calculateur",

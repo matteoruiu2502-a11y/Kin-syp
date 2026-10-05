@@ -28,7 +28,7 @@ export function Onboarding() {
   };
 
   return (
-    <div className="relative min-h-screen px-4 py-10">
+    <div className="relative min-h-dvh px-4 py-10">
       <div className="bg-grid pointer-events-none fixed inset-0 -z-10 opacity-60" aria-hidden />
       <div className="mx-auto max-w-3xl">
         <div className="mb-8 flex items-center justify-between">

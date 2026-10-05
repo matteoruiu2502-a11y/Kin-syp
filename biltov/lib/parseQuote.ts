@@ -7,14 +7,14 @@ export type ParsedQuote = { client: string | null; lines: ParsedLine[] };
 const UNIT_ALIASES: [RegExp, string][] = [
   [/^(m²|m2|mètres? carrés?|vierkante meters?|square met(?:er|re)s?|sqm|qm)$/i, "m²"],
   [/^(m³|m3|mètres? cubes?|cubic met(?:er|re)s?)$/i, "m³"],
-  [/^(ml|lm|lfm|mètres? linéaires?|linear met(?:er|re)s?|laufmeter)$/i, "ml"],
+  [/^(ml|lm|lfm|mètres? linéaires?|mètres?|metres?|linear met(?:er|re)s?|laufmeter)$/i, "ml"],
   [/^(h|heures?|hours?|hrs?|stunden?|std|uur|uren)$/i, "h"],
   [/^(jours?|days?|tage?n?|j|dagen|dag)$/i, "j"],
   [/^(stuks?|stück|pièces?|pcs?)$/i, "u"],
 ];
 
 const UNIT_RE =
-  "m²|m2|m³|m3|ml|lm|lfm|mètres? (?:carrés?|cubes?|linéaires?)|vierkante meter|square met(?:er|re)s?|linear met(?:er|re)s?|sqm|qm|heures?|hours?|hrs?|h|stunden?|std|uur|uren|jours?|days?|tage?n?|dagen|stuks?|stück";
+  "m²|m2|m³|m3|ml|lm|lfm|mètres? (?:carrés?|cubes?|linéaires?)|mètres?|metres?|vierkante meter|square met(?:er|re)s?|linear met(?:er|re)s?|sqm|qm|heures?|hours?|hrs?|h|stunden?|std|uur|uren|jours?|days?|tage?n?|dagen|stuks?|stück";
 
 const NUMBER_WORDS: Record<string, number> = {
   un: 1, une: 1, a: 1, an: 1, one: 1, ein: 1, eine: 1, einen: 1,

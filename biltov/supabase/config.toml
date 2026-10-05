@@ -1,0 +1,5 @@
+# Configuration Supabase de la fonction biltov-ai (voir supabase/README.md).
+[functions.biltov-ai]
+# Le site public appelle la fonction sans compte : l'accès est limité par origine (ALLOWED_ORIGINS)
+# et par un nombre maximal de requêtes par adresse IP.
+verify_jwt = false

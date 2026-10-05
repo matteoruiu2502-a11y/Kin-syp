@@ -23,35 +23,36 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Liens valables depuis toutes les pages (accueil, fonctionnalités…).
   const links = [
-    { href: "#fonctionnalites", label: t.nav.features },
-    { href: "#metiers", label: t.nav.trades },
-    { href: "#tarif", label: t.nav.pricing },
-    { href: "#roi", label: t.nav.roi },
+    { href: "/fonctionnalites/", label: t.nav.features },
+    { href: "/#videos", label: t.nav.videos },
+    { href: "/#metiers", label: t.nav.trades },
+    { href: "/#tarif", label: t.nav.pricing },
   ];
 
   const langSwitch = <LangSwitch />;
   const themeToggle = <ThemeToggle labels={{ light: t.nav.lightMode, dark: t.nav.darkMode }} />;
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
+    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-[calc(1rem+env(safe-area-inset-top))]">
       <nav
         className={cn(
           "mx-auto flex max-w-7xl items-center justify-between rounded-2xl border px-4 py-2.5 transition-all duration-500",
           scrolled ? "border-white/10 bg-ink/70 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] backdrop-blur-xl" : "border-transparent bg-transparent",
         )}
       >
-        <a href="#top" aria-label="Biltov" className="shrink-0">
+        <Link href="/" aria-label="Biltov — accueil" className="shrink-0">
           <BiltovLogo size={34} />
-        </a>
+        </Link>
 
         <ul className="hidden items-center gap-1 xl:flex">
           {links.map((l) => (
             <li key={l.href}>
-              <a href={l.href} className="group relative rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white">
+              <Link href={l.href} className="group relative rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white">
                 {l.label}
                 <span className="absolute inset-x-4 -bottom-0.5 h-px scale-x-0 bg-gradient-to-r from-blue to-emerald transition-transform duration-300 group-hover:scale-x-100" />
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
@@ -84,9 +85,9 @@ export function Navbar() {
             <ul className="flex flex-col">
               {links.map((l) => (
                 <li key={l.href}>
-                  <a href={l.href} onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-base font-medium text-slate-200 hover:bg-white/5">
+                  <Link href={l.href} onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-base font-medium text-slate-200 hover:bg-white/5">
                     {l.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

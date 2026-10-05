@@ -28,6 +28,9 @@ import {
   Users,
   CalendarDays,
   Contact,
+  Compass,
+  BookOpen,
+  LifeBuoy,
   Eye,
   Lock,
   X,
@@ -41,6 +44,7 @@ import { MODULES } from "@/lib/app/labels";
 import type { Lang, Member, ModuleId, PermModule } from "@/lib/app/types";
 import { PERM_LABEL, docVisible, isSuperAdmin, workerOnly } from "@/lib/app/permissions";
 import { logIn } from "@/lib/app/auth";
+import { openHelp } from "@/lib/help";
 import { cn } from "@/lib/utils";
 import { BiltovLogo } from "../BiltovLogo";
 import { ThemeToggle } from "../ThemeToggle";
@@ -68,6 +72,7 @@ import { SettingsTab } from "./SettingsTab";
 import { JobForm } from "./JobForm";
 import { DocEditor } from "./DocEditor";
 import { WorkerLogin, WorkerMode } from "./WorkerMode";
+import { VOICE_EVENT, VoiceQuoteButton, VoiceQuoteChat } from "./VoiceQuoteChat";
 
 type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "outils" | "contrats" | "modules" | "module" | "parametres" | "mon-espace";
 type Route = { page: Page; id?: string; sub?: string };
@@ -134,7 +139,7 @@ function Gate() {
   const { account, data, loading } = useApp();
   if (loading)
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-cyan" />
       </div>
     );
@@ -219,6 +224,14 @@ function Shell() {
   const [docId, setDocId] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const [voice, setVoice] = useState(false);
+
+  // « Dictée vocale » ouverte depuis n'importe quel écran
+  useEffect(() => {
+    const open = () => setVoice(true);
+    window.addEventListener(VOICE_EVENT, open);
+    return () => window.removeEventListener(VOICE_EVENT, open);
+  }, []);
 
   useEffect(() => {
     setSubscribed(readSubscription());
@@ -293,7 +306,7 @@ function Shell() {
 
   if (member && !member.active)
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-dvh items-center justify-center p-4">
         <div className="card max-w-sm space-y-4 p-6 text-center">
           <p className="font-semibold text-white">{t("Cet utilisateur a été désactivé ou supprimé.")}</p>
           <p className="text-sm text-slate-400">{t("Le super admin doit se reconnecter avec son mot de passe.")}</p>
@@ -306,7 +319,7 @@ function Shell() {
 
   if (member && workerOnly(perms))
     return (
-      <div className="min-h-screen px-4 py-6">
+      <div className="min-h-dvh px-4 py-6">
         <WorkerMode member={member} onExit={() => setSwitching(true)} />
         <AnimatePresence>{switching && <SwitchUser current={member} onPick={enter} onSuperAdmin={() => enter(null)} onClose={() => setSwitching(false)} />}</AnimatePresence>
       </div>
@@ -328,6 +341,18 @@ function Shell() {
             ))}
         </div>
       ))}
+      {/* Biltov : présentation, guide et aide restent accessibles une fois connecté */}
+      <div className="space-y-1 border-t border-white/5 pt-4">
+        <Link href="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-400 hover:text-white">
+          <Compass className="h-4 w-4" /> {t("Découvrir Biltov")}
+        </Link>
+        <Link href="/fonctionnalites/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-400 hover:text-white">
+          <BookOpen className="h-4 w-4" /> {t("Fonctionnalités")}
+        </Link>
+        <button type="button" onClick={() => (openHelp(), onPick?.())} className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-slate-400 hover:text-white">
+          <LifeBuoy className="h-4 w-4" /> {t("Aide")}
+        </button>
+      </div>
     </nav>
   );
 
@@ -335,11 +360,11 @@ function Shell() {
   const openClient = (id: string) => go({ page: "client", id });
 
   return (
-    <div className="relative min-h-screen pb-24 md:pb-0">
+    <div className="relative min-h-dvh pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
       <div className="bg-grid pointer-events-none fixed inset-0 -z-10 opacity-50" aria-hidden />
       <div className="pointer-events-none fixed -left-40 top-0 -z-10 h-[480px] w-[480px] rounded-full bg-blue/15 blur-[140px]" aria-hidden />
 
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-ink/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-white/5 bg-ink/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-4">
             <button onClick={() => setDrawer(true)} className="rounded-lg p-1.5 text-slate-300 md:hidden" aria-label={t("Menu")}>
@@ -352,8 +377,11 @@ function Shell() {
             <span className="hidden truncate text-sm font-semibold text-slate-300 sm:block">{data.company.name}</span>
           </div>
           <GlobalSearch go={go} openDoc={setDocId} />
-          <div className="flex items-center gap-2">
-            <LangSwitch />
+          <div className="flex items-center gap-1 sm:gap-2">
+            <VoiceQuoteButton compact />
+            <span className="hidden sm:block">
+              <LangSwitch />
+            </span>
             <ThemeToggle labels={{ light: t("Mode jour"), dark: t("Mode nuit") }} />
             {data.members.length > 0 && (
               <button onClick={() => setSwitching(true)} className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-400 hover:text-white" title={t("Changer d'utilisateur sur cet appareil")}>
@@ -368,7 +396,7 @@ function Shell() {
       </header>
 
       <div className="flex">
-        <aside className="sticky top-[61px] hidden h-[calc(100vh-61px)] w-60 shrink-0 overflow-y-auto border-r border-white/5 px-3 py-6 md:block">
+        <aside className="sticky top-[61px] hidden h-[calc(100dvh-61px)] w-60 shrink-0 overflow-y-auto border-r border-white/5 px-3 py-6 md:block">
           <NavList />
         </aside>
 
@@ -383,7 +411,10 @@ function Shell() {
                     <X className="h-5 w-5" />
                   </button>
                 </div>
-                <NavList />
+                <div className="mb-5 sm:hidden">
+                  <LangSwitch />
+                </div>
+                <NavList onPick={() => setDrawer(false)} />
               </motion.div>
             </motion.div>
           )}
@@ -391,7 +422,7 @@ function Shell() {
 
         <main className="min-w-0 flex-1 px-4 py-8 sm:px-6 lg:px-10">
           {isDemo && (
-            <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald/40 bg-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div data-demo-banner className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald/40 bg-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
               <p className="text-emerald">
                 <strong>{t("Mode démonstration")}</strong> — {t("entreprise et clients belges fictifs. Testez tout librement ; les PDF portent la mention « DÉMONSTRATION ».")}
               </p>
@@ -476,7 +507,7 @@ function Shell() {
       </div>
 
       {/* Navigation mobile */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-white/10 bg-ink/95 backdrop-blur-xl md:hidden" aria-label={t("Navigation")}>
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-white/10 bg-ink/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden" aria-label={t("Navigation")}>
         {visible
           .filter((n) => ["apercu", "chantiers", "documents"].includes(n.page))
           .map(({ page: p, label, icon: Icon, badge }) => (
@@ -506,6 +537,18 @@ function Shell() {
         )}
       </AnimatePresence>
       <AnimatePresence>{docId && <DocEditor key={docId} docId={docId} onClose={() => setDocId(null)} onOpen={setDocId} />}</AnimatePresence>
+      <AnimatePresence>
+        {voice && (
+          <VoiceQuoteChat
+            onClose={() => setVoice(false)}
+            onOpenDoc={(id) => {
+              // la conversation est conservée : elle reprend à la prochaine ouverture
+              setVoice(false);
+              setDocId(id);
+            }}
+          />
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {switching && <SwitchUser current={member} onPick={enter} onSuperAdmin={() => enter(null)} onClose={() => setSwitching(false)} />}
       </AnimatePresence>

@@ -1,0 +1,35 @@
+{
+  "_aide": "Ajouter une vidéo : déposer le fichier .mp4 (H.264) et son image .jpg dans public/videos/, puis ajouter une entrée ci-dessous. « pages » : « accueil », « fonctionnalites » (page d'ensemble) ou « fonctionnalites/<slug> ». Sans fichier (file vide), un emplacement « vidéo à venir » s'affiche.",
+  "videos": [
+    {
+      "id": "devis-dicte",
+      "title": "Un devis dicté en 30 secondes",
+      "description": "Posez le stylo, dictez : Biltov retrouve vos prix et remplit le devis.",
+      "file": "biltov-devis-dicte.mp4",
+      "poster": "biltov-devis-dicte.jpg",
+      "duration": "0:28",
+      "orientation": "portrait",
+      "pages": ["accueil", "fonctionnalites", "fonctionnalites/dictee-vocale", "fonctionnalites/devis"]
+    },
+    {
+      "id": "paperasse-reglee",
+      "title": "La paperasse, enfin réglée",
+      "description": "Relances, argent à recevoir et chantiers : tout suivi depuis le téléphone.",
+      "file": "biltov-paperasse-reglee.mp4",
+      "poster": "biltov-paperasse-reglee.jpg",
+      "duration": "0:34",
+      "orientation": "portrait",
+      "pages": ["accueil", "fonctionnalites/argent-a-recevoir", "fonctionnalites/envoi-et-signature"]
+    },
+    {
+      "id": "visite-app",
+      "title": "Visite complète de l'application",
+      "description": "Dictée, chantiers, argent, planning, espace ouvrier, achats : le tour de Biltov.",
+      "file": "biltov-visite-app.mp4",
+      "poster": "biltov-visite-app.jpg",
+      "duration": "1:17",
+      "orientation": "portrait",
+      "pages": ["accueil", "fonctionnalites", "fonctionnalites/mode-demonstration", "fonctionnalites/chantiers", "fonctionnalites/planning", "fonctionnalites/espace-ouvrier"]
+    }
+  ]
+}

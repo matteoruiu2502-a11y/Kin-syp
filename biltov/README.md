@@ -34,6 +34,12 @@ Pour publier dans un sous-dossier : `NEXT_PUBLIC_BASE_PATH=/mon/dossier npm run 
 | `lib/app/tr.tsx`, `tr-dict.ts` | Traduction de l'espace artisan (textes FR dans le code, NL / DE dans le dictionnaire, couverture testée) |
 | `public/manifest.webmanifest`, `public/sw.js` | Application installable et hors ligne |
 | `lib/checkout.ts` | Boutons « Essai gratuit » → liens de paiement Stripe |
+| `lib/knowledge/features.ts` | **Base de connaissances unique** (chaque fonctionnalité : à quoi elle sert, où, étapes, astuces, cas particuliers). Alimente les pages Fonctionnalités, le chat d'aide et `knowledge/biltov-features.md` (`npm run knowledge`) |
+| `app/fonctionnalites/` + `components/site/*` | Page d'ensemble et une page par fonctionnalité (`/fonctionnalites/<slug>/`), cadre iPhone, lecteur vidéo, chat d'aide flottant |
+| `content/videos.json` + `public/videos/` | Vidéos du site : ajouter le fichier .mp4 (H.264) et son image .jpg, puis une entrée JSON (pages : `accueil`, `fonctionnalites`, `fonctionnalites/<slug>`) — aucun code |
+| `public/screenshots/` + `scripts/screenshots.mjs` | Captures prises dans la démo sur écran d'iPhone (`npm run build`, servir `out/`, puis `npm run screenshots`) |
+| `lib/ai.ts`, `supabase/` | Client et fonction serveur IA (clé jamais dans le site) : chat d'aide et dictée vocale. Voir `supabase/README.md`. Sans `NEXT_PUBLIC_AI_ENDPOINT`, mode local |
+| `components/app/VoiceQuoteChat.tsx`, `lib/app/voiceQuote.ts`, `useVoiceRecorder.ts` | Dictée vocale en conversation : vocal (chrono, onde), transcription, questions manquantes, corrections vocales, aperçu du devis |
 
 ## Logo
 

@@ -18,6 +18,7 @@ import { VAT_LABEL } from "@/lib/app/labels";
 import type { Doc } from "@/lib/app/types";
 import { Badge, DataTable, PageHeader, SearchBox, Stat, SubTabs } from "./ui";
 import { SendDialog } from "./SendDialog";
+import { VoiceQuoteButton } from "./VoiceQuoteChat";
 
 type Filter = "quotes" | "open" | "paid" | "draft" | "credit" | "templates" | "all";
 
@@ -74,9 +75,12 @@ export function DocsTab({ onOpenDoc, initial = "open" }: { onOpenDoc: (id: strin
         title={t("Devis & factures")}
         subtitle={t("Numérotation continue · documents émis immuables · notes de crédit pour toute correction")}
         actions={
+          <>
+          <VoiceQuoteButton />
           <button onClick={exportJournal} className="btn-ghost !py-2.5 text-sm">
             <Download className="h-4 w-4" /> {t("Journal des ventes (Excel)")}
           </button>
+          </>
         }
       />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">

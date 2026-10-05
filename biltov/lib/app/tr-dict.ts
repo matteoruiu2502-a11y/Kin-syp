@@ -5303,5 +5303,8 @@ export const DICT: Record<string, [string, string]> = {
  "Économie": ["Besparing", "Einsparung"],
  "Conforme": ["Conform", "Konform"],
  "Pas encore acheté": ["Nog niet aangekocht", "Noch nicht eingekauft"],
- "Non prévu au devis": ["Niet voorzien in de offerte", "Im Angebot nicht vorgesehen"]
+ "Non prévu au devis": ["Niet voorzien in de offerte", "Im Angebot nicht vorgesehen"],
+ "Découvrir Biltov": ["Biltov ontdekken", "Biltov entdecken"],
+ "Aide": ["Hulp", "Hilfe"],
+ "Fonctionnalités": ["Functies", "Funktionen"]
 };

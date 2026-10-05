@@ -7,6 +7,7 @@ import { RoiCalculator } from "@/components/RoiCalculator";
 import { Pricing } from "@/components/Pricing";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
+import { VideoSection } from "@/components/site/VideoSection";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
         <Hero />
         <TradeOnboarding />
         <FeaturesBento />
+        <VideoSection page="accueil" title="Biltov en action" subtitle="Trois vidéos pour voir comment Biltov règle la paperasse, du chantier jusqu'au paiement." />
         <LiveQuoteDemo />
         <RoiCalculator />
         <Pricing />
