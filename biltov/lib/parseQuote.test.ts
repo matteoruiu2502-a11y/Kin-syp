@@ -76,3 +76,14 @@ describe("quantité, unité, prix, spécification dans les bonnes cases", () => 
     expect(parseQuote("Pour la villa Lambert à Waterloo, 120 m² de gazon en rouleaux", MO).client).toBe("Villa Lambert");
   });
 });
+
+describe("paroles parasites", () => {
+  it("ne met jamais « j'aimerais bien », « il me faut »… dans le devis", () => {
+    const got = (s: string) => parseQuote(s, MO).lines.map((l) => `${l.qty} ${l.unit} ${l.label}`);
+    expect(got("Pour Magali, j’aimerais bien 24 m² de carrelage, il me faut, 4 mètres de tuyauterie et 2 kg de colle carrelage")).toEqual(["24 m² Carrelage", "4 ml Tuyauterie", "2 kg Colle carrelage"]);
+    expect(got("J'aimerais bien de carrelage 24 m2, il me faut euh voilà, on a besoin de 3 robinets merci")).toEqual(["24 m² Carrelage", "3 u Robinets"]);
+    expect(got("je voudrais aussi qu'on mette 12 mètres de plinthes s'il vous plaît, c'est tout")).toEqual(["12 ml Plinthes"]);
+    expect(got("le client voudrait 2 mitigeurs, ensuite il faudrait 6 heures de main d'oeuvre, bon voilà")).toEqual(["2 u Mitigeurs", "6 h Main-d'œuvre"]);
+    expect(got("il me faut, voilà, c'est tout, merci")).toEqual([]);
+  });
+});
