@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Blocks,
@@ -52,27 +53,37 @@ import { AuthScreen } from "./AuthScreen";
 import { Onboarding } from "./Onboarding";
 import { companyMissing } from "./CompanyForm";
 import { MoneyTab } from "./MoneyTab";
-import { JobsTab } from "./JobsTab";
-import { JobDetail } from "./JobDetail";
-import { ClientDetail, ClientsTab } from "./ClientsTab";
-import { DocsTab } from "./DocsTab";
-import { CatalogTab } from "./CatalogTab";
-import { PlanningTab } from "./PlanningTab";
-import { TeamTab } from "./TeamTab";
-import { PurchasesTab } from "./PurchasesTab";
-import { StockTab } from "./StockTab";
-import { FleetTab } from "./FleetTab";
-import { ContractsTab } from "./ContractsTab";
-import { ToolsTab } from "./ToolsTab";
-import { SubcontractorsTab } from "./SubcontractorsTab";
-import { AccountingTab } from "./AccountingTab";
-import { BankTab } from "./BankTab";
-import { ModulesTab } from "./ModulesTab";
-import { SettingsTab } from "./SettingsTab";
-import { JobForm } from "./JobForm";
-import { DocEditor } from "./DocEditor";
 import { WorkerLogin, WorkerMode } from "./WorkerMode";
 import { VOICE_EVENT, VoiceQuoteButton, VoiceQuoteChat } from "./VoiceQuoteChat";
+
+// Chaque page de l'espace artisan est chargée à la demande : l'ouverture de l'app est plus rapide sur téléphone.
+function PageLoading() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center" aria-label="Chargement">
+      <span className="h-7 w-7 animate-spin rounded-full border-2 border-current border-t-transparent opacity-40" />
+    </div>
+  );
+}
+const JobsTab = dynamic(() => import("./JobsTab").then((m) => m.JobsTab), { ssr: false, loading: PageLoading });
+const JobDetail = dynamic(() => import("./JobDetail").then((m) => m.JobDetail), { ssr: false, loading: PageLoading });
+const DocsTab = dynamic(() => import("./DocsTab").then((m) => m.DocsTab), { ssr: false, loading: PageLoading });
+const CatalogTab = dynamic(() => import("./CatalogTab").then((m) => m.CatalogTab), { ssr: false, loading: PageLoading });
+const PlanningTab = dynamic(() => import("./PlanningTab").then((m) => m.PlanningTab), { ssr: false, loading: PageLoading });
+const TeamTab = dynamic(() => import("./TeamTab").then((m) => m.TeamTab), { ssr: false, loading: PageLoading });
+const PurchasesTab = dynamic(() => import("./PurchasesTab").then((m) => m.PurchasesTab), { ssr: false, loading: PageLoading });
+const StockTab = dynamic(() => import("./StockTab").then((m) => m.StockTab), { ssr: false, loading: PageLoading });
+const FleetTab = dynamic(() => import("./FleetTab").then((m) => m.FleetTab), { ssr: false, loading: PageLoading });
+const ContractsTab = dynamic(() => import("./ContractsTab").then((m) => m.ContractsTab), { ssr: false, loading: PageLoading });
+const ToolsTab = dynamic(() => import("./ToolsTab").then((m) => m.ToolsTab), { ssr: false, loading: PageLoading });
+const SubcontractorsTab = dynamic(() => import("./SubcontractorsTab").then((m) => m.SubcontractorsTab), { ssr: false, loading: PageLoading });
+const AccountingTab = dynamic(() => import("./AccountingTab").then((m) => m.AccountingTab), { ssr: false, loading: PageLoading });
+const BankTab = dynamic(() => import("./BankTab").then((m) => m.BankTab), { ssr: false, loading: PageLoading });
+const ModulesTab = dynamic(() => import("./ModulesTab").then((m) => m.ModulesTab), { ssr: false, loading: PageLoading });
+const SettingsTab = dynamic(() => import("./SettingsTab").then((m) => m.SettingsTab), { ssr: false, loading: PageLoading });
+const JobForm = dynamic(() => import("./JobForm").then((m) => m.JobForm), { ssr: false, loading: PageLoading });
+const DocEditor = dynamic(() => import("./DocEditor").then((m) => m.DocEditor), { ssr: false, loading: PageLoading });
+const ClientsTab = dynamic(() => import("./ClientsTab").then((m) => m.ClientsTab), { ssr: false, loading: PageLoading });
+const ClientDetail = dynamic(() => import("./ClientsTab").then((m) => m.ClientDetail), { ssr: false, loading: PageLoading });
 
 type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "outils" | "contrats" | "modules" | "module" | "parametres" | "mon-espace";
 type Route = { page: Page; id?: string; sub?: string };

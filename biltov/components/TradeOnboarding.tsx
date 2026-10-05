@@ -61,7 +61,7 @@ export function TradeOnboarding() {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <div className="card glow-border overflow-hidden">
+          <div className="card glow-ring overflow-hidden">
             {/* Barre de fenêtre façon app */}
             <div className="flex items-center gap-2 border-b border-white/5 px-5 py-3">
               <span className="h-3 w-3 rounded-full bg-red-500/70" />

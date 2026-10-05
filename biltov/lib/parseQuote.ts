@@ -143,7 +143,7 @@ const capWords = (w: string) => w.replace(/(^|[\s'’-])(\p{L})/gu, (_m, p: stri
 
 /** Nom du client dicté, où qu'il soit dans la phrase ; renvoie aussi le texte restant. */
 export function extractClient(text: string): { client: string | null; rest: string } {
-  const start = /^\s*(?:(?:c'est|ceci est)\s+)?(?:(?:un\s+|le\s+)?(?:devis|chantier|offre)\s+)?(?:pour|chez|client(?:e)?\s*:?|de la part de|voor|für)\s+(?:le client\s+|la cliente?\s+|la\s+(?=famille|villa|soci)|le\s+(?=syndic))?/iu;
+  const start = /^\s*(?:(?:c'est|ceci est)\s+)?(?:(?:un\s+|le\s+)?(?:devis|chantier|offre)\s+)?(?:pour|chez|client(?:e)?\s*:?|de la part de|voor|für)\s+(?:(?:le|un)\s+(?:devis|chantier)\s+(?:de|d'|pour|chez)\s*)?(?:le client\s+|la cliente?\s+|la\s+(?=famille|villa|soci)|le\s+(?=syndic))?/iu;
   const mid = new RegExp(String.raw`(?:^|[,;.]\s*|\s)(?:c'est\s+)?(?:pour|chez|client(?:e)?\s*:?|le client\s+(?:c'est|est)|la cliente?\s+(?:c'est|est))\s+(?=(?:${TITLES}\s)|\p{Lu})`, "iu");
   let before = "";
   let from: number;
@@ -254,6 +254,22 @@ const EMPTY_WORDS = new Set(("il on je j nous vous tu me te lui leur se y en ne 
   "chose choses truc trucs machin ça trop peu beaucoup juste peut être autre autres même mettre poser faire avoir prévoir ajouter rajouter mets mettez note notez " +
   "dire dis dit pense crois sais sait vais va allons faire fais refaire plaît plait client cliente monsieur madame devis chose quelque").split(" "));
 const isEmptyLabel = (label: string) => !label.toLowerCase().split(/[^\p{L}]+/u).some((w) => w.length > 1 && !EMPTY_WORDS.has(w));
+
+// Les mêmes tournures au milieu d'une dictée sans ponctuation (« 24 m² de carrelage il me faut 4 mètres… ») :
+// elles séparent deux postes et sont retirées.
+const MID_FILLER = new RegExp(
+  String.raw`(^|[^\p{L}'])(?:` +
+    [
+      String.raw`(?:(?:je|on|il|nous|vous|tu|ils|elle|elles|le client|la cliente)\s+|j'\s*)(?:(?:me|m'|nous|lui|leur|te|t'|vous|en|y)\s*)*(?:faut|faudra|faudrait|veux|veut|voudrais|voudrait|voulons|voulez|aimerais|aimerait|aimerions|souhaite|souhaiterais|souhaiterait|vais|va|allons|prends|prend|mets|met|mettons|compte|prévois|prévoit|pense|crois|ai besoin|a besoin|avons besoin|aurai besoin|aurais besoin|aura besoin|aurait besoin)(?:\s+(?:bien|aussi|encore|juste|donc|alors|également|peut-être|surtout))*(?:\s+(?:avoir besoin|avoir|mettre|poser|installer|prévoir|ajouter|rajouter|compter|faire|prendre))?(?:\s+(?:qu'(?:on|il|elle)\s+\p{L}+|que))?(?:\s+(?:de|d'))?`,
+      String.raw`est-ce que (?:tu|vous) (?:peux|pouvez|pourrais|pourriez|peut)\s+(?:me\s+|m'\s*|nous\s+)?(?:mettre|ajouter|rajouter|noter|prévoir|compter)`,
+      String.raw`(?:ajoute|ajoutez|rajoute|rajoutez|mets|mettez|note|notez)-(?:moi|nous)`,
+      String.raw`(?:je (?:pense|crois) que\s+)?(?:c'est tout|ce sera tout|ça sera tout|c'est bon|ça ira)`,
+      String.raw`s'il (?:te|vous) pla[iî]t|merci(?: beaucoup)?|svp|stp|euh+|heu+|hum+|voilà|bref|du coup|en fait|alors|donc`,
+    ].join("|") +
+    String.raw`)(?![\p{L}])`,
+  "giu",
+);
+const cutFillers = (text: string) => text.replace(MID_FILLER, "$1, ").replace(/^[\s,]+/, "").replace(/(?:\s*,){2,}/g, ",");
 
 const GENERIC_LABOUR = /^(?:de\s+|d')?(?:werk|arbeit|arbeitszeit|arbeidsloon|arbeid|labou?r|travail|travaux|main[ -]?d.?[oœ]euvre|mo|prestations?|intervention|manoeuvre|manœuvre|plomberie|[ée]lectricit[ée]|peinture|ma[cç]onnerie|menuiserie|carrelage|chauffage|jardinage|pose|ouvrier|ouvriers|techniciens?|chantier)$/i;
 
@@ -417,7 +433,7 @@ function parseSegment(original: string, labourLabel: string): ParsedLine | null 
 }
 
 export function parseQuote(text: string, labourLabel: string): ParsedQuote {
-  const digits = digitize(text.trim().replace(/[’`´]/g, "'"));
+  const digits = cutFillers(digitize(text.trim().replace(/[’`´]/g, "'")));
   const { client, rest } = extractClient(digits);
   const lines: ParsedLine[] = [];
   for (const seg of splitSegments(rest)) {

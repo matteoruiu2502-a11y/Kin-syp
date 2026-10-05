@@ -272,3 +272,49 @@ body {
 .grid > * {
   min-width: 0;
 }
+
+/* Liseré lumineux animé : un faisceau bleu → cyan → vert fait le tour du cadre (coins arrondis compris).
+   Utilisation : class="glow-ring" ; décalage optionnel : style="--glow-delay: -1.3s".
+   Hors couche Tailwind pour l'emporter sur border-* ; le pseudo-élément ne capte aucun clic. */
+@property --glow-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+.glow-ring {
+  --glow-angle: 0deg; /* sans @property : dégradé fixe (l'animation ne peut pas interpoler) */
+  --glow-base: rgb(0 102 255 / 0.3);
+  --glow-shadow: rgb(34 211 238 / 0.75);
+  position: relative;
+  border-color: transparent !important;
+}
+.glow-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 1.5px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(from var(--glow-angle), var(--glow-base) 0deg 235deg, #0066ff 280deg, #22d3ee 315deg, #10b981 345deg, var(--glow-base) 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  filter: drop-shadow(0 0 5px var(--glow-shadow));
+  animation: glow-spin 4s linear infinite;
+  animation-delay: var(--glow-delay, 0s);
+}
+@keyframes glow-spin {
+  to {
+    --glow-angle: 360deg;
+  }
+}
+:root[data-theme="light"] .glow-ring:not(.theme-fixed) {
+  --glow-base: rgb(0 102 255 / 0.22);
+  --glow-shadow: rgb(0 102 255 / 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .glow-ring::after {
+    animation: none;
+  }
+}

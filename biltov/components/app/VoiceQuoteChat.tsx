@@ -231,7 +231,19 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
 
         <div ref={list} className="flex-1 space-y-3 overflow-y-auto overscroll-contain bg-[radial-gradient(circle_at_top,rgba(0,102,255,0.08),transparent_60%)] px-3 py-4 sm:px-5" aria-live="polite">
           <BotBubble>
-            Bonjour ! Appuyez sur le micro et décrivez les travaux comme dans un message vocal. Par exemple : <em>« Pour Mme Peeters, 24 m² de parquet chêne à 45 euros, 12 mètres de plinthes et 6 heures de main-d&apos;œuvre »</em>.
+            <p>Bonjour ! Appuyez sur le micro et dictez votre devis.</p>
+            <p className="mt-2 font-semibold">Pour un devis juste :</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5">
+              <li>Commencez par le client : « Pour Mme Peeters ».</li>
+              <li>Puis chaque poste : quantité + unité + matériau (+ prix si vous le connaissez).</li>
+              <li>Séparez les postes par « et » ou une courte pause.</li>
+              <li>
+                Pas de phrases autour : évitez « j&apos;aimerais bien », « il me faut », « euh », « voilà ».
+              </li>
+            </ul>
+            <p className="mt-2">
+              Exemple : <em>« Pour Mme Peeters, 24 m² de carrelage à 40 euros, 4 mètres de tuyau cuivre, 2 sacs de colle et 6 heures de main-d&apos;œuvre »</em>.
+            </p>
           </BotBubble>
           {s.messages.map((m) =>
             m.from === "user" ? (

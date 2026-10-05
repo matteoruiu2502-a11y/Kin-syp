@@ -87,3 +87,16 @@ describe("paroles parasites", () => {
     expect(got("il me faut, voilà, c'est tout, merci")).toEqual([]);
   });
 });
+
+describe("paroles parasites sans ponctuation (dictée iPhone)", () => {
+  it("coupe la phrase sur « il me faut », « est-ce que tu peux mettre »… et les retire", () => {
+    const got = (s: string) => parseQuote(s, MO).lines.map((l) => `${l.qty} ${l.unit} ${l.label}`);
+    expect(got("pour Magali j'aimerais bien 24 m² de carrelage il me faut 4 mètres de tuyauterie et 2 kg de colle carrelage")).toEqual(["24 m² Carrelage", "4 ml Tuyauterie", "2 kg Colle carrelage"]);
+    expect(got("j'aimerais bien de carrelage 24 m² il me faut aussi 4 mètres de tuyauterie")).toEqual(["24 m² Carrelage", "4 ml Tuyauterie"]);
+    expect(got("je vais avoir besoin de 3 robinets et est-ce que tu peux mettre 2 sacs de ciment")).toEqual(["3 u Robinets", "2 sac Ciment"]);
+    expect(got("ajoute-moi 12 m² de faïence donc on va mettre aussi 5 litres de primaire")).toEqual(["12 m² Faïence", "5 L Primaire"]);
+    const r = parseQuote("alors pour le devis de monsieur Dupont il faudrait 10 m² de parquet je pense que c'est tout", MO);
+    expect(r.client).toBe("M. Dupont");
+    expect(r.lines.map((l) => `${l.qty} ${l.unit} ${l.label}`)).toEqual(["10 m² Parquet"]);
+  });
+});
