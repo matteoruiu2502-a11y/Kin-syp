@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Columns3, HardHat, List, Plus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useAppData } from "@/lib/app/store";
+import { VoiceQuoteButton } from "./VoiceQuoteChat";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { JOB_STATUS, JOB_STATUSES } from "@/lib/app/labels";
@@ -54,9 +55,10 @@ export function JobsTab({ onOpen, onAdd }: { onOpen: (id: string) => void; onAdd
                 <Columns3 className="h-4 w-4" />
               </button>
             </div>
-            <button onClick={onAdd} className="btn-primary !py-2.5 text-sm">
+            <button onClick={onAdd} className="btn-ghost !py-2.5 text-sm">
               <Plus className="h-4 w-4" /> {t("Nouveau chantier")}
             </button>
+            <VoiceQuoteButton />
           </>
         }
       />

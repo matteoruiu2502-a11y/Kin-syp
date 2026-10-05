@@ -62,7 +62,7 @@ export function AuthScreen() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
+    <div className="relative flex min-h-dvh items-center justify-center px-4 py-12">
       <div className="bg-grid pointer-events-none fixed inset-0 -z-10" aria-hidden />
       <div className="pointer-events-none fixed left-1/2 top-1/3 -z-10 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-gradient-to-r from-blue/20 to-emerald/15 blur-[140px]" aria-hidden />
 

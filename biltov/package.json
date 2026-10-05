@@ -5,7 +5,9 @@
   "scripts": {
     "predev": "node scripts/copy-ocr.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/copy-ocr.mjs",
+    "prebuild": "node scripts/copy-ocr.mjs && npm run knowledge",
+    "knowledge": "node --experimental-strip-types --no-warnings scripts/build-knowledge.mjs",
+    "screenshots": "node --experimental-strip-types --no-warnings scripts/screenshots.mjs",
     "build": "next build",
     "start": "npx serve out",
     "lint": "tsc --noEmit",
@@ -36,6 +38,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.186.0",
+    "playwright-core": "^1.63.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
     "typescript": "5.9",

@@ -7,6 +7,7 @@ export const nl: Dict = {
   },
   nav: {
     features: "Functies",
+    videos: "Video's",
     trades: "Vakken",
     pricing: "Prijs",
     roi: "Rekenmodule",

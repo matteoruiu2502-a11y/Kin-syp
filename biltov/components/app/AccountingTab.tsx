@@ -90,7 +90,7 @@ export function AccountingTab() {
         <Field label={t("Au")} className="w-48">
           <input type="date" className={inputClass} value={to} onChange={(e) => setTo(e.target.value)} />
         </Field>
-        <div className="pb-1">
+        <div className="min-w-0 max-w-full pb-1">
           <SubTabs
             value={tab}
             onChange={setTab}

@@ -247,3 +247,24 @@
 :root[data-theme="light"] .range {
   background: linear-gradient(to right, #0066ff, #10b981 var(--fill, 50%), rgb(15 23 42 / 0.1) var(--fill, 50%));
 }
+
+/* ——— Mobile ———————————————————————————————————————————————————————————————
+   Champs en 16 px minimum : Safari iOS ne zoome plus à la saisie.
+   Pas de défilement horizontal parasite ; zones tactiles confortables. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+html,
+body {
+  overflow-x: clip;
+}
+@media (pointer: coarse) {
+  .btn-primary,
+  .btn-ghost {
+    min-height: 44px;
+  }
+}

@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Syne } from "next/font/google";
 import { I18nProvider } from "@/lib/i18n";
 import { fr } from "@/lib/content/fr";
 import { THEME_SCRIPT } from "@/components/ThemeToggle";
+import { HelpChat } from "@/components/site/HelpChat";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
   openGraph: { title: fr.meta.title, description: fr.meta.description, type: "website", locale: "fr_FR" },
 };
 
-export const viewport: Viewport = { themeColor: "#03060d", colorScheme: "dark light" };
+// viewport-fit=cover : le site occupe tout l'écran des iPhone, les marges sûres (encoche, barre du bas) sont gérées en CSS.
+export const viewport: Viewport = { themeColor: "#03060d", colorScheme: "dark light", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -23,7 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="font-sans">
-        <I18nProvider>{children}</I18nProvider>
+        <I18nProvider>
+          {children}
+          <HelpChat />
+        </I18nProvider>
       </body>
     </html>
   );

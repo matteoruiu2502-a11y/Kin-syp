@@ -142,6 +142,17 @@ Activables dans *Modules* : SAV / helpdesk, location de matériel, maintenance d
 - E-commerce et caisse (POS).
 - Pages légales du site (mentions légales, CGV / CGU, confidentialité, cookies, DPA) : à rédiger séparément.
 
+## Aide, découverte et dictée en conversation
+
+| Fonction | État |
+|---|---|
+| Chat d'aide flottant sur toutes les pages (plein écran sur mobile), réponses en continu à partir de la base de connaissances, limite anti-abus | ✅ en mode local (base d'aide) ; 🟡 IA générative dès que la fonction serveur Supabase et la clé API sont configurées |
+| Pages Fonctionnalités : page d'ensemble filtrable + une page par fonctionnalité (étapes, astuces, capture dans un cadre iPhone, vidéos) | ✅ |
+| Vidéos (accueil et pages concernées) déclarées dans `content/videos.json` | ✅ |
+| Dictée vocale en conversation : vocal façon WhatsApp, transcription, questions sur les informations manquantes, création du devis, corrections vocales, aperçu et ouverture dans l'éditeur, conversation conservée tant que le devis est en brouillon | ✅ (transcription par le navigateur : Chrome, Edge, Safari) ; 🟡 interprétation par IA avec la fonction serveur |
+| Espace connecté : liens « Découvrir Biltov », « Fonctionnalités », « Aide » ; pages publiques accessibles une fois connecté | ✅ |
+| Mobile : aucun débordement de 320 à 768 px (audit automatique), champs en 16 px, `100dvh`, marges sûres iPhone | ✅ |
+
 ## Interface
 
 - Mode jour / nuit sur tout le site (suit l'appareil par défaut, choix mémorisé). ✅
