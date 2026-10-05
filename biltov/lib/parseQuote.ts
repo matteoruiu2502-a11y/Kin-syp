@@ -239,18 +239,39 @@ function takePrice(seg: string): { seg: string; hit: PriceHit | null } {
 
 // ── Libellés ────────────────────────────────────────────────────────────────
 
-const LEADING_FILLER = /^(?:(?:il|on|je|nous)\s+(?:faut|faudra|faudrait|veut|veux|voudrais|met|mets|prévoit|prévoir|compte|va|vais)\s+|(?:il y a|il y aura|y a)\s+|ajoute(?:z)?|rajoute(?:z)?|mets|mettre|prévoir|prévois|compter|compte|avec|ensuite|également|aussi|en plus|sans oublier|plus|puis|et|ainsi que|ou|donc|alors|ah|euh|bon|le client veut|il veut)\b[\s,:]*/i;
+// paroles qui ne décrivent rien (« j'aimerais bien », « il me faut », « on a besoin de », « voilà ») : jamais dans le devis
+const SUBJ = String.raw`(?:il|on|je|j'|nous|vous|tu|le client|la cliente|monsieur|madame|elle|ils|elles)`;
+const VERB = String.raw`(?:faut|faudra|faudrait|veut|veux|voulons|voulez|voudrais|voudrait|voudrions|aimerais|aimerait|aimerions|souhaite|souhaites|souhaiterais|souhaiterait|désire|désirerais|demande|met|mets|mettons|prévoit|prévois|prévoir|compte|va|vais|allons|prend|prends|prendre|propose|proposes?|a besoin|ai besoin|avons besoin|aurait besoin|aurais besoin|aura besoin|auras besoin|ai|a|avons|aurais|aurait|pense|pensais|crois|dirais|dis|note|notez|rajoute|ajoute)`;
+const LEADING_FILLER = new RegExp(
+  String.raw`^(?:${SUBJ}\s*(?:(?:me|nous|lui|leur|te|vous|en|y)\s+)*(?:ne\s+)?${VERB}(?:\s+(?:bien|aussi|encore|également|donc|alors|juste|peut-être|surtout|absolument|encore))*(?:\s+(?:qu'(?:on|il|elle)\s+\p{L}+|que|de|d'|mettre|poser|installer|faire|prévoir|ajouter|avoir|compter))*\s+|(?:qu'(?:on|il|elle)\s+\p{L}+|il y a|il y aura|il y aurait|y a|y aura|voici|voilà|c'est|ce sera|ça fait|alors|donc|bon|bah|ben|ok|okay|d'accord|euh|heu|hum|ah|oh|eh|bien|très bien|bref|enfin|en fait|du coup|ensuite|également|aussi|en plus|sans oublier|plus|puis|et|ainsi que|ou|avec|s'il te plaît|s'il vous plaît|svp|stp|merci|ajoute(?:z)?|rajoute(?:z)?|mets|mettez|mettre|mets-moi|mettez-moi|note|notez|prévoir|prévois|prévoyez|compter|compte|comptez|besoin de|besoin d')(?![\p{L}'])[\s,:]*)`,
+  "iu",
+);
+const TRAILING_FILLER = /[\s,]+(?:s'il (?:te|vous) pla[iî]t|svp|stp|merci(?: beaucoup)?|voilà|c'est tout|c'est bon|ça sera tout|ce sera tout|s'il te plait|s'il vous plait|en fait|quoi|hein|euh|bien sûr|aussi|également|encore|s'il vous plait)$/iu;
+// mots qui ne désignent aucun matériau ni prestation : une ligne faite uniquement de ces mots est rejetée
+const EMPTY_WORDS = new Set(("il on je j nous vous tu me te lui leur se y en ne pas plus elle ils elles le la les l un une des du de d au aux à a et ou que qu qui quoi " +
+  "faut faudra faudrait veut veux voudrais voudrait aimerais aimerait aime souhaite souhaiterais besoin ai as avons avez ont aurais aurait est sont c ce ça cela ceci " +
+  "bien très aussi encore également donc alors bon bah ben ok okay voilà voici merci svp stp euh heu hum ah oh eh bref enfin fait coup tout toute tous toutes " +
+  "chose choses truc trucs machin ça trop peu beaucoup juste peut être autre autres même mettre poser faire avoir prévoir ajouter rajouter mets mettez note notez " +
+  "dire dis dit pense crois sais sait vais va allons faire fais refaire plaît plait client cliente monsieur madame devis chose quelque").split(" "));
+const isEmptyLabel = (label: string) => !label.toLowerCase().split(/[^\p{L}]+/u).some((w) => w.length > 1 && !EMPTY_WORDS.has(w));
+
 const GENERIC_LABOUR = /^(?:de\s+|d')?(?:werk|arbeit|arbeitszeit|arbeidsloon|arbeid|labou?r|travail|travaux|main[ -]?d.?[oœ]euvre|mo|prestations?|intervention|manoeuvre|manœuvre|plomberie|[ée]lectricit[ée]|peinture|ma[cç]onnerie|menuiserie|carrelage|chauffage|jardinage|pose|ouvrier|ouvriers|techniciens?|chantier)$/i;
 
 const PURE_LABOUR = /^(?:de\s+|d')?(?:werk|arbeit|arbeitszeit|arbeidsloon|arbeid|labou?r|travail|travaux|main[ -]?d.?[oœ]euvre|mo|prestations?|intervention|chantier|pose|ouvriers?|techniciens?)$/i;
 
-function cleanLabel(raw: string) {
+function stripFiller(raw: string) {
   let s = raw.replace(/\s+/g, " ").trim();
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     const next = s.replace(LEADING_FILLER, "").trim();
     if (next === s) break;
     s = next;
   }
+  for (let i = 0; i < 3; i++) s = s.replace(TRAILING_FILLER, "").trim();
+  return s;
+}
+
+function cleanLabel(raw: string) {
+  let s = stripFiller(raw);
   s = s.replace(/^(?:de\s+la\s+|de\s+l'\s*|de\s+|du\s+|des\s+|d'\s*|la\s+|le\s+|les\s+|l'\s*|un\s+|une\s+|chez\s+)+/i, "");
   s = s.replace(/\s+(?:de|du|des|d'|à|a|au|aux|en|pour|et)$/i, "").replace(/[,;:.]+$/g, "");
   // « sur de murs », « terrasse de dans une construction », « plafond de en mat » : mots de liaison laissés par la quantité retirée
@@ -309,7 +330,7 @@ function splitSegments(text: string): string[] {
 // ── Analyse d'un segment ────────────────────────────────────────────────────
 
 function parseSegment(original: string, labourLabel: string): ParsedLine | null {
-  let work = original.trim();
+  let work = stripFiller(original);
   // « une heure et demie », « 2 heures et demie », « demi-journée »
   work = work.replace(new RegExp(String.raw`(${NUM})\s*(${UNIT_ALT})\s+et\s+demi(?:e|s)?\b`, "i"), (_m, n: string, u: string) => `${toNum(n) + 0.5} ${u}`);
   work = work.replace(/\bune\s+(heure|journ[ée]e|jour|m[èe]tre)\s+et\s+demi(?:e)?\b/i, (_m, u: string) => `1.5 ${u}`);
@@ -386,7 +407,7 @@ function parseSegment(original: string, labourLabel: string): ParsedLine | null 
     label = !label || PURE_LABOUR.test(label.trim()) ? labourLabel : `${labourLabel} ${label.replace(/^(?:de\s+|d')/i, "")}`;
   }
   if (price?.total && !label) label = "Forfait";
-  if (!label) return null;
+  if (!label || (isEmptyLabel(label) && !(price?.total && label === "Forfait"))) return null;
 
   const priceGiven = !!price;
   const qtyOut = finalQty ?? 1;
@@ -396,7 +417,7 @@ function parseSegment(original: string, labourLabel: string): ParsedLine | null 
 }
 
 export function parseQuote(text: string, labourLabel: string): ParsedQuote {
-  const digits = digitize(text.trim());
+  const digits = digitize(text.trim().replace(/[’`´]/g, "'"));
   const { client, rest } = extractClient(digits);
   const lines: ParsedLine[] = [];
   for (const seg of splitSegments(rest)) {
