@@ -84,12 +84,14 @@ Un écran de conversation pour créer un devis à la voix. Vous envoyez un messa
 1. Ouvrez « Dictée vocale ».
 2. Appuyez sur le micro (ou maintenez-le appuyé) et décrivez le travail : « Pour Mme Peeters, 24 m² de parquet chêne à 45 euros, 12 mètres de plinthes et 6 heures de main-d'œuvre ».
 3. Appuyez sur « Envoyer » : votre vocal apparaît avec sa transcription.
-4. Répondez aux questions de l'assistant s'il manque une information (à la voix ou par écrit).
+4. Répondez aux questions de l'assistant s'il manque une information ou s'il hésite entre plusieurs articles (par exemple « Tube cuivre Ø15 ou Ø22 ? ») : touchez un bouton, ou répondez à la voix (« le 22 »).
 5. L'aperçu du devis s'affiche dans la conversation : appuyez sur « Ouvrir / Modifier » pour l'éditer, le télécharger en PDF ou l'envoyer.
 
 **Astuces :**
 - Corrigez à la voix : « change le prix de la peinture à 45 € », « ajoute 2 heures de main-d'œuvre », « supprime les plinthes », « mets 30 m² de parquet ».
 - Sans prix dicté, Biltov reprend le prix de votre catalogue ; sinon il vous le demande.
+- Chaque information va dans sa case : la quantité (« 12 mètres », « trois coudes »), l'unité, le prix (« à 45 euros », « 3 euros du mètre », « 55 euros de l'heure ») et le produit précis du catalogue (diamètre, dimension). Un nombre qui décrit le produit (« tuyau cuivre 22 », « radiateur 600 par 1000 ») reste dans son nom.
+- Si vous ne dites pas la longueur d'un tuyau ou la surface d'un carrelage, Biltov vous la demande au lieu de supposer.
 - La conversation est conservée tant que le devis n'est pas finalisé : vous pouvez la reprendre plus tard.
 
 **Cas particuliers :**

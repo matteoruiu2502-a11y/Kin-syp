@@ -2,7 +2,7 @@
 // le navigateur n'appelle que NEXT_PUBLIC_AI_ENDPOINT. Sans adresse configurée, tout fonctionne en
 // mode local (réponses tirées de la base de connaissances, analyse locale de la dictée).
 
-import { TROUBLESHOOTING, searchKnowledge } from "./knowledge/features";
+import { FEATURES, TROUBLESHOOTING, searchKnowledge } from "./knowledge/features";
 
 export const AI_ENDPOINT = (process.env.NEXT_PUBLIC_AI_ENDPOINT || "").replace(/\/$/, "");
 export const aiOnline = () => Boolean(AI_ENDPOINT);
@@ -82,10 +82,19 @@ export function localHelpAnswer(question: string): string {
 
   const [best, second] = searchKnowledge(question, 2);
   if (!best) {
-    return "Je n'ai pas trouvé la réponse dans l'aide de Biltov. Reformulez votre question avec un mot-clé (devis, facture, relance, planning, équipe…), consultez la page [Fonctionnalités](/fonctionnalites/) ou contactez le support.";
+    const popular = ["dictee-vocale", "devis", "factures", "argent-a-recevoir"].map((slug) => FEATURES.find((f) => f.slug === slug)!);
+    return `Je n'ai pas trouvé la réponse dans l'aide de Biltov. Reformulez avec un mot-clé (devis, facture, relance, planning, équipe…), ou consultez un guide :\n\n${popular.map((f) => `- [${f.title}](/fonctionnalites/${f.slug}/)`).join("\n")}\n\nToutes les fonctionnalités : [Fonctionnalités](/fonctionnalites/).`;
   }
-  const lines = [`**${best.title}** — ${best.what}`, "", `**Où :** ${best.where}`, "", ...best.steps.map((s, i) => `${i + 1}. ${s}`)];
-  if (best.notes[0]) lines.push("", `À savoir : ${best.notes[0]}`);
+  // « où … ? » : l'emplacement d'abord ; « combien / pourquoi / marche pas » : le cas particulier d'abord
+  const where = /^(?:ou|où)\b|\bou (?:est|se trouve|trouver|je trouve)\b|\bou (?:changer|modifier|mettre|voir)\b/i.test(q) || /\bou (?:est|se trouve|trouver|changer|modifier|mettre|voir)\b/.test(q);
+  const problem = /(marche pas|fonctionne pas|bloqu|erreur|impossible|disparu|probleme|bug|ne s'ouvre|ne veut pas)/.test(q);
+  const lines: string[] = [];
+  if (where) lines.push(`**${best.title}** — ${best.where}`, "", `Pour l'utiliser :`, ...best.steps.slice(0, 4).map((s, i) => `${i + 1}. ${s}`));
+  else if (problem && best.notes.length) lines.push(`**${best.title}**`, "", ...best.notes.slice(0, 2).map((n) => `- ${n}`), "", `**Où :** ${best.where}`);
+  else {
+    lines.push(`**${best.title}** — ${best.what}`, "", `**Où :** ${best.where}`, "", ...best.steps.map((s, i) => `${i + 1}. ${s}`));
+    if (best.notes[0]) lines.push("", `À savoir : ${best.notes[0]}`);
+  }
   lines.push("", `[Voir le guide : ${best.title}](/fonctionnalites/${best.slug}/)`);
   if (second) lines.push(`Voir aussi : [${second.title}](/fonctionnalites/${second.slug}/)`);
   return lines.join("\n");
