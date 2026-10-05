@@ -78,7 +78,7 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
   const push = (...msgs: Msg[]) => setS((x) => ({ ...x, messages: [...x.messages, ...msgs] }));
   const bot = (t: string, extra: Partial<Extract<Msg, { from: "bot"; kind: "text" }>> = {}): Msg => ({ id: uid(), from: "bot", kind: "text", text: t, ...extra });
 
-  const catalog = { articles: data.articles.filter((a) => a.active), lang: data.company.lang };
+  const catalog = { articles: data.articles.filter((a) => a.active), lang: data.company.lang, trade: data.company.trade };
 
   /** Crée le devis (client et chantier au besoin) ou met à jour ses lignes. */
   /** Client du devis : fiche existante au nom proche, sinon nouvelle fiche. */
@@ -134,7 +134,8 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
       } else {
         let ai = null;
         try {
-          ai = navigator.onLine ? await interpretWithAi({ text: message, draft: { client: draft.client, lines: draft.lines.filter((l) => l.kind === "item").map((l) => ({ id: l.id, label: l.label, qty: l.qty, unit: l.unit, unitPrice: l.unitPrice })) }, catalog: catalog.articles.slice(0, 300).map((a) => ({ label: a.name.fr, unit: a.unit, price: a.salePrice })), pending: cur.pending ? (nextQuestion(draft, skipped)?.text ?? null) : null }) : null;
+          // une réponse à une question précise (choix, quantité, prix) est interprétée localement : plus fiable
+          ai = navigator.onLine && !cur.pending ? await interpretWithAi({ text: message, draft: { client: draft.client, lines: draft.lines.filter((l) => l.kind === "item").map((l) => ({ id: l.id, label: l.label, qty: l.qty, unit: l.unit, unitPrice: l.unitPrice })) }, catalog: catalog.articles.slice(0, 300).map((a) => ({ label: a.name.fr, unit: a.unit, price: a.salePrice })), pending: cur.pending ? (nextQuestion(draft, skipped)?.text ?? null) : null }) : null;
         } catch (e) {
           // serveur indisponible : l'analyse locale prend le relais
           if (e instanceof AiError && e.code === "rate_limited") setNetError(AI_ERROR_TEXT.rate_limited);
@@ -150,16 +151,18 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
       const question = nextQuestion(next, skipped);
       let quoteId = cur.quoteId;
       const out: Msg[] = [];
-      if (question && !quoteId) {
-        out.push(bot(question.text, { chips: question.pending?.kind === "client" ? undefined : [SKIP] }));
+      const chips = (q: NonNullable<typeof question>) => q.chips ?? (q.pending.kind === "client" ? undefined : [SKIP]);
+      if (question?.pending.kind === "client" && !quoteId) {
+        // le nom du client est nécessaire pour créer le devis ; le reste se complète ensuite dans la conversation
+        out.push(bot(question.text));
       } else if (next.lines.some((l) => l.kind === "item")) {
         const created = !quoteId;
         const synced = syncQuote(next, quoteId, !!quoteId && next.client !== draft.client);
         quoteId = synced.id;
         if (synced.note) out.push(bot(synced.note));
-        if (created && quoteId) out.push(bot("Votre devis est prêt. Vérifiez-le, corrigez-le à la voix (« change le prix de… », « ajoute… », « supprime… ») ou ouvrez-le pour le modifier, l'exporter en PDF et l'envoyer."), { id: uid(), from: "bot", kind: "preview", quoteId });
+        if (created && quoteId) out.push(bot(question ? "Votre devis est créé. Il reste à préciser quelques points ; vous pouvez aussi le corriger à la voix (« change le prix de… », « ajoute… », « supprime… »)." : "Votre devis est prêt. Vérifiez-le, corrigez-le à la voix (« change le prix de… », « ajoute… », « supprime… ») ou ouvrez-le pour le modifier, l'exporter en PDF et l'envoyer."), { id: uid(), from: "bot", kind: "preview", quoteId });
         else if (quoteId) out.push({ id: uid(), from: "bot", kind: "preview", quoteId });
-        if (question) out.push(bot(question.text, { chips: question.pending?.kind === "client" ? undefined : [SKIP] }));
+        if (question) out.push(bot(question.text, { chips: chips(question) }));
       }
       setS((x) => ({ ...x, draft: next, quoteId, pending: question?.pending ?? null, skipped, messages: [...x.messages, ...out] }));
       setBusy(false);

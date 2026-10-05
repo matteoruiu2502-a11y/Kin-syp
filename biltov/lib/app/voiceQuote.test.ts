@@ -67,3 +67,48 @@ describe("dictée vocale en conversation", () => {
     expect(findLine(d.lines, "le parquet")!.id).toBe(d.lines[0].id);
   });
 });
+
+describe("questions de clarification", () => {
+  const pl = {
+    lang: "fr" as const,
+    articles: [
+      newArticle({ id: "cu15", name: { fr: "Tube cuivre Ø15", nl: "", de: "" }, unit: "ml", salePrice: 8, purchasePrice: 5 }),
+      newArticle({ id: "cu22", name: { fr: "Tube cuivre Ø22", nl: "", de: "" }, unit: "ml", salePrice: 12, purchasePrice: 8 }),
+      newArticle({ id: "mit", name: { fr: "Mitigeur lavabo", nl: "", de: "" }, unit: "u", salePrice: 84, purchasePrice: 60 }),
+    ],
+  };
+  const go = (draft: VoiceDraft, text: string, pending: Parameters<typeof interpretLocally>[2]) => applyActions(draft, interpretLocally(text, draft, pending, pl), pl);
+
+  it("tuyau sans diamètre ni longueur : demande le diamètre, puis la longueur, sans rien mélanger", () => {
+    let d = go({ client: null, lines: [] }, "pour Mme Claes, du tuyau cuivre et un mitigeur lavabo", null);
+    expect(d.client).toBe("Mme Claes");
+    expect(d.lines).toHaveLength(2);
+    let q = nextQuestion(d)!;
+    expect(q.pending.kind).toBe("choice");
+    expect(q.chips).toEqual(["Tube cuivre Ø15", "Tube cuivre Ø22", "Aucun de ceux-là"]);
+    d = go(d, "le 22", q.pending);
+    expect(d.lines[0]).toMatchObject({ articleId: "cu22", label: "Tube cuivre Ø22", unit: "ml", unitPrice: 12 });
+    q = nextQuestion(d)!;
+    expect(q.pending.kind).toBe("qty");
+    expect(q.text).toBe("Combien de mètres pour « Tube cuivre Ø22 » ?");
+    d = go(d, "15 mètres", q.pending);
+    expect(d.lines[0]).toMatchObject({ qty: 15, unit: "ml" });
+    expect(d.lines[1]).toMatchObject({ articleId: "mit", qty: 1, unitPrice: 84 });
+    expect(nextQuestion(d)).toBeNull();
+  });
+
+  it("réponse par le nom, par le rang, ou « aucun »", () => {
+    const base = go({ client: "M. X", lines: [] }, "10 mètres de tuyau cuivre", null);
+    const q = nextQuestion(base)!;
+    expect(go(base, "Tube cuivre Ø15", q.pending).lines[0].articleId).toBe("cu15");
+    expect(go(base, "le deuxième", q.pending).lines[0].articleId).toBe("cu22");
+    const free = go(base, "aucun de ceux-là", q.pending);
+    expect(free.lines[0]).toMatchObject({ articleId: null, toPrice: true, qty: 10, unit: "ml" });
+    expect(nextQuestion(free)!.pending.kind).toBe("price");
+  });
+
+  it("le prix dicté est conservé quand l'artisan choisit l'article", () => {
+    const base = go({ client: "M. X", lines: [] }, "10 mètres de tuyau cuivre à 9 euros du mètre", null);
+    expect(go(base, "le 15", nextQuestion(base)!.pending).lines[0]).toMatchObject({ articleId: "cu15", unitPrice: 9 });
+  });
+});

@@ -57,7 +57,7 @@ export const FEATURES: Feature[] = [
       "Mot de passe oublié : il n'existe pas encore de réinitialisation par e-mail, car le compte est local. Conservez votre mot de passe et faites des sauvegardes.",
       "Après l'essai : abonnement Biltov Pro à 99 € HTVA par mois (ou 948 € HTVA par an), résiliable à tout moment.",
     ],
-    keywords: ["inscription", "créer compte", "essai", "gratuit", "carte bancaire", "connexion", "mot de passe", "login", "s'inscrire"],
+    keywords: ["inscription", "créer compte", "essai", "gratuit", "carte bancaire", "connexion", "mot de passe", "login", "s'inscrire", "essai gratuit", "carte bancaire", "créer un compte", "s'inscrire"],
     shot: { hash: "", action: "auth", caption: "Création du compte : e-mail et mot de passe, sans carte." },
   },
   {
@@ -102,12 +102,14 @@ export const FEATURES: Feature[] = [
       "Ouvrez « Dictée vocale ».",
       "Appuyez sur le micro (ou maintenez-le appuyé) et décrivez le travail : « Pour Mme Peeters, 24 m² de parquet chêne à 45 euros, 12 mètres de plinthes et 6 heures de main-d'œuvre ».",
       "Appuyez sur « Envoyer » : votre vocal apparaît avec sa transcription.",
-      "Répondez aux questions de l'assistant s'il manque une information (à la voix ou par écrit).",
+      "Répondez aux questions de l'assistant s'il manque une information ou s'il hésite entre plusieurs articles (par exemple « Tube cuivre Ø15 ou Ø22 ? ») : touchez un bouton, ou répondez à la voix (« le 22 »).",
       "L'aperçu du devis s'affiche dans la conversation : appuyez sur « Ouvrir / Modifier » pour l'éditer, le télécharger en PDF ou l'envoyer.",
     ],
     tips: [
       "Corrigez à la voix : « change le prix de la peinture à 45 € », « ajoute 2 heures de main-d'œuvre », « supprime les plinthes », « mets 30 m² de parquet ».",
       "Sans prix dicté, Biltov reprend le prix de votre catalogue ; sinon il vous le demande.",
+      "Chaque information va dans sa case : la quantité (« 12 mètres », « trois coudes »), l'unité, le prix (« à 45 euros », « 3 euros du mètre », « 55 euros de l'heure ») et le produit précis du catalogue (diamètre, dimension). Un nombre qui décrit le produit (« tuyau cuivre 22 », « radiateur 600 par 1000 ») reste dans son nom.",
+      "Si vous ne dites pas la longueur d'un tuyau ou la surface d'un carrelage, Biltov vous la demande au lieu de supposer.",
       "La conversation est conservée tant que le devis n'est pas finalisé : vous pouvez la reprendre plus tard.",
     ],
     notes: [
@@ -115,7 +117,7 @@ export const FEATURES: Feature[] = [
       "La transcription utilise la reconnaissance vocale du navigateur (Chrome, Edge, Safari). Dans les autres navigateurs, tapez le texte : l'analyse est identique.",
       "Une connexion internet est nécessaire pour la transcription dans la plupart des navigateurs.",
     ],
-    keywords: ["dictée", "voix", "vocal", "micro", "parler", "dicter", "message vocal", "devis à la voix", "enregistrer"],
+    keywords: ["dictée", "voix", "vocal", "micro", "parler", "dicter", "message vocal", "devis à la voix", "enregistrer", "créer un devis avec ma voix", "parler pour faire un devis", "micro qui ne marche pas", "dicter un devis"],
     shot: { hash: "chantiers", action: "open-voice", caption: "La dictée vocale : un vocal, et le devis se remplit." },
   },
   {
@@ -158,7 +160,7 @@ export const FEATURES: Feature[] = [
     steps: ["Ouvrez le devis.", "Cliquez sur « Envoyer » et choisissez le canal : le message s'ouvre prêt, PDF joint.", "Pour une signature sur place, cliquez sur « Faire signer », faites signer au doigt, validez."],
     tips: ["Après signature, le menu « Facturer » permet de créer acompte, situations ou facture finale."],
     notes: ["L'envoi part de votre messagerie ou de WhatsApp : Biltov prépare le message, vous appuyez sur « Envoyer ». L'envoi automatique depuis Biltov arrivera avec le serveur.", "Si le PDF ne s'ouvre pas, autorisez les fenêtres pop-up pour le site."],
-    keywords: ["envoyer", "whatsapp", "email", "sms", "signature", "signer", "lu et approuvé", "partager"],
+    keywords: ["envoyer", "whatsapp", "email", "sms", "signature", "signer", "lu et approuvé", "partager", "faire signer", "signature du client", "envoyer par mail", "envoyer le devis"],
     shot: { hash: "documents", action: "open-send", caption: "Envoi par e-mail, WhatsApp ou SMS." },
   },
   {
@@ -172,7 +174,7 @@ export const FEATURES: Feature[] = [
     steps: ["Ouvrez le devis signé et cliquez sur « Facturer ».", "Choisissez acompte, situation, jalon, facture finale ou complète.", "Vérifiez le brouillon puis cliquez sur « Émettre ».", "Envoyez-la ; enregistrez les paiements avec « Paiement »."],
     tips: ["Chaque facture a une communication structurée belge (+++…+++) et un QR code de virement.", "Retenue de garantie : 5 % par défaut pour les clients professionnels (réglable)."],
     notes: ["Une facture émise ne se modifie plus : corrigez-la avec une « Note de crédit ».", "Les factures Peppol (UBL) se téléchargent avec le bouton « UBL » pour votre prestataire Peppol."],
-    keywords: ["facture", "facturer", "acompte", "situation", "avancement", "note de crédit", "émettre", "peppol", "paiement", "communication structurée"],
+    keywords: ["facture", "facturer", "acompte", "situation", "avancement", "note de crédit", "émettre", "peppol", "paiement", "communication structurée", "annuler une facture", "corriger une facture", "erreur dans la facture", "facture déjà envoyée", "avoir", "transformer un devis en facture", "facture finale", "facture de situation"],
     shot: { hash: "documents", caption: "Devis & factures : à encaisser, brouillons, payées." },
   },
   {
@@ -186,7 +188,7 @@ export const FEATURES: Feature[] = [
     steps: ["Ouvrez Catalogue.", "Ajoutez un article ou cliquez sur « Importer Excel / CSV ».", "Associez les colonnes, vérifiez la simulation, validez.", "Utilisez « Hausse / baisse de prix » pour réviser les prix en masse."],
     tips: ["Les tarifs grossistes (prix brut − remise) sont pris en charge.", "Le profil d'import est mémorisé par fournisseur."],
     notes: ["Les anciens fichiers .xls ne sont pas lus : enregistrez-les en .xlsx ou CSV."],
-    keywords: ["catalogue", "articles", "prix", "import", "excel", "csv", "ouvrage", "grossiste", "marge"],
+    keywords: ["catalogue", "articles", "prix", "import", "excel", "csv", "ouvrage", "grossiste", "marge", "augmenter les prix", "baisser les prix", "hausse de prix", "pourcentage", "mes prix", "tarifs fournisseur", "grossiste", "liste de prix"],
     shot: { hash: "catalogue", caption: "Le catalogue : articles, ouvrages et prix." },
   },
   {
@@ -200,7 +202,7 @@ export const FEATURES: Feature[] = [
     steps: ["Ouvrez un devis.", "Sous une ligne, choisissez l'exécutant dans « Exécution » (ou « + Nouveau sous-traitant… »).", "La marge par défaut s'applique ; ajustez le coût ou la marge, le prix se recalcule."],
     tips: ["Marges par défaut réglables dans Paramètres → Devis & factures, et par sous-traitant dans sa fiche."],
     notes: ["Le coût et la marge ne figurent jamais sur le PDF du client."],
-    keywords: ["sous-traitant", "sous traitance", "exécution", "marge", "coût", "prix de revient"],
+    keywords: ["sous-traitant", "sous traitance", "exécution", "marge", "coût", "prix de revient", "marge sur chaque ligne", "marge par ligne", "mettre ma marge", "coût de la ligne"],
     shot: { hash: "chantiers", action: "open-bouw-quote", caption: "Exécution, coût et marge sous chaque ligne." },
   },
 
@@ -230,7 +232,7 @@ export const FEATURES: Feature[] = [
     steps: ["Ouvrez le chantier.", "Cliquez sur « Rentabilité ».", "Lisez les postes : rouge = dépassement du prévu."],
     tips: ["Encodez les factures d'achat sur le chantier et pointez les heures pour un suivi juste."],
     notes: ["Visible uniquement par les utilisateurs autorisés (droit « Rentabilité »)."],
-    keywords: ["rentabilité", "marge", "bénéfice", "coûts", "prévu", "réel", "perte"],
+    keywords: ["rentabilité", "marge", "bénéfice", "coûts", "prévu", "réel", "perte", "gagne de l'argent", "gagner de l'argent", "bénéfice", "rentable", "perte", "marge réelle", "combien j'ai gagné", "coûts du chantier"],
     shot: { hash: "chantiers", action: "open-job-profit", caption: "Rentabilité : vendu, coûts et marge réelle." },
   },
   {
@@ -272,7 +274,7 @@ export const FEATURES: Feature[] = [
     steps: ["Ouvrez le chantier → Photos → choisissez la phase et ajoutez les photos.", "Rapports → « Nouveau rapport » → cochez la check-list, faites signer, exportez en PDF."],
     tips: ["La comparaison avant/après se fait en un glissement."],
     notes: ["La position GPS n'est enregistrée qu'avec votre accord."],
-    keywords: ["photos", "rapport", "pv", "réception", "bon d'intervention", "signature"],
+    keywords: ["photos", "rapport", "pv", "réception", "bon d'intervention", "signature", "pv de réception", "procès-verbal", "signer le pv", "réception des travaux", "rapport journalier", "bon d'intervention"],
     shot: { hash: "chantiers", action: "open-job-photos", caption: "Photos avant / après du chantier." },
   },
   {
@@ -316,7 +318,7 @@ export const FEATURES: Feature[] = [
     steps: ["Ouvrez Argent à recevoir.", "Cliquez sur « Relancer » à côté d'une facture en retard.", "Choisissez le canal, envoyez."],
     tips: ["1er rappel gratuit pour les particuliers, puis frais et intérêts selon la loi."],
     notes: ["L'aide TVA est une estimation à valider par votre comptable."],
-    keywords: ["argent", "encaisser", "impayé", "relance", "rappel", "retard", "trésorerie", "tva", "créances"],
+    keywords: ["argent", "encaisser", "impayé", "relance", "rappel", "retard", "trésorerie", "tva", "créances", "impayé", "impayées", "qui me doit", "doit de l'argent", "retard de paiement", "client qui ne paie pas", "pas payé", "encaissement", "créance", "relancer"],
     shot: { hash: "apercu", caption: "Argent à recevoir : créances et relances." },
   },
   {
@@ -330,7 +332,7 @@ export const FEATURES: Feature[] = [
     steps: ["Téléchargez l'extrait CODA depuis votre banque en ligne.", "Banque → « Importer un extrait CODA ».", "Validez les correspondances proposées, ou lettrez à la main."],
     tips: ["Les paiements partiels et les surplus sont gérés."],
     notes: ["La synchronisation bancaire automatique (Ponto) nécessitera le serveur."],
-    keywords: ["banque", "coda", "extrait", "lettrage", "paiement", "virement", "rapprochement"],
+    keywords: ["banque", "coda", "extrait", "lettrage", "paiement", "virement", "rapprochement", "rapprocher", "rapprochement", "lettrer", "paiements reçus", "relevé bancaire", "extrait de compte", "virements"],
     shot: { hash: "banque", caption: "La banque : mouvements à lettrer." },
   },
   {
@@ -344,7 +346,7 @@ export const FEATURES: Feature[] = [
     steps: ["Choisissez la période.", "Cliquez sur l'export souhaité (WinBooks, UBL, CSV).", "Envoyez le fichier à votre comptable."],
     tips: ["Les numéros de comptes sont modifiables dans « Plan comptable »."],
     notes: ["Faites valider le format WinBooks par un import test chez votre comptable."],
-    keywords: ["comptabilité", "comptable", "export", "winbooks", "pcmn", "journal", "ubl", "yuki"],
+    keywords: ["comptabilité", "comptable", "export", "winbooks", "pcmn", "journal", "ubl", "yuki", "écritures", "envoyer à mon comptable", "fiduciaire", "expert-comptable", "export comptable", "déclaration tva"],
     shot: { hash: "comptabilite", caption: "Exports pour votre comptable." },
   },
 
@@ -404,7 +406,7 @@ export const FEATURES: Feature[] = [
     steps: ["Équipe → « Nouvel utilisateur » : nom, rôle, code PIN.", "Rôles et accès : choisissez un rôle et réglez chaque module.", "Dans la fiche d'une personne, activez « Accès personnalisés » pour une exception."],
     tips: ["« Rétablir les droits par défaut » remet un rôle à zéro."],
     notes: ["Aujourd'hui, les droits sont contrôlés sur l'appareil de l'entreprise ; ils passeront côté serveur avec les comptes en ligne."],
-    keywords: ["utilisateur", "rôle", "droits", "accès", "permission", "admin", "secrétaire", "comptable", "employé"],
+    keywords: ["utilisateur", "rôle", "droits", "accès", "permission", "admin", "secrétaire", "comptable", "employé", "code pin", "empêcher de voir les prix", "cacher les prix", "voir les prix", "interdire", "droits d'accès", "autoriser", "secrétaire", "nouvel utilisateur", "ajouter un utilisateur", "ajouter un ouvrier", "ajouter un employé", "qui peut voir"],
     shot: { hash: "equipe", action: "open-team-roles", caption: "Rôles et accès, module par module." },
   },
   {
@@ -434,7 +436,7 @@ export const FEATURES: Feature[] = [
     steps: ["Paramètres → Entreprise : complétez l'identité.", "Devis & factures : préfixes, acompte, validité, marges.", "Relances : adaptez les textes."],
     tips: [],
     notes: ["Seuls les utilisateurs autorisés voient les Paramètres."],
-    keywords: ["paramètres", "réglages", "entreprise", "logo", "couleurs", "numérotation", "iban", "bce"],
+    keywords: ["paramètres", "réglages", "entreprise", "logo", "couleurs", "numérotation", "iban", "bce", "iban", "changer l'iban", "adresse de l'entreprise", "logo", "numéro de tva", "coordonnées de l'entreprise", "mentions sur les factures", "numérotation"],
     shot: { hash: "parametres", caption: "Les paramètres de l'entreprise." },
   },
   {
@@ -448,7 +450,7 @@ export const FEATURES: Feature[] = [
     steps: ["Paramètres → Sauvegarde → « Télécharger la sauvegarde ».", "Pour restaurer (changement d'appareil) : rubrique « Restaurer » → « Choisir le fichier »."],
     tips: ["Faites une sauvegarde chaque semaine, surtout avant de changer d'appareil."],
     notes: ["Vider les données du navigateur efface Biltov sur cet appareil : gardez une sauvegarde."],
-    keywords: ["sauvegarde", "backup", "données", "restaurer", "perte", "changer de téléphone"],
+    keywords: ["sauvegarde", "backup", "données", "restaurer", "perte", "changer de téléphone", "changer de téléphone", "nouveau téléphone", "retrouver mes chantiers", "perdu mes données", "transférer mes données"],
     shot: { hash: "parametres", action: "open-backup", caption: "Sauvegarde et restauration." },
   },
   {
@@ -462,7 +464,7 @@ export const FEATURES: Feature[] = [
     steps: ["Cliquez sur « S'abonner ».", "Payez sur la page sécurisée Stripe.", "Vous revenez dans votre espace, abonnement actif."],
     tips: [],
     notes: ["Après l'essai, vos données restent exportables même sans abonnement."],
-    keywords: ["prix", "tarif", "abonnement", "payer", "stripe", "résilier", "facture biltov"],
+    keywords: ["prix", "tarif", "abonnement", "payer", "stripe", "résilier", "facture biltov", "combien ça coûte", "coût", "prix de biltov", "payer biltov", "résilier", "mensuel", "99 euros"],
     shot: { hash: "", action: "landing-pricing", caption: "Biltov Pro : 99 € HTVA par mois." },
   },
   {
@@ -490,7 +492,7 @@ export const FEATURES: Feature[] = [
     steps: ["Cliquez sur FR, NL ou DE.", "Cliquez sur la lune ou le soleil pour changer de mode."],
     tips: ["La langue des documents se règle dans la fiche du client."],
     notes: [],
-    keywords: ["langue", "néerlandais", "allemand", "traduction", "mode nuit", "thème", "sombre", "clair"],
+    keywords: ["langue", "néerlandais", "allemand", "traduction", "mode nuit", "thème", "sombre", "clair", "mettre en néerlandais", "passer en néerlandais", "en allemand", "en français", "traduire"],
     shot: { hash: "planning", caption: "Interface claire et lisible, de jour comme de nuit." },
   },
 ];
@@ -506,10 +508,10 @@ export const TROUBLESHOOTING: { q: string; a: string }[] = [
   { q: "Un menu a disparu", a: "Les menus dépendent de vos droits et des modules activés (menu Modules). Demandez au super admin de vérifier vos accès." },
 ];
 
-const STOP = new Set(["comment", "pour", "dans", "avec", "une", "des", "les", "est", "pas", "que", "qui", "quoi", "mon", "mes", "son", "ses", "sur", "faire", "peux", "peut", "veux", "biltov", "the"]);
-const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const STOP = new Set(["comment", "pour", "dans", "avec", "une", "des", "les", "est", "pas", "que", "qui", "quoi", "mon", "mes", "son", "ses", "sur", "faire", "peux", "peut", "veux", "biltov", "the", "fait", "fais", "plus", "tout", "tous", "cette", "ces", "quel", "quelle", "ou", "oui", "non", "chez", "sans", "aussi", "alors", "puis", "voir", "avoir", "etre", "ça", "ca", "ici"]);
+const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[’']/g, " ");
 /** Racine grossière d'un mot français : « relancer », « relances » → « relanc ». */
-const stem = (w: string) => w.replace(/(ements?|ations?|euses?|eurs?|ees?|er|ez|ent|es|s|e)$/, "");
+const stem = (w: string) => w.replace(/(ements?|ations?|euses?|eurs?|ees?|er|ez|ent|es|s|e|x)$/, "");
 const tokens = (s: string) =>
   normalize(s)
     .split(/[^a-z0-9]+/)
@@ -517,23 +519,64 @@ const tokens = (s: string) =>
     .map(stem)
     .filter((w) => w.length > 2);
 
-/** Recherche simple dans la base (chat hors ligne et suggestions). */
-export function searchKnowledge(query: string, limit = 3): Feature[] {
-  const words = [...new Set(tokens(query))];
-  if (!words.length) return [];
-  const scored = FEATURES.map((f) => {
-    const kw = new Set(f.keywords.flatMap(tokens));
-    const title = new Set(tokens(f.title));
-    const body = new Set(tokens([f.tagline, f.what, f.where].join(" ")));
-    let score = 0;
-    for (const w of words) {
-      if (kw.has(w)) score += 4;
-      if (title.has(w)) score += 3;
-      if (body.has(w)) score += 1;
+/** À une faute de frappe près (mots d'au moins 5 lettres). */
+function close(a: string, b: string) {
+  if (a === b) return true;
+  if (a.length < 5 || b.length < 5 || Math.abs(a.length - b.length) > 1) return false;
+  let i = 0;
+  let j = 0;
+  let diff = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) (i++, j++);
+    else {
+      if (++diff > 1) return false;
+      if (a.length > b.length) i++;
+      else if (a.length < b.length) j++;
+      else (i++, j++);
     }
-    return { f, score };
-  })
-    .filter((x) => x.score >= 3)
+  }
+  return diff + (a.length - i) + (b.length - j) <= 1;
+}
+
+type Doc = { f: Feature; kw: Set<string>; phrases: string[][]; title: Set<string>; body: Set<string> };
+let docs: Doc[] | null = null;
+let df: Map<string, number> | null = null;
+function index() {
+  if (docs && df) return { docs, df };
+  docs = FEATURES.map((f) => ({
+    f,
+    kw: new Set(f.keywords.flatMap(tokens)),
+    phrases: f.keywords.map(tokens).filter((p) => p.length > 1),
+    title: new Set(tokens(f.title)),
+    body: new Set(tokens([f.tagline, f.what, f.where, ...f.steps, ...f.tips].join(" "))),
+  }));
+  df = new Map();
+  for (const d of docs) for (const w of new Set([...d.kw, ...d.title, ...d.body])) df.set(w, (df.get(w) ?? 0) + 1);
+  return { docs, df };
+}
+
+/** Fonctionnalités les plus proches d'une question (mots rares pesés, expressions entières, fautes de frappe). */
+export function searchKnowledge(query: string, limit = 3): Feature[] {
+  const q = [...new Set(tokens(query))];
+  if (!q.length) return [];
+  const { docs: ds, df: freq } = index();
+  const idf = (w: string) => Math.log(1 + ds.length / (freq.get(w) ?? 0.5));
+  const has = (set: Set<string>, w: string) => set.has(w) || [...set].some((x) => close(x, w));
+  const scored = ds
+    .map((d) => {
+      let score = 0;
+      let strong = 0; // mots trouvés dans les mots-clés ou le titre
+      for (const w of q) {
+        const weight = idf(w);
+        if (has(d.kw, w)) (score += 4 * weight, strong++);
+        else if (has(d.title, w)) (score += 3 * weight, strong++);
+        else if (has(d.body, w)) score += 1 * weight;
+      }
+      // une expression entière (« code pin », « note de crédit ») pèse davantage
+      for (const p of d.phrases) if (p.every((w) => q.includes(w))) score += 6 * p.length;
+      return { f: d.f, score, strong };
+    })
+    .filter((x) => x.strong > 0 && x.score >= 5)
     .sort((a, b) => b.score - a.score);
   return scored.slice(0, limit).map((x) => x.f);
 }

@@ -86,7 +86,7 @@ export async function buildDemoData(): Promise<AccountData> {
   const a = (ref: string, fr: string, nl: string, de: string, unit: string, purchase: number, margin: number, type: "supply" | "labour" = "supply", category: "installed_material" | "labour" | "supply_only" = type === "labour" ? "labour" : "installed_material", family = "Sanitaire") =>
     newArticle({ ref, name: { fr, nl, de }, unit, purchasePrice: purchase, marginPercent: margin, type, category, family, trade: "plombier", supplierId: type === "supply" ? negoce.id : null });
   const moPlomb = a("MO-PLB", "Main-d'œuvre plombier", "Arbeidsloon loodgieter", "Arbeitszeit Installateur", "h", 38, 45, "labour", "labour", "Main-d'œuvre");
-  const moCarr = a("MO-CAR", "Main-d'œuvre carreleur", "Arbeidsloon tegelzetter", "Arbeitszeit Fliesenleger", "h", 36, 50, "labour", "labour", "Main-d'œuvre");
+  const moCarr = { ...a("MO-CAR", "Main-d'œuvre carreleur", "Arbeidsloon tegelzetter", "Arbeitszeit Fliesenleger", "h", 36, 50, "labour", "labour", "Main-d'œuvre"), trade: "macon" as const };
   const receveur = a("REC-90", "Receveur de douche extra-plat 90×120", "Extra platte douchebak 90×120", "Flache Duschwanne 90×120", "u", 260, 40);
   const mitigeur = a("MIT-TH", "Mitigeur thermostatique douche", "Thermostatische douchemengkraan", "Thermostat-Duscharmatur", "u", 140, 40);
   const faience = a("FAI-3060", "Faïence murale 30×60", "Wandtegel 30×60", "Wandfliese 30×60", "m²", 24, 45, "supply", "installed_material", "Carrelage");

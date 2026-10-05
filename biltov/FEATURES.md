@@ -150,6 +150,7 @@ Activables dans *Modules* : SAV / helpdesk, location de matériel, maintenance d
 | Pages Fonctionnalités : page d'ensemble filtrable + une page par fonctionnalité (étapes, astuces, capture dans un cadre iPhone, vidéos) | ✅ |
 | Vidéos (accueil et pages concernées) déclarées dans `content/videos.json` | ✅ |
 | Dictée vocale en conversation : vocal façon WhatsApp, transcription, questions sur les informations manquantes, création du devis, corrections vocales, aperçu et ouverture dans l'éditeur, conversation conservée tant que le devis est en brouillon | ✅ (transcription par le navigateur : Chrome, Edge, Safari) ; 🟡 interprétation par IA avec la fonction serveur |
+| Dictée précise : quantité, unité, prix et produit dans les bonnes cases (diamètres et dimensions distingués, nombres en toutes lettres, « heures de travail » = main-d'œuvre), choix proposé entre plusieurs articles du catalogue, quantité demandée quand elle manque | ✅ |
 | Espace connecté : liens « Découvrir Biltov », « Fonctionnalités », « Aide » ; pages publiques accessibles une fois connecté | ✅ |
 | Mobile : aucun débordement de 320 à 768 px (audit automatique), champs en 16 px, `100dvh`, marges sûres iPhone | ✅ |
 
