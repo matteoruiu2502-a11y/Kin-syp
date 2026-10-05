@@ -268,3 +268,7 @@ body {
     min-height: 44px;
   }
 }
+/* Une cellule de grille ne s'élargit jamais au-delà de sa colonne (cartes sur mobile). */
+.grid > * {
+  min-width: 0;
+}
