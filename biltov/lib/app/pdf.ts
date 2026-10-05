@@ -1,7 +1,12 @@
 // PDF belges (devis, factures, notes de crédit, pro forma, rapports), dans la langue du client.
 
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
+import type { jsPDF } from "jspdf";
+
+// jsPDF (~380 Ko) n'est chargé qu'au moment de fabriquer un PDF : l'application démarre plus vite.
+async function pdfLib() {
+  const [{ jsPDF }, { default: autoTable }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
+  return { jsPDF, autoTable };
+}
 import { formatBce, legal, mentionsFor, normalizeBce, type VatCode } from "../tax/belgium";
 import { dt, fmtDate, LOCALE } from "./docText";
 import { epcPayload, epcQrDataUrl } from "./epc";
@@ -109,6 +114,7 @@ function paragraphs(pdf: jsPDF, y: number, title: string, items: string[]) {
 }
 
 export async function buildDocumentPdf(doc: Doc, data: AccountData, opts: { watermark?: string; source?: Doc | null } = {}): Promise<jsPDF> {
+  const { jsPDF, autoTable } = await pdfLib();
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
   const lang = doc.lang;
   const loc = LOCALE[lang];
@@ -293,6 +299,7 @@ async function photoGrid(pdf: jsPDF, y: number, photos: Photo[], getBlob: (id: s
 }
 
 export async function buildPhotoReport(job: Job, client: Client | undefined, photos: Photo[], data: AccountData, getBlob: (id: string) => Promise<Blob | undefined>, watermark?: string) {
+  const { jsPDF } = await pdfLib();
   const lang = client?.lang ?? data.company.lang;
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
   let y = header(pdf, data, dt(lang, "photoReport"), [[dt(lang, "site"), job.name], [dt(lang, "date"), fmtDate(new Date().toISOString(), lang)]], lang);
@@ -310,6 +317,7 @@ export async function buildPhotoReport(job: Job, client: Client | undefined, pho
 
 /** Bon d'intervention / rapport de chantier signé sur place. */
 export async function buildReportPdf(report: Report, job: Job, client: Client | undefined, photos: Photo[], data: AccountData, getBlob: (id: string) => Promise<Blob | undefined>, watermark?: string) {
+  const { jsPDF, autoTable } = await pdfLib();
   const lang = client?.lang ?? data.company.lang;
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
   let y = header(pdf, data, dt(lang, "intervention"), [[dt(lang, "date"), fmtDate(report.date, lang)], [dt(lang, "site"), job.name]], lang);
