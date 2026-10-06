@@ -16,7 +16,6 @@ export function FeaturesBento() {
 
   return (
     <section id="fonctionnalites" className="relative py-24 sm:py-32">
-      <div className="absolute left-1/2 top-40 -z-10 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-blue/10 blur-[160px]" aria-hidden />
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeading eyebrow={f.eyebrow} title={f.title} subtitle={f.subtitle} />
 

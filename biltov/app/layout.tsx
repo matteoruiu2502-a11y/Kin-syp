@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 // viewport-fit=cover : le site occupe tout l'écran des iPhone, les marges sûres (encoche, barre du bas) sont gérées en CSS.
-export const viewport: Viewport = { themeColor: "#03060d", colorScheme: "dark light", width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#0b1220", colorScheme: "dark light", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

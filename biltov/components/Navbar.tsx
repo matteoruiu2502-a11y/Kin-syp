@@ -51,7 +51,7 @@ export function Navbar() {
             <li key={l.href}>
               <Link href={l.href} className="group relative rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white">
                 {l.label}
-                <span className="absolute inset-x-4 -bottom-0.5 h-px scale-x-0 bg-gradient-to-r from-blue to-emerald transition-transform duration-300 group-hover:scale-x-100" />
+                <span className="absolute inset-x-4 -bottom-0.5 h-px scale-x-0 bg-blue transition-transform duration-300 group-hover:scale-x-100" />
               </Link>
             </li>
           ))}

@@ -31,7 +31,7 @@ export function ReminderTimeline() {
       <ol className="relative flex items-start justify-between px-1">
         <span className="absolute left-6 right-6 top-5 h-[2px] bg-white/10" aria-hidden />
         <motion.span
-          className={cn("absolute left-6 top-5 h-[2px]", paid ? "bg-emerald" : "bg-gradient-to-r from-blue to-emerald")}
+          className={cn("absolute left-6 top-5 h-[2px]", paid ? "bg-emerald" : "bg-blue")}
           animate={{ width: paid ? "calc(100% - 3rem)" : `calc(${(step / (r.steps.length - 1)) * 100}% - ${(step / (r.steps.length - 1)) * 3}rem)` }}
           transition={{ duration: 0.5 }}
           aria-hidden
@@ -51,7 +51,7 @@ export function ReminderTimeline() {
                 aria-current={active ? "step" : undefined}
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full border transition-all",
-                  paid ? "border-emerald/50 bg-emerald/20 text-emerald" : active ? "border-cyan bg-blue text-white shadow-[0_0_24px_rgba(0,102,255,0.8)]" : done ? "border-blue/50 bg-blue/20 text-sky-300" : "border-white/10 bg-ink text-slate-500",
+                  paid ? "border-emerald/50 bg-emerald/20 text-emerald" : active ? "border-cyan bg-blue text-white" : done ? "border-blue/50 bg-blue/20 text-sky-300" : "border-white/10 bg-ink text-slate-500",
                 )}
               >
                 <Icon className="h-4 w-4" />

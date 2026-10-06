@@ -91,8 +91,7 @@ export function RoiCalculator() {
                 </div>
               ))}
 
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue to-emerald p-6 text-white">
-                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/20 blur-2xl" aria-hidden />
+              <div className="relative overflow-hidden rounded-2xl bg-blue p-6 text-white">
                 <p className="relative flex items-center gap-2 text-sm font-semibold text-white/80">
                   <TrendingUp className="h-4 w-4" /> {r.roi}
                 </p>

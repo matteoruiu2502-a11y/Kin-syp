@@ -373,7 +373,6 @@ function Shell() {
   return (
     <div className="relative min-h-dvh pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
       <div className="bg-grid pointer-events-none fixed inset-0 -z-10 opacity-50" aria-hidden />
-      <div className="pointer-events-none fixed -left-40 top-0 -z-10 h-[480px] w-[480px] rounded-full bg-blue/15 blur-[140px]" aria-hidden />
 
       <header className="sticky top-0 z-40 border-b border-white/5 bg-ink/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -433,9 +432,9 @@ function Shell() {
 
         <main className="min-w-0 flex-1 px-4 py-8 sm:px-6 lg:px-10">
           {isDemo && (
-            <div data-demo-banner className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald/40 bg-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-emerald">
-                <strong>{t("Mode démonstration")}</strong> — {t("entreprise et clients belges fictifs. Testez tout librement ; les PDF portent la mention « DÉMONSTRATION ».")}
+            <div data-demo-banner className="mb-6 flex flex-col gap-3 rounded-2xl border border-blue/30 bg-blue/[0.06] px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-slate-300">
+                <strong className="text-cyan">{t("Mode démonstration")}</strong> — {t("entreprise et clients belges fictifs. Testez tout librement ; les PDF portent la mention « DÉMONSTRATION ».")}
               </p>
               <div className="flex shrink-0 gap-2">
                 <button onClick={() => window.confirm(t("Remettre la démo à zéro ?")) && void resetDemo()} className="btn-ghost !py-2 text-sm">
@@ -448,7 +447,7 @@ function Shell() {
             </div>
           )}
           {!isDemo && !subscribed && trialLeft > 0 && (
-            <div className="glow-border mb-6 flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-blue/15 to-emerald/10 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="glow-border mb-6 flex flex-col gap-3 rounded-2xl bg-blue/15 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
               <p className="flex items-start gap-3 text-slate-300">
                 <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-cyan" />
                 <span>

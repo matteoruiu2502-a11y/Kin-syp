@@ -18,11 +18,10 @@ export default function FeaturesPage() {
     <>
       <Navbar />
       <main className="overflow-x-clip pt-32 sm:pt-40">
-        <div className="absolute left-1/2 top-20 -z-10 h-[500px] w-[900px] max-w-full -translate-x-1/2 rounded-full bg-blue/10 blur-[160px]" aria-hidden />
         <section className="mx-auto max-w-7xl px-4 sm:px-6">
           <Reveal className="mx-auto mb-12 max-w-3xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald shadow-[0_0_10px_#10b981]" /> Guide
+              <span className="h-1.5 w-1.5 rounded-full bg-blue" /> Guide
             </span>
             <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl">Tout ce que Biltov fait pour vous</h1>
             <p className="mt-5 text-lg text-slate-400">Chaque fonctionnalité expliquée simplement : à quoi elle sert, où la trouver et comment l&apos;utiliser, étape par étape.</p>

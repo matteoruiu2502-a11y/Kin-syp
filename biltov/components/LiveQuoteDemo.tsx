@@ -137,7 +137,6 @@ export function LiveQuoteDemo() {
 
   return (
     <section ref={section} id="demo" className="relative py-24 sm:py-32">
-      <div className="absolute right-0 top-1/3 -z-10 h-[500px] w-[500px] rounded-full bg-emerald/10 blur-[150px]" aria-hidden />
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeading eyebrow={d.eyebrow} title={d.title} subtitle={d.subtitle} />
 
@@ -196,10 +195,10 @@ export function LiveQuoteDemo() {
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">{d.live}</span>
                   {running && (
-                    <span className="flex items-center gap-2 text-xs text-emerald">
+                    <span className="flex items-center gap-2 text-xs text-cyan">
                       <span className="flex h-3 items-end gap-[2px]">
                         {[0, 1, 2, 3].map((b) => (
-                          <motion.span key={b} className="w-[3px] rounded-full bg-emerald" animate={{ height: [3, 12, 5, 10, 3] }} transition={{ duration: 0.8, repeat: Infinity, delay: b * 0.12 }} />
+                          <motion.span key={b} className="w-[3px] rounded-full bg-blue" animate={{ height: [3, 12, 5, 10, 3] }} transition={{ duration: 0.8, repeat: Infinity, delay: b * 0.12 }} />
                         ))}
                       </span>
                       {mode === "mic" ? d.listening : <Wand2 className="h-3.5 w-3.5" />}
@@ -215,7 +214,6 @@ export function LiveQuoteDemo() {
 
             {/* PDF en temps réel */}
             <div className="relative">
-              <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-br from-blue/30 to-emerald/20 opacity-60 blur-2xl" aria-hidden />
               <div className="flex h-full min-h-[520px] flex-col theme-fixed rounded-2xl bg-white p-6 text-slate-800 shadow-2xl sm:p-8">
                 <header className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
                   <div className="flex items-center gap-2">
@@ -263,8 +261,8 @@ export function LiveQuoteDemo() {
                       {parsed.lines.map((l, i) => (
                         <motion.tr
                           key={`${i}-${l.label}`}
-                          initial={{ opacity: 0, backgroundColor: "rgba(16,185,129,0.25)" }}
-                          animate={{ opacity: 1, backgroundColor: "rgba(16,185,129,0)" }}
+                          initial={{ opacity: 0, backgroundColor: "rgba(29,78,216,0.15)" }}
+                          animate={{ opacity: 1, backgroundColor: "rgba(29,78,216,0)" }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.8 }}
                           className="border-b border-slate-100"
@@ -281,7 +279,7 @@ export function LiveQuoteDemo() {
                     {running && pending.trim() && (
                       <tr>
                         <td colSpan={4} className="px-2 py-2.5">
-                          <span className="block h-3 w-3/4 animate-pulse rounded bg-gradient-to-r from-blue/20 to-emerald/20" />
+                          <span className="block h-3 w-3/4 animate-pulse rounded bg-blue/20" />
                         </td>
                       </tr>
                     )}
@@ -297,7 +295,7 @@ export function LiveQuoteDemo() {
                   <p className="text-slate-500">
                     {d.pdf.vat} <span className="ml-3 inline-block min-w-24 text-right">{formatMoney(vat, locale)}</span>
                   </p>
-                  <p className="mt-1 rounded-lg bg-gradient-to-r from-blue to-emerald px-3 py-2 font-display text-base font-bold text-white">
+                  <p className="mt-1 rounded-lg bg-blue px-3 py-2 font-display text-base font-bold text-white">
                     {d.pdf.totalTTC} <span className="ml-3 inline-block min-w-24 text-right">{formatMoney(subtotal + vat, locale)}</span>
                   </p>
                   <p className="mt-4 self-start text-[10px] text-slate-400">{d.pdf.validity} ______________</p>

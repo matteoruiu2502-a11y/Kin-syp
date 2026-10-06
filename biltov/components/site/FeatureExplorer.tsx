@@ -42,7 +42,7 @@ export function FeatureExplorer() {
             <motion.li key={f.slug} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.45, delay: Math.min(i, 6) * 0.04 }}>
               <Link href={`/fonctionnalites/${f.slug}/`} className="card group flex h-full flex-col gap-3 p-6 transition-all hover:-translate-y-0.5 hover:border-cyan/40">
                 <span className="flex items-center justify-between">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue/20 to-emerald/20 text-cyan ring-1 ring-white/10">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue/20 text-cyan ring-1 ring-white/10">
                     <FeatureIcon name={f.icon} className="h-5 w-5" />
                   </span>
                   <ArrowUpRight className="h-5 w-5 text-slate-600 transition-colors group-hover:text-cyan" />

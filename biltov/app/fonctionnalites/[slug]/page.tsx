@@ -42,7 +42,6 @@ export default async function FeaturePage({ params }: Params) {
     <>
       <Navbar />
       <main className="overflow-x-clip pt-28 sm:pt-36">
-        <div className="absolute left-1/2 top-16 -z-10 h-[460px] w-[820px] max-w-full -translate-x-1/2 rounded-full bg-blue/10 blur-[150px]" aria-hidden />
         <article className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_340px] lg:gap-16">
           <div className="min-w-0">
             <Link href="/fonctionnalites/" className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-400 hover:text-white">
@@ -50,7 +49,7 @@ export default async function FeaturePage({ params }: Params) {
             </Link>
             <Reveal className="mt-4">
               <span className="flex items-center gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue/25 to-emerald/25 text-cyan ring-1 ring-white/10">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue/25 text-cyan ring-1 ring-white/10">
                   <FeatureIcon name={f.icon} className="h-6 w-6" />
                 </span>
                 <span className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan">{category.label}</span>
@@ -61,7 +60,7 @@ export default async function FeaturePage({ params }: Params) {
             </Reveal>
 
             <Reveal className="card mt-8 flex gap-4 p-5" delay={0.05}>
-              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-emerald" />
+              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-cyan" />
               <p className="text-sm leading-relaxed text-slate-300">
                 <strong className="text-white">Où la trouver : </strong>
                 {f.where}
@@ -73,7 +72,7 @@ export default async function FeaturePage({ params }: Params) {
               <ol className="mt-5 space-y-3">
                 {f.steps.map((s, i) => (
                   <li key={i} className="flex gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue to-emerald font-display text-sm font-bold text-white theme-fixed">{i + 1}</span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue font-display text-sm font-bold text-white theme-fixed">{i + 1}</span>
                     <span className="pt-1 text-sm leading-relaxed text-slate-200 sm:text-base">{s}</span>
                   </li>
                 ))}
@@ -88,7 +87,7 @@ export default async function FeaturePage({ params }: Params) {
                 <ul className="mt-4 space-y-2">
                   {f.tips.map((s, i) => (
                     <li key={i} className="flex gap-3 text-sm leading-relaxed text-slate-300 sm:text-base">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald" /> {s}
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue" /> {s}
                     </li>
                   ))}
                 </ul>

@@ -118,7 +118,7 @@ export function BrandingExport() {
       {/* Aperçu PDF */}
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">{b.preview}</p>
-        <motion.div layout className="overflow-hidden theme-fixed rounded-2xl bg-white text-slate-800 shadow-[0_30px_80px_-30px_rgba(0,102,255,0.6)]">
+        <motion.div layout className="overflow-hidden theme-fixed rounded-2xl bg-white text-slate-800 shadow-xl">
           <motion.div animate={{ backgroundColor: color }} className="flex items-center justify-between px-5 py-4 text-white">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white/90">

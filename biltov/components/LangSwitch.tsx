@@ -17,7 +17,7 @@ export function LangSwitch({ id = "lang-pill" }: { id?: string }) {
           aria-pressed={lang === l.id}
           className={cn("relative rounded-full px-2.5 py-1 text-xs font-semibold transition-colors", lang === l.id ? "text-white" : "text-slate-400 hover:text-white")}
         >
-          {lang === l.id && <motion.span layoutId={id} className="absolute inset-0 rounded-full bg-gradient-to-r from-blue to-emerald" transition={{ type: "spring", stiffness: 400, damping: 30 }} />}
+          {lang === l.id && <motion.span layoutId={id} className="absolute inset-0 rounded-full bg-blue" transition={{ type: "spring", stiffness: 400, damping: 30 }} />}
           <span className="relative">{l.label}</span>
         </button>
       ))}

@@ -215,7 +215,7 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
           <button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center rounded-full text-slate-300 hover:bg-white/5" aria-label="Fermer la dictée">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue to-emerald text-white theme-fixed">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue text-white theme-fixed">
             <Mic className="h-5 w-5" />
           </span>
           <span className="min-w-0 flex-1">
@@ -229,7 +229,7 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
           )}
         </header>
 
-        <div ref={list} className="flex-1 space-y-3 overflow-y-auto overscroll-contain bg-[radial-gradient(circle_at_top,rgba(0,102,255,0.08),transparent_60%)] px-3 py-4 sm:px-5" aria-live="polite">
+        <div ref={list} className="flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-4 sm:px-5" aria-live="polite">
           <BotBubble>
             <p>Bonjour ! Appuyez sur le micro et dictez votre devis.</p>
             <p className="mt-2 font-semibold">Pour un devis juste :</p>
@@ -248,7 +248,7 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
           {s.messages.map((m) =>
             m.from === "user" ? (
               <div key={m.id} className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-br-md bg-gradient-to-br from-blue to-blue/80 px-3.5 py-2.5 text-[15px] leading-relaxed text-white theme-fixed">
+                <div className="max-w-[85%] rounded-2xl rounded-br-md bg-blue px-3.5 py-2.5 text-[15px] leading-relaxed text-white theme-fixed">
                   {m.kind === "text" ? m.text : <VoiceBubble audioKey={m.audioKey} duration={m.duration} transcript={m.transcript} blobUrl={blobUrl} />}
                 </div>
               </div>
@@ -308,7 +308,7 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
                 </span>
                 {rec.elapsed > MAX_SECONDS - 15 && <span className="text-xs text-amber-200">max {MAX_SECONDS / 60} min</span>}
               </div>
-              <button type="button" onClick={() => void finishRecording()} className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue to-emerald text-white shadow-[0_0_30px_-6px_rgba(16,185,129,0.8)] theme-fixed" aria-label="Envoyer le vocal">
+              <button type="button" onClick={() => void finishRecording()} className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue text-white theme-fixed" aria-label="Envoyer le vocal">
                 <ArrowUp className="h-6 w-6" />
               </button>
             </div>
@@ -332,7 +332,7 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
                 />
               </div>
               {text.trim() ? (
-                <button type="button" onClick={() => sendText()} disabled={busy} className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue to-emerald text-white disabled:opacity-50 theme-fixed" aria-label="Envoyer le message">
+                <button type="button" onClick={() => sendText()} disabled={busy} className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue text-white disabled:opacity-50 theme-fixed" aria-label="Envoyer le message">
                   <ArrowUp className="h-6 w-6" />
                 </button>
               ) : (
@@ -350,7 +350,7 @@ export function VoiceQuoteChat({ onClose, onOpenDoc }: { onClose: () => void; on
                     holdStart.current = 0;
                   }}
                   onContextMenu={(e) => e.preventDefault()}
-                  className="flex h-14 w-14 shrink-0 touch-none select-none items-center justify-center rounded-full bg-gradient-to-br from-blue to-emerald text-white shadow-[0_0_30px_-6px_rgba(0,102,255,0.8)] disabled:opacity-50 theme-fixed"
+                  className="flex h-14 w-14 shrink-0 touch-none select-none items-center justify-center rounded-full bg-blue text-white disabled:opacity-50 theme-fixed"
                   aria-label="Appuyer pour enregistrer un vocal (ou maintenir)"
                 >
                   {rec.state === "requesting" ? <Loader2 className="h-6 w-6 animate-spin" /> : <Mic className="h-6 w-6" />}
@@ -416,7 +416,7 @@ function QuotePreview({ quoteId, onOpen, money }: { quoteId: string; onOpen: () 
   const items = q.lines.filter((l) => l.kind === "item");
   return (
     <div className="flex justify-start">
-      <div className="w-full max-w-[92%] overflow-hidden rounded-2xl border border-cyan/30 bg-gradient-to-br from-blue/10 to-emerald/5 sm:max-w-md">
+      <div className="w-full max-w-[92%] overflow-hidden rounded-2xl border border-cyan/30 bg-blue/10 sm:max-w-md">
         <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
           <span className="min-w-0">
             <span className="block text-xs font-semibold uppercase tracking-wider text-cyan">Devis {q.number}</span>

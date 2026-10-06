@@ -1,13 +1,63 @@
 @import "tailwindcss";
 
+/* ——— Palette ——————————————————————————————————————————————————————————————
+   Une seule couleur de marque (bleu) ; vert / orange / rouge réservés aux chiffres et statuts.
+   Valeurs du mode nuit ici, du mode jour plus bas (:root[data-theme="light"]).
+   Les noms Tailwind historiques pointent vers ces variables (cyan = marque, emerald = succès…),
+   ce qui évite de réécrire les composants. Les variantes « -text » sont la même teinte, ajustée
+   pour un contraste WCAG AA (≥ 4,5:1) du texte sur le fond du thème. */
+:root {
+  --brand: #1d4ed8;
+  --brand-hover: #1e40af;
+  --brand-text: #60a5fa; /* #1d4ed8 sur fond nuit : 2,8:1 → bleu plus clair pour le texte */
+  --success: #16a34a; /* encaissé, payé, accepté */
+  --warning: #ea580c; /* en attente, à relancer */
+  --danger: #dc2626; /* en retard, impayé */
+  --success-text: #16a34a;
+  --warning-text: #ea580c;
+  --danger-text: #ef4444;
+  --bg: #0b1220;
+  --card: #111a2e;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #1e293b;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+  --color-white: #f1f5f9;
+}
+
+@theme inline {
+  --color-ink: var(--bg);
+  --color-night: var(--bg);
+  --color-panel: var(--card);
+  --color-line: var(--border);
+  --color-blue: var(--brand);
+  --color-cyan: var(--brand-text);
+  --color-emerald: var(--success-text);
+  --color-emerald-500: var(--success);
+  --color-amber-200: var(--warning-text);
+  --color-amber-300: var(--warning-text);
+  --color-amber-400: var(--warning);
+  --color-orange-300: var(--warning-text);
+  --color-orange-400: var(--warning);
+  --color-orange-500: var(--warning);
+  --color-rose-200: var(--danger-text);
+  --color-rose-300: var(--danger-text);
+  --color-rose-400: var(--danger-text);
+  --color-rose-500: var(--danger);
+  --color-red-300: var(--danger-text);
+  --color-red-500: var(--danger);
+  --color-sky-200: var(--brand-text);
+  --color-sky-300: var(--brand-text);
+  --color-sky-400: var(--brand-text);
+  --color-violet-300: var(--brand-text);
+  --color-violet-400: var(--brand-text);
+  --color-violet-500: var(--brand);
+  --color-indigo-300: var(--brand-text);
+  --color-indigo-400: var(--brand-text);
+  --color-indigo-500: var(--brand);
+}
+
 @theme {
-  --color-ink: #03060d;
-  --color-night: #070c18;
-  --color-panel: #0b1324;
-  --color-line: rgb(148 163 184 / 0.12);
-  --color-blue: #0066ff;
-  --color-emerald: #10b981;
-  --color-cyan: #22d3ee;
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-syne), var(--font-jakarta), ui-sans-serif, sans-serif;
   --animate-marquee: marquee 40s linear infinite;
@@ -29,13 +79,12 @@
     color-scheme: dark;
   }
   body {
-    background: var(--color-ink);
-    color: rgb(226 232 240);
+    background: var(--bg);
+    color: var(--text);
     -webkit-font-smoothing: antialiased;
   }
   ::selection {
-    background: rgb(0 102 255 / 0.45);
-    color: white;
+    background: rgb(29 78 216 / 0.35);
   }
   [id] {
     scroll-margin-top: 6rem;
@@ -52,23 +101,18 @@
     mask-image: radial-gradient(ellipse at 50% 40%, black 30%, transparent 75%);
   }
 
+  /* Mot mis en avant dans un titre : couleur de marque unie (plus de dégradé) */
   .text-gradient {
-    background: linear-gradient(100deg, #3b82ff 0%, #22d3ee 45%, #10b981 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--brand-text);
   }
 
-  /* Carte « neumorphism discret » : relief doux + liseré lumineux */
+  /* Carte : fond uni, bordure fine, ombre douce */
   .card {
     position: relative;
     border-radius: 1.5rem;
-    background: linear-gradient(160deg, rgb(15 23 42 / 0.85), rgb(7 12 24 / 0.9));
-    border: 1px solid var(--color-line);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.05),
-      0 20px 50px -20px rgb(0 0 0 / 0.8),
-      -8px -8px 24px -18px rgb(59 130 246 / 0.15);
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
   }
 
   .glow-border {
@@ -80,7 +124,7 @@
     inset: 0;
     padding: 1px;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgb(0 102 255 / 0.8), transparent 40%, transparent 60%, rgb(16 185 129 / 0.8));
+    background: var(--border); /* bordure fixe neutre (ancien liseré dégradé) */
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -95,15 +139,13 @@
     border-radius: 9999px;
     padding: 0.8rem 1.4rem;
     font-weight: 600;
-    color: white;
-    background: linear-gradient(100deg, #0066ff, #10b981);
-    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1) inset, 0 10px 30px -8px rgb(0 102 255 / 0.7);
-    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+    color: #fff;
+    background: var(--brand);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.2);
+    transition: background-color 0.2s;
   }
   .btn-primary:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.1);
-    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.15) inset, 0 14px 40px -8px rgb(16 185 129 / 0.7);
+    background: var(--brand-hover);
   }
 
   .btn-ghost {
@@ -114,14 +156,14 @@
     border-radius: 9999px;
     padding: 0.8rem 1.4rem;
     font-weight: 600;
-    color: rgb(226 232 240);
-    background: rgb(255 255 255 / 0.04);
-    border: 1px solid rgb(255 255 255 / 0.1);
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--border);
     transition: background 0.2s, border-color 0.2s;
   }
   .btn-ghost:hover {
-    background: rgb(255 255 255 / 0.08);
-    border-color: rgb(255 255 255 / 0.2);
+    background: rgb(148 163 184 / 0.08);
+    border-color: var(--muted);
   }
 
   .range {
@@ -129,7 +171,7 @@
     width: 100%;
     height: 6px;
     border-radius: 9999px;
-    background: linear-gradient(to right, #0066ff, #10b981 var(--fill, 50%), rgb(255 255 255 / 0.08) var(--fill, 50%));
+    background: linear-gradient(to right, var(--brand) var(--fill, 50%), var(--border) var(--fill, 50%));
     outline: none;
   }
   .range::-webkit-slider-thumb {
@@ -138,7 +180,7 @@
     height: 20px;
     border-radius: 9999px;
     background: white;
-    box-shadow: 0 0 0 4px rgb(16 185 129 / 0.35), 0 0 20px rgb(16 185 129 / 0.6);
+    box-shadow: 0 0 0 1px rgb(15 23 42 / 0.15), 0 0 0 4px rgb(29 78 216 / 0.3);
     cursor: grab;
   }
   .range::-moz-range-thumb {
@@ -147,11 +189,11 @@
     border: 0;
     border-radius: 9999px;
     background: white;
-    box-shadow: 0 0 0 4px rgb(16 185 129 / 0.35), 0 0 20px rgb(16 185 129 / 0.6);
+    box-shadow: 0 0 0 1px rgb(15 23 42 / 0.15), 0 0 0 4px rgb(29 78 216 / 0.3);
     cursor: grab;
   }
   .range:focus-visible::-webkit-slider-thumb {
-    box-shadow: 0 0 0 6px rgb(0 102 255 / 0.6);
+    box-shadow: 0 0 0 6px rgb(29 78 216 / 0.5);
   }
 }
 
@@ -177,39 +219,36 @@
 :root[data-theme="light"] [class*="bg-black"] > [role="dialog"],
 :root[data-theme="light"] [class*="bg-black"] > .card {
   color-scheme: light;
-  --color-ink: #f4f6fb;
-  --color-night: #e9eef6;
-  --color-panel: #ffffff;
-  --color-line: rgb(15 23 42 / 0.1);
-  --color-white: oklch(20.8% 0.042 265.755);
+  --brand-text: #1d4ed8;
+  --success-text: #15803d; /* #16a34a sur blanc : 3,2:1 → nuance plus foncée pour le texte */
+  --warning-text: #c2410c; /* #ea580c sur blanc : 3,4:1 */
+  --danger-text: #dc2626;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #475569;
+  --border: #e2e8f0;
+  --shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 8px 24px -16px rgb(15 23 42 / 0.18);
+  --color-white: #0f172a;
   --color-slate-50: oklch(12.9% 0.042 264.695);
   --color-slate-100: oklch(20.8% 0.042 265.755);
   --color-slate-200: oklch(27.9% 0.041 260.031);
   --color-slate-300: oklch(37.2% 0.044 257.287);
-  --color-slate-400: oklch(44.6% 0.043 257.281);
+  --color-slate-400: #475569;
   --color-slate-500: oklch(52% 0.046 257.417);
   --color-slate-600: oklch(70.4% 0.04 256.788);
   --color-slate-700: oklch(86.9% 0.022 252.894);
   --color-slate-800: oklch(92.9% 0.013 255.508);
   --color-slate-900: oklch(96.8% 0.007 247.896);
-  --color-cyan: #0e7490;
-  --color-emerald: #047857;
-  --color-amber-200: oklch(47.3% 0.137 46.201);
-  --color-amber-300: oklch(55.5% 0.163 48.998);
-  --color-rose-300: oklch(58.6% 0.253 17.585);
-  --color-rose-400: oklch(58.6% 0.253 17.585);
-  --color-sky-200: oklch(44.3% 0.11 240.79);
-  --color-sky-300: oklch(50% 0.134 242.749);
-  --color-rose-200: oklch(51.4% 0.222 16.935);
-  --color-amber-400: oklch(66.6% 0.179 58.318);
-  --color-orange-300: oklch(55.3% 0.195 38.402);
-  --color-red-300: oklch(50.5% 0.213 27.518);
-  --color-violet-300: oklch(49.1% 0.27 292.581);
 }
 :root[data-theme="light"] .theme-fixed,
 :root[data-theme="light"] [class*="bg-black"],
 :root[data-theme="light"] .bg-blue {
   --color-white: #fff;
+  --brand-text: #60a5fa;
+  --success-text: #16a34a;
+  --warning-text: #ea580c;
+  --danger-text: #ef4444;
   --color-slate-50: oklch(98.4% 0.003 247.858);
   --color-slate-100: oklch(96.8% 0.007 247.896);
   --color-slate-200: oklch(92.9% 0.013 255.508);
@@ -222,30 +261,12 @@
   --color-slate-900: oklch(20.8% 0.042 265.755);
 }
 :root[data-theme="light"] body {
-  color: oklch(27.9% 0.041 260.031);
+  color: var(--text);
 }
 :root[data-theme="light"] .bg-grid {
   background-image:
     linear-gradient(to right, rgb(15 23 42 / 0.06) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(15 23 42 / 0.06) 1px, transparent 1px);
-}
-:root[data-theme="light"] .card {
-  background: linear-gradient(160deg, #ffffff, #f8fafc);
-  box-shadow:
-    0 1px 0 rgb(255 255 255) inset,
-    0 18px 40px -24px rgb(15 23 42 / 0.25);
-}
-:root[data-theme="light"] .btn-ghost {
-  color: oklch(27.9% 0.041 260.031);
-  background: rgb(15 23 42 / 0.03);
-  border-color: rgb(15 23 42 / 0.12);
-}
-:root[data-theme="light"] .btn-ghost:hover {
-  background: rgb(15 23 42 / 0.07);
-  border-color: rgb(15 23 42 / 0.2);
-}
-:root[data-theme="light"] .range {
-  background: linear-gradient(to right, #0066ff, #10b981 var(--fill, 50%), rgb(15 23 42 / 0.1) var(--fill, 50%));
 }
 
 /* ——— Mobile ———————————————————————————————————————————————————————————————
@@ -273,9 +294,8 @@ body {
   min-width: 0;
 }
 
-/* Liseré lumineux animé : un faisceau bleu → cyan → vert fait le tour du cadre (coins arrondis compris).
-   Utilisation : class="glow-ring" ; décalage optionnel : style="--glow-delay: -1.3s".
-   Hors couche Tailwind pour l'emporter sur border-* ; le pseudo-élément ne capte aucun clic. */
+/* Liseré animé très discret, en bleu de marque uniquement (mockup principal).
+   Utilisation : class="glow-ring". Le pseudo-élément ne capte aucun clic ; sans @property, bordure fixe. */
 @property --glow-angle {
   syntax: "<angle>";
   inherits: false;
@@ -283,8 +303,7 @@ body {
 }
 .glow-ring {
   --glow-angle: 0deg; /* sans @property : dégradé fixe (l'animation ne peut pas interpoler) */
-  --glow-base: rgb(0 102 255 / 0.3);
-  --glow-shadow: rgb(34 211 238 / 0.75);
+  --glow-base: var(--border);
   position: relative;
   border-color: transparent !important;
 }
@@ -293,25 +312,20 @@ body {
   position: absolute;
   inset: 0;
   z-index: 3;
-  padding: 1.5px;
+  padding: 1px;
   border-radius: inherit;
   pointer-events: none;
-  background: conic-gradient(from var(--glow-angle), var(--glow-base) 0deg 235deg, #0066ff 280deg, #22d3ee 315deg, #10b981 345deg, var(--glow-base) 360deg);
+  background: conic-gradient(from var(--glow-angle), var(--glow-base) 0deg 270deg, rgb(29 78 216 / 0.7) 330deg, var(--glow-base) 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  filter: drop-shadow(0 0 5px var(--glow-shadow));
-  animation: glow-spin 4s linear infinite;
+  animation: glow-spin 6s linear infinite;
   animation-delay: var(--glow-delay, 0s);
 }
 @keyframes glow-spin {
   to {
     --glow-angle: 360deg;
   }
-}
-:root[data-theme="light"] .glow-ring:not(.theme-fixed) {
-  --glow-base: rgb(0 102 255 / 0.22);
-  --glow-shadow: rgb(0 102 255 / 0.35);
 }
 @media (prefers-reduced-motion: reduce) {
   .glow-ring::after {
