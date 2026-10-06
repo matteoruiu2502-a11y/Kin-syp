@@ -38,11 +38,11 @@ export function BentoCard({
       >
         <div
           className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{ background: "radial-gradient(420px circle at var(--mx) var(--my), rgba(0,102,255,0.14), transparent 60%)" }}
+          style={{ background: "radial-gradient(420px circle at var(--mx) var(--my), rgba(29,78,216,0.08), transparent 60%)" }}
           aria-hidden
         />
         <div className="relative flex items-start gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-blue/30 to-emerald/20 shadow-[0_0_24px_-6px_rgba(0,102,255,0.8)]">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-blue/30">
             <Icon className="h-5 w-5 text-white" />
           </span>
           <div>

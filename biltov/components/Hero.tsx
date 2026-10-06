@@ -23,8 +23,6 @@ export function Hero() {
     <section id="top" className="relative isolate min-h-[100svh] overflow-hidden pt-28 lg:pt-32">
       {/* Fond : grille + halos néon */}
       <div className="bg-grid absolute inset-0 -z-10" aria-hidden />
-      <div className="absolute -left-40 top-20 -z-10 h-[520px] w-[520px] rounded-full bg-blue/25 blur-[140px]" aria-hidden />
-      <div className="absolute -right-20 bottom-0 -z-10 h-[480px] w-[480px] rounded-full bg-emerald/20 blur-[140px]" aria-hidden />
 
       <div className="mx-auto flex max-w-7xl flex-col px-4 sm:px-6 lg:min-h-[calc(100svh-8rem)] lg:justify-center">
         <div className="relative z-10 pb-4 lg:max-w-[40rem] lg:pb-20">

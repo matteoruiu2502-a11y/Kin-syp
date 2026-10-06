@@ -21,7 +21,7 @@ const BEFORE_BG = [
 const AFTER_BG = [
   "linear-gradient(90deg, rgba(255,255,255,0.35) 1px, transparent 1px)",
   "linear-gradient(0deg, rgba(255,255,255,0.35) 1px, transparent 1px)",
-  "linear-gradient(135deg, #dbeafe, #a7f3d0)",
+  "linear-gradient(135deg, #f1f5f9, #cbd5e1)",
 ].join(",");
 
 export function PhotoMargin() {
@@ -70,7 +70,7 @@ export function PhotoMargin() {
             <div key={item.label} className="flex justify-between border-b border-dashed border-slate-300 py-1">
               <span>{item.label}</span>
               <motion.span
-                animate={scan === "done" ? { backgroundColor: ["rgba(16,185,129,0)", "rgba(16,185,129,0.3)", "rgba(16,185,129,0.12)"] } : {}}
+                animate={scan === "done" ? { backgroundColor: ["rgba(29,78,216,0)", "rgba(29,78,216,0.25)", "rgba(29,78,216,0.1)"] } : {}}
                 transition={{ delay: i * 0.15, duration: 0.6 }}
                 className="rounded px-1"
               >
@@ -79,7 +79,7 @@ export function PhotoMargin() {
             </div>
           ))}
           {scan === "scanning" && (
-            <span className="absolute inset-x-0 h-0.5 animate-scan bg-emerald shadow-[0_0_16px_4px_rgba(16,185,129,0.8)]" />
+            <span className="absolute inset-x-0 h-0.5 animate-scan bg-blue" />
           )}
         </div>
 

@@ -76,10 +76,10 @@ function buildPieces(): Piece[] {
 }
 
 const STYLE: Record<PieceKind, { fill: string; emissive: string; emissiveIntensity: number; opacity: number; edge: string }> = {
-  column: { fill: "#0f1d33", emissive: "#0b2a5c", emissiveIntensity: 0.4, opacity: 1, edge: "#38bdf8" },
-  slab: { fill: "#0d1a2e", emissive: "#0a2350", emissiveIntensity: 0.35, opacity: 1, edge: "#22d3ee" },
-  glass: { fill: "#0a3a7a", emissive: "#0066ff", emissiveIntensity: 0.55, opacity: 0.42, edge: "#60a5fa" },
-  block: { fill: "#0c2a26", emissive: "#10b981", emissiveIntensity: 0.28, opacity: 0.9, edge: "#34d399" },
+  column: { fill: "#111a2e", emissive: "#0b1a3a", emissiveIntensity: 0.3, opacity: 1, edge: "#64748b" },
+  slab: { fill: "#111a2e", emissive: "#0b1a3a", emissiveIntensity: 0.3, opacity: 1, edge: "#94a3b8" },
+  glass: { fill: "#1d4ed8", emissive: "#1d4ed8", emissiveIntensity: 0.3, opacity: 0.35, edge: "#60a5fa" },
+  block: { fill: "#1e293b", emissive: "#0f172a", emissiveIntensity: 0.2, opacity: 0.9, edge: "#64748b" },
 };
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -94,7 +94,7 @@ function Building({ reduced }: { reduced: boolean }) {
   const ringMat = useRef<THREE.MeshBasicMaterial>(null);
   const boxGeo = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
   const edgeGeo = useMemo(() => new THREE.EdgesGeometry(boxGeo), [boxGeo]);
-  const tmp = useMemo(() => ({ bright: new THREE.Color("#e0f2fe"), c: new THREE.Color() }), []);
+  const tmp = useMemo(() => ({ bright: new THREE.Color("#dbeafe"), c: new THREE.Color() }), []);
   const lastDelay = useMemo(() => Math.max(...pieces.map((p) => p.delay)), [pieces]);
 
   useEffect(() => () => {
@@ -165,7 +165,7 @@ function Building({ reduced }: { reduced: boolean }) {
 
       <mesh ref={ring} rotation-x={-Math.PI / 2} position={[0.3, 0, 0.05]}>
         <ringGeometry args={[2.35, 2.42, 96]} />
-        <meshBasicMaterial ref={ringMat} color="#10b981" transparent opacity={0} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} depthWrite={false} />
+        <meshBasicMaterial ref={ringMat} color="#1d4ed8" transparent opacity={0} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
     </group>
   );
@@ -188,20 +188,20 @@ function Crane({ reduced }: { reduced: boolean }) {
   return (
     <group position={[-2.9, 0, -1.6]}>
       <lineSegments geometry={mastGeo} position={[0, 2.3, 0]}>
-        <lineBasicMaterial color="#f59e0b" transparent opacity={0.55} />
+        <lineBasicMaterial color="#64748b" transparent opacity={0.55} />
       </lineSegments>
       <group ref={jib} position={[0, 4.65, 0]}>
         <lineSegments geometry={jibGeo} position={[1.1, 0, 0]}>
-          <lineBasicMaterial color="#fbbf24" transparent opacity={0.6} />
+          <lineBasicMaterial color="#94a3b8" transparent opacity={0.6} />
         </lineSegments>
         <lineSegments geometry={counterGeo} position={[-0.6, -0.1, 0]}>
-          <lineBasicMaterial color="#fbbf24" transparent opacity={0.5} />
+          <lineBasicMaterial color="#94a3b8" transparent opacity={0.5} />
         </lineSegments>
         <group position={[2.5, 0, 0]}>
           <group ref={hook} position={[0, -0.9, 0]}>
             <mesh>
               <boxGeometry args={[0.1, 0.1, 0.1]} />
-              <meshBasicMaterial color="#fbbf24" />
+              <meshBasicMaterial color="#94a3b8" />
             </mesh>
           </group>
         </group>
@@ -217,8 +217,8 @@ function Sparks({ count = 520, reduced }: { count?: number; reduced: boolean }) 
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     const speeds = new Float32Array(count);
-    const blue = new THREE.Color("#3b82ff");
-    const green = new THREE.Color("#10b981");
+    const blue = new THREE.Color("#1d4ed8");
+    const green = new THREE.Color("#94a3b8"); // particules : bleu de marque → gris
     const c = new THREE.Color();
     for (let i = 0; i < count; i++) {
       const r = 1.2 + Math.random() * 3.6;
@@ -259,14 +259,23 @@ function Sparks({ count = 520, reduced }: { count?: number; reduced: boolean }) 
 function Ground() {
   return (
     <group>
-      <gridHelper args={[24, 48, "#0b4bd1", "#0c1a33"]} position={[0, 0, 0]} />
+      <gridHelper
+        args={[24, 48, "#334155", "#334155"]}
+        position={[0, 0, 0]}
+        onUpdate={(g: THREE.GridHelper) => {
+          // grille discrète, lisible sur fond clair comme sur fond sombre
+          const m = g.material as THREE.Material;
+          m.transparent = true;
+          m.opacity = 0.25;
+        }}
+      />
       <mesh rotation-x={-Math.PI / 2} position={[0.3, 0.005, 0]}>
         <circleGeometry args={[3.4, 64]} />
-        <meshBasicMaterial color="#0066ff" transparent opacity={0.08} blending={THREE.AdditiveBlending} depthWrite={false} />
+        <meshBasicMaterial color="#1d4ed8" transparent opacity={0.05} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
       <mesh rotation-x={-Math.PI / 2} position={[0.3, 0.006, 0]}>
         <ringGeometry args={[3.35, 3.4, 96]} />
-        <meshBasicMaterial color="#22d3ee" transparent opacity={0.35} blending={THREE.AdditiveBlending} depthWrite={false} />
+        <meshBasicMaterial color="#1d4ed8" transparent opacity={0.2} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
     </group>
   );
@@ -318,10 +327,10 @@ export default function HeroScene() {
         eventSource={typeof document !== "undefined" ? document.body : undefined}
         eventPrefix="client"
       >
-        <fog attach="fog" args={["#03060d", 9, 20]} />
+        <fog attach="fog" args={["#0b1220", 9, 20]} />
         <ambientLight intensity={0.35} />
-        <pointLight position={[4, 6, 4]} intensity={40} color="#3b82ff" />
-        <pointLight position={[-4, 3, -2]} intensity={25} color="#10b981" />
+        <pointLight position={[4, 6, 4]} intensity={30} color="#1d4ed8" />
+        <pointLight position={[-4, 3, -2]} intensity={15} color="#94a3b8" />
         <directionalLight position={[2, 8, 5]} intensity={0.6} />
         <Rig reduced={reduced}>
           <Building reduced={reduced} />

@@ -15,7 +15,7 @@ export function IPhoneFrame({ children, className, label }: { children: ReactNod
       <span aria-hidden className="absolute -right-[3px] top-[28%] h-[13%] w-[3px] rounded-r-sm bg-gradient-to-b from-slate-500 to-slate-700" />
       <div className="rounded-[3.1rem] bg-gradient-to-br from-slate-500 via-slate-700 to-slate-600 p-[3px] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.75),0_0_0_1px_rgba(255,255,255,0.06)]">
         <div className="rounded-[2.95rem] bg-black p-[9px]">
-          <div className="relative aspect-[390/844] overflow-hidden rounded-[2.35rem] bg-[#03060d]">
+          <div className="relative aspect-[390/844] overflow-hidden rounded-[2.35rem] bg-[#0b1220]">
             {children}
             {/* Dynamic Island */}
             <span aria-hidden className="absolute left-1/2 top-[1.4%] h-[3.6%] w-[31%] -translate-x-1/2 rounded-full bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.04)]" />
@@ -24,7 +24,7 @@ export function IPhoneFrame({ children, className, label }: { children: ReactNod
           </div>
         </div>
       </div>
-      {label && <figcaption className="mt-4 text-center text-sm text-slate-400">{label}</figcaption>}
+      {label && <figcaption className="mt-4 text-center text-sm text-[var(--muted)]">{label}</figcaption>}
     </figure>
   );
 }

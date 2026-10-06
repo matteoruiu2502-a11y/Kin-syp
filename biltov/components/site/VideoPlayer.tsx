@@ -32,7 +32,7 @@ export function VideoPlayer({ video, className, style }: { video: Video; classNa
   }, [wantPlay, near]);
 
   return (
-    <div ref={box} className={cn("relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#03060d] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)] theme-fixed", video.orientation === "portrait" ? "aspect-[9/16]" : "aspect-video", className)} style={style}>
+    <div ref={box} className={cn("relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0b1220] shadow-[var(--shadow)] theme-fixed", video.orientation === "portrait" ? "aspect-[9/16]" : "aspect-video", className)} style={style}>
       {!src ? (
         <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-slate-400">
           <Clapperboard className="h-8 w-8 text-cyan" />
@@ -50,15 +50,15 @@ export function VideoPlayer({ video, className, style }: { video: Video; classNa
         <button
           type="button"
           onClick={() => (setNear(true), setWantPlay(true))}
-          className="group absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/70 via-black/10 to-transparent"
+          className="group absolute inset-0 flex items-end"
           aria-label={`Lire la vidéo : ${video.title}`}
         >
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue to-emerald text-white shadow-[0_0_40px_-6px_rgba(16,185,129,0.8)] transition-transform group-hover:scale-110">
-            <Play className="ml-1 h-7 w-7 fill-current" />
-          </span>
-          <span className="absolute inset-x-0 bottom-0 p-5 text-left">
-            <span className="block font-display text-lg font-bold text-white">{video.title}</span>
-            {video.duration && <span className="text-xs text-slate-300">{video.duration}</span>}
+          {/* Bouton lecture discret en bas à gauche (le titre est déjà sous la carte) : il ne cache pas l'aperçu */}
+          <span className="m-3 flex items-center gap-2 rounded-full bg-black/60 py-1.5 pl-1.5 pr-3 text-xs font-semibold text-white backdrop-blur-sm sm:m-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue transition-colors group-hover:bg-[var(--brand-hover)]">
+              <Play className="ml-0.5 h-4 w-4 fill-current" />
+            </span>
+            {video.duration ?? "Lire"}
           </span>
         </button>
       )}

@@ -137,7 +137,7 @@ export function HelpChat() {
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => (setOpen(true), setTimeout(() => field.current?.focus(), 250))}
             className={cn(
-              "fixed right-4 z-[55] flex h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-gradient-to-br from-blue to-emerald px-4 font-semibold sm:pr-5 text-white shadow-[0_12px_40px_-8px_rgba(0,102,255,0.7)] transition-transform hover:scale-105 theme-fixed sm:right-6",
+              "fixed right-4 z-[55] flex h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-blue px-4 font-semibold sm:pr-5 text-white shadow-lg transition-transform hover:scale-105 theme-fixed sm:right-6",
               inApp ? "bottom-[calc(5.25rem+env(safe-area-inset-bottom))] md:bottom-6" : "bottom-[calc(1rem+env(safe-area-inset-bottom))] sm:bottom-6",
             )}
             aria-label="Ouvrir l'aide Biltov"
@@ -161,7 +161,7 @@ export function HelpChat() {
             className="fixed inset-0 z-[80] flex h-[100dvh] flex-col bg-ink sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[min(680px,calc(100dvh-3rem))] sm:w-[400px] sm:overflow-hidden sm:rounded-3xl sm:border sm:border-white/10 sm:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]"
           >
             <header className="flex items-center gap-3 border-b border-white/10 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] sm:pt-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue to-emerald text-white theme-fixed">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue text-white theme-fixed">
                 <LifeBuoy className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
@@ -239,7 +239,7 @@ export function HelpChat() {
                     <Square className="h-4 w-4 fill-current" />
                   </button>
                 ) : (
-                  <button type="submit" disabled={!input.trim()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue to-emerald text-white disabled:opacity-40 theme-fixed" aria-label="Envoyer">
+                  <button type="submit" disabled={!input.trim()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue text-white disabled:opacity-40 theme-fixed" aria-label="Envoyer">
                     <ArrowUp className="h-5 w-5" />
                   </button>
                 )}
@@ -263,7 +263,7 @@ export function HelpChat() {
 function Bubble({ role, children }: { role: "user" | "assistant"; children: React.ReactNode }) {
   return (
     <div className={cn("flex", role === "user" ? "justify-end" : "justify-start")}>
-      <div className={cn("max-w-[88%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed", role === "user" ? "rounded-br-md bg-gradient-to-br from-blue to-blue/80 text-white theme-fixed" : "rounded-bl-md border border-white/10 bg-white/[0.04] text-slate-200")}>{children}</div>
+      <div className={cn("max-w-[88%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed", role === "user" ? "rounded-br-md bg-blue text-white theme-fixed" : "rounded-bl-md border border-white/10 bg-white/[0.04] text-slate-200")}>{children}</div>
     </div>
   );
 }

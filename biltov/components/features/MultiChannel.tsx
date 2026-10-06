@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 
 type ChannelId = "email" | "whatsapp" | "sms";
 const CHANNELS: { id: ChannelId; icon: LucideIcon; color: string }[] = [
-  { id: "email", icon: Mail, color: "#3b82ff" },
-  { id: "whatsapp", icon: MessageCircle, color: "#25d366" },
-  { id: "sms", icon: Smartphone, color: "#22d3ee" },
+  { id: "email", icon: Mail, color: "var(--brand-text)" },
+  { id: "whatsapp", icon: MessageCircle, color: "var(--brand-text)" },
+  { id: "sms", icon: Smartphone, color: "var(--brand-text)" },
 ];
 
 export function MultiChannel() {
@@ -32,7 +32,7 @@ export function MultiChannel() {
         <motion.span
           animate={status === "sending" ? { scale: [1, 1.08, 1], rotate: [0, -4, 4, 0] } : { scale: 1 }}
           transition={{ duration: 0.7, repeat: status === "sending" ? Infinity : 0 }}
-          className="flex h-14 w-14 items-center justify-center theme-fixed rounded-2xl bg-white text-blue shadow-[0_0_40px_-6px_rgba(0,102,255,0.9)]"
+          className="flex h-14 w-14 items-center justify-center theme-fixed rounded-2xl bg-white text-blue"
         >
           <FileText className="h-6 w-6" />
         </motion.span>
@@ -45,7 +45,7 @@ export function MultiChannel() {
             {status === "sending" && on && (
               <motion.span
                 className="absolute inset-y-0 left-0 w-1/3"
-                style={{ background: `linear-gradient(90deg, transparent, ${color}40, transparent)` }}
+                style={{ background: "linear-gradient(90deg, transparent, rgb(29 78 216 / 0.15), transparent)" }}
                 initial={{ x: "-100%" }}
                 animate={{ x: "300%" }}
                 transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15 }}
@@ -68,7 +68,7 @@ export function MultiChannel() {
                   aria-label={c[id]}
                   disabled={status !== "idle"}
                   onClick={() => setEnabled((e) => ({ ...e, [id]: !e[id] }))}
-                  className={cn("relative h-6 w-11 rounded-full transition-colors", on ? "bg-gradient-to-r from-blue to-emerald" : "bg-white/10")}
+                  className={cn("relative h-6 w-11 rounded-full transition-colors", on ? "bg-blue" : "bg-white/10")}
                 >
                   <motion.span layout className={cn("absolute top-1 theme-fixed h-4 w-4 rounded-full bg-white", on ? "right-1" : "left-1")} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
                 </button>

@@ -64,7 +64,6 @@ export function AuthScreen() {
   return (
     <div className="relative flex min-h-dvh items-center justify-center px-4 py-12">
       <div className="bg-grid pointer-events-none fixed inset-0 -z-10" aria-hidden />
-      <div className="pointer-events-none fixed left-1/2 top-1/3 -z-10 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-gradient-to-r from-blue/20 to-emerald/15 blur-[140px]" aria-hidden />
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <div className="mb-8 flex items-center justify-between">
@@ -80,7 +79,7 @@ export function AuthScreen() {
           type="button"
           onClick={demo}
           disabled={busy}
-          className="mb-4 flex w-full items-center gap-4 rounded-2xl border border-emerald/40 bg-gradient-to-r from-emerald/15 to-blue/10 p-4 text-left transition-colors hover:border-emerald disabled:opacity-60"
+          className="mb-4 flex w-full items-center gap-4 rounded-2xl border border-emerald/40 bg-blue/10 p-4 text-left transition-colors hover:border-emerald disabled:opacity-60"
         >
           <PlayCircle className="h-9 w-9 shrink-0 text-emerald" />
           <span>
@@ -99,7 +98,7 @@ export function AuthScreen() {
                   setMode(m);
                   setError(null);
                 }}
-                className={cn("rounded-lg py-2 text-sm font-semibold transition-colors", mode === m ? "bg-gradient-to-r from-blue to-emerald text-white" : "text-slate-400 hover:text-white")}
+                className={cn("rounded-lg py-2 text-sm font-semibold transition-colors", mode === m ? "bg-blue text-white" : "text-slate-400 hover:text-white")}
               >
                 {m === "signup" ? t("Créer un compte") : t("Se connecter")}
               </button>

@@ -50,7 +50,7 @@ export function TradeOnboarding() {
                   )}
                 >
                   {selected && (
-                    <motion.span layoutId="trade-pill" className="absolute inset-0 rounded-xl border border-white/10 bg-gradient-to-br from-blue/40 to-emerald/30 shadow-[0_0_30px_-5px_rgba(0,102,255,0.6)]" transition={{ type: "spring", stiffness: 380, damping: 32 }} />
+                    <motion.span layoutId="trade-pill" className="absolute inset-0 rounded-xl bg-blue" transition={{ type: "spring", stiffness: 380, damping: 32 }} />
                   )}
                   <Icon className="relative h-4 w-4" />
                   <span className="relative">{tr.name}</span>
@@ -64,9 +64,9 @@ export function TradeOnboarding() {
           <div className="card glow-ring overflow-hidden">
             {/* Barre de fenêtre façon app */}
             <div className="flex items-center gap-2 border-b border-white/5 px-5 py-3">
-              <span className="h-3 w-3 rounded-full bg-red-500/70" />
-              <span className="h-3 w-3 rounded-full bg-amber-400/70" />
-              <span className="h-3 w-3 rounded-full bg-emerald/70" />
+              <span className="h-3 w-3 rounded-full bg-slate-500/40" />
+              <span className="h-3 w-3 rounded-full bg-slate-500/40" />
+              <span className="h-3 w-3 rounded-full bg-slate-500/40" />
               <span className="ml-3 text-xs text-slate-500">app.biltov.eu / {trade.name.toLowerCase()}</span>
             </div>
 
@@ -93,7 +93,7 @@ export function TradeOnboarding() {
 
                   <div>
                     <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
-                      <Sparkles className="h-3.5 w-3.5 text-emerald" /> {L.jargon}
+                      <Sparkles className="h-3.5 w-3.5" /> {L.jargon}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {trade.jargon.map((j, i) => (
@@ -102,7 +102,7 @@ export function TradeOnboarding() {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.1 + i * 0.05 }}
-                          className="rounded-full border border-emerald/30 bg-emerald/10 px-3 py-1 text-xs font-medium text-emerald"
+                          className="rounded-full border border-line bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-300"
                         >
                           {j}
                         </motion.span>

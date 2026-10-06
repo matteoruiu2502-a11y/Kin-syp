@@ -78,7 +78,7 @@ export function SubTabs<T extends string>({ tabs, value, onChange }: { tabs: { i
           role="tab"
           aria-selected={value === tb.id}
           onClick={() => onChange(tb.id)}
-          className={cn("flex shrink-0 items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors", value === tb.id ? "bg-gradient-to-r from-blue/40 to-emerald/30 text-white" : "text-slate-400 hover:text-white")}
+          className={cn("flex shrink-0 items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors", value === tb.id ? "bg-blue text-white" : "text-slate-400 hover:text-white")}
         >
           {tb.label}
           {tb.count !== undefined && <span className="rounded-full bg-white/10 px-1.5 text-[10px] tabular-nums">{tb.count}</span>}

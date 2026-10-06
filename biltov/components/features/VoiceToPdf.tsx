@@ -53,7 +53,7 @@ export function VoiceToPdf() {
             return (
               <motion.span
                 key={i}
-                className="w-[4px] rounded-full bg-gradient-to-t from-blue to-emerald"
+                className="w-[4px] rounded-full bg-blue"
                 animate={
                   phase === "listening"
                     ? { height: [8, 12 + center * 60 * ((i * 37) % 10) / 10 + 6, 10, 18 + center * 40, 8] }
@@ -72,12 +72,12 @@ export function VoiceToPdf() {
       </div>
 
       {/* PDF généré */}
-      <div className="relative overflow-hidden theme-fixed rounded-2xl bg-white p-5 text-slate-800 shadow-[0_20px_60px_-20px_rgba(16,185,129,0.5)]">
+      <div className="relative overflow-hidden theme-fixed rounded-2xl bg-white p-5 text-slate-800 shadow-xl">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2 text-xs font-bold tracking-wider text-blue">
             <FileText className="h-4 w-4" /> {v.quote}
           </span>
-          <span className="h-6 w-14 rounded bg-gradient-to-r from-blue to-emerald" />
+          <span className="h-6 w-14 rounded bg-blue" />
         </div>
         <div className="mt-4 space-y-1.5">
           <div className="h-2 w-2/3 rounded bg-slate-200" />
@@ -107,7 +107,7 @@ export function VoiceToPdf() {
           </div>
         )}
         <motion.div
-          className="mt-5 h-8 rounded-lg bg-gradient-to-r from-blue to-emerald"
+          className="mt-5 h-8 rounded-lg bg-blue"
           initial={false}
           animate={{ width: phase === "ready" ? `${Math.min(100, readyProgress * 260)}%` : "0%" }}
         />

@@ -32,7 +32,7 @@ export function Faq() {
                       <span className="font-semibold text-white">{item.q}</span>
                       <motion.span
                         animate={{ rotate: isOpen ? 45 : 0 }}
-                        className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors", isOpen ? "border-transparent bg-gradient-to-br from-blue to-emerald" : "border-white/10")}
+                        className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors", isOpen ? "border-transparent bg-blue" : "border-white/10")}
                       >
                         <Plus className="h-4 w-4 text-white" />
                       </motion.span>

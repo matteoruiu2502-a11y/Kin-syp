@@ -31,7 +31,7 @@ export function VoiceInput({ onResult, compact }: { onResult: (r: ParsedQuote, t
   }, [listening]);
 
   return (
-    <div className={cn("rounded-2xl border border-white/10 bg-gradient-to-br from-blue/10 to-emerald/5 p-4", compact && "p-3")}>
+    <div className={cn("rounded-2xl border border-white/10 bg-blue/10 p-4", compact && "p-3")}>
       <div className="flex flex-wrap items-center gap-2">
         {supported && !typing ? (
           listening ? (
