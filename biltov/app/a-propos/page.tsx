@@ -21,7 +21,7 @@ const EVOLUTION =
   "Le produit évolue en continu, en étroite collaboration avec ses utilisateurs. Pour toute question ou suggestion, vous pouvez nous contacter directement : chaque retour contribue à améliorer la solution.";
 
 // Photo du fondateur (optionnelle) : déposer l'image dans public/ et renseigner son chemin ici.
-const FOUNDER_PHOTO = "";
+const FOUNDER_PHOTO = "/brand/matteo-fondateur.jpg";
 
 export default function AboutPage() {
   const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
@@ -44,7 +44,7 @@ export default function AboutPage() {
             <div className="flex items-center gap-4">
               {FOUNDER_PHOTO ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={`${base}${FOUNDER_PHOTO}`} alt="Matteo, fondateur de Biltov" className="h-16 w-16 rounded-full border border-white/10 object-cover" />
+                <img src={`${base}${FOUNDER_PHOTO}`} alt="Matteo, fondateur de Biltov" width={400} height={400} className="h-16 w-16 shrink-0 rounded-full border border-white/10 object-cover sm:h-20 sm:w-20" />
               ) : (
                 <span aria-hidden className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-blue font-display text-2xl font-bold text-white">
                   M
