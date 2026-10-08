@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { emptyAccountData, newClient, newDoc, newJob } from "./defaults";
 import { DEFAULT_PERMISSIONS, deniedWrites, migrateRoles, permissionsOf, rolePermissions, workerOnly } from "./permissions";
 import type { AccountData, Member, Role } from "./types";
+import { newWeatherDay } from "./weather";
 
 const member = (id: string, role: Role, extra: Partial<Member> = {}): Member => ({ id, name: id, role, phone: "", email: "", lang: "fr", hourlyCost: 30, color: "", pin: "1234", active: true, ...extra });
 
@@ -99,5 +100,24 @@ describe("droits d'accès", () => {
     const old = { ...d, members: [{ ...member("o", "secretary"), role: "office" as unknown as Role }] };
     expect(migrateRoles(old).members[0].role).toBe("secretary");
     expect(Object.keys(DEFAULT_PERMISSIONS)).toHaveLength(5);
+  });
+
+  it("intempéries : l'ouvrier déclare les siennes, seul un administrateur valide", () => {
+    const d = base();
+    const mine = newWeatherDay({ id: "w1", start: "2026-10-06", createdBy: "w", createdById: "w", jobIds: ["j"] });
+    const add = { ...d, weatherDays: [mine] };
+    expect(deniedWrites(d, add, who(d, "w"))).toEqual([]);
+    // modifier l'intempérie d'un autre : non
+    const other = { ...d, weatherDays: [{ ...mine, createdById: "boss" }] };
+    expect(deniedWrites(other, { ...other, weatherDays: [{ ...other.weatherDays[0], comment: "x" }] }, who(d, "w"))).toEqual(["planning"]);
+    // valider : l'administrateur oui, la secrétaire (droit planning) et l'ouvrier non
+    const validate = { ...add, weatherDays: [{ ...mine, status: "validated" as const }] };
+    expect(deniedWrites(add, validate, who(d, "adm"))).toEqual([]);
+    expect(deniedWrites(add, validate, who(d, "sec"))).toEqual(["planning"]);
+    expect(deniedWrites(add, validate, who(d, "w"))).toEqual(["planning"]);
+    // une intempérie validée ne peut plus être modifiée par l'ouvrier
+    expect(deniedWrites(validate, { ...validate, weatherDays: [{ ...validate.weatherDays[0], comment: "x" }] }, who(d, "w"))).toEqual(["planning"]);
+    // le comptable lit le planning (exports) sans le modifier
+    expect(permissionsOf(d.settings, who(d, "acc")).planning).toBe("read");
   });
 });

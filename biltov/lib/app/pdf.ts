@@ -351,3 +351,144 @@ export async function buildReportPdf(report: Report, job: Job, client: Client | 
   footer(pdf, data, lang, watermark);
   return pdf;
 }
+
+// ── Rapport d'intempéries ────────────────────────────────────────────────────
+
+const BXL: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Brussels" };
+
+/** Image quelconque (PNG, JPEG, WebP…) → JPEG utilisable par jsPDF, avec ses dimensions. */
+async function toJpeg(blob: Blob, max = 1200): Promise<{ url: string; w: number; h: number } | null> {
+  try {
+    const bmp = await createImageBitmap(blob);
+    const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const canvas = Object.assign(document.createElement("canvas"), { width: Math.round(bmp.width * s), height: Math.round(bmp.height * s) });
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    bmp.close();
+    return { url: canvas.toDataURL("image/jpeg", 0.82), w: canvas.width, h: canvas.height };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Rapport d'intempéries d'un chantier (ou de tous) sur une période : liste détaillée, heures perdues,
+ * preuves jointes avec leur empreinte et miniatures, photos du chantier. Pièce justificative pour un client,
+ * un assureur ou un dossier de chômage temporaire (ne remplace pas la déclaration officielle).
+ */
+export async function buildWeatherReport(
+  opts: { days: import("./types").WeatherDay[]; job: Job | null; from: string; to: string; author: string },
+  data: AccountData,
+  getBlob: (key: string) => Promise<Blob | undefined>,
+  watermark?: string,
+) {
+  const { KIND_LABEL, IMPACT_LABEL, DURATION_LABEL, STATUS_LABEL, displayStatus, delayDays } = await import("./weather");
+  const { jsPDF, autoTable } = await pdfLib();
+  const lang: Lang = "fr";
+  const pdf = new jsPDF({ unit: "mm", format: "a4" });
+  const fr = (iso: string) => fmtDate(iso, lang);
+  const { job, days } = opts;
+  const client = job ? data.clients.find((c) => c.id === job.clientId) : undefined;
+  let y = header(pdf, data, "Rapport d'intempéries", [["Chantier", job ? job.name : "Tous les chantiers"], ["Période", `${fr(opts.from)} – ${fr(opts.to)}`]], lang);
+  if (job) y += box(pdf, M, y, W - 2 * M, "Client et adresse du chantier", [client?.name ?? "", job.siteAddress || (client ? addr(client.billing).join(", ") : "")]) + 6;
+
+  const cal = data.settings.planning;
+  const hours = days.reduce((s, w) => s + w.hoursLost, 0);
+  const delay = days.reduce((s, w) => s + delayDays(w, cal), 0);
+  const toJustify = days.filter((w) => displayStatus(w) === "to_justify").length;
+  pdf.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(...INK);
+  pdf.text(
+    `${days.length} intempérie(s) · ${num(Math.round(hours * 10) / 10)} heure(s) perdue(s) · ${num(Math.round(delay * 10) / 10)} jour(s) de retard imputable(s) à la météo · ${days.length - toJustify} justifiée(s), ${toJustify} à justifier`,
+    M,
+    y,
+    { maxWidth: W - 2 * M },
+  );
+  y += 8;
+
+  const job_ = (id: string) => data.jobs.find((j) => j.id === id)?.name ?? "?";
+  const member = (id: string) => data.members.find((m) => m.id === id)?.name ?? "?";
+  const sorted = [...days].sort((a, b) => a.start.localeCompare(b.start));
+  autoTable(pdf, {
+    startY: y,
+    margin: { left: M, right: M },
+    head: [["Date", "Type", "Durée / impact", "Ouvriers", "H perdues", "Relevés", "Preuves", "Statut"]],
+    body: sorted.map((w) => [
+      w.end && w.end !== w.start ? `${fr(w.start)}\n→ ${fr(w.end)}` : fr(w.start),
+      `${KIND_LABEL[w.kind]}${job ? "" : `\n${w.jobIds.map(job_).join(", ")}`}`,
+      `${w.duration === "hours" ? `${w.fromTime}–${w.toTime}` : DURATION_LABEL[w.duration]}\n${IMPACT_LABEL[w.impact]}`,
+      w.memberIds.map(member).join(", ") || "—",
+      num(w.hoursLost),
+      [
+        w.measures.rainMm !== null ? `${num(w.measures.rainMm)} mm` : "",
+        w.measures.tMin !== null || w.measures.tMax !== null ? `${w.measures.tMin ?? "?"} / ${w.measures.tMax ?? "?"} °C` : "",
+        w.measures.windKmh !== null ? `${w.measures.windKmh} km/h` : "",
+        w.measures.source === "open-meteo" ? "(Open-Meteo, indicatif)" : "",
+      ]
+        .filter(Boolean)
+        .join("\n") || "—",
+      String(w.proofs.length),
+      STATUS_LABEL[displayStatus(w)],
+    ]),
+    styles: { fontSize: 7.5, cellPadding: 1.6, valign: "top" },
+    headStyles: { fillColor: hexToRgb(data.branding.color), fontSize: 7.5 },
+    columnStyles: { 4: { halign: "right" }, 6: { halign: "center" } },
+  });
+  y = (pdf as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+
+  // Détail des preuves : empreinte, source, miniatures
+  for (const w of sorted) {
+    if (!w.proofs.length && !w.photoIds.length && !w.comment) continue;
+    y = ensure(pdf, y, 22);
+    pdf.setFont("helvetica", "bold").setFontSize(10).setTextColor(...hexToRgb(data.branding.color)).text(`${fr(w.start)}${w.end !== w.start ? ` → ${fr(w.end)}` : ""} — ${KIND_LABEL[w.kind]}`, M, y);
+    y += 5;
+    pdf.setFont("helvetica", "normal").setFontSize(8).setTextColor(...INK);
+    if (w.comment) {
+      const n = pdf.splitTextToSize(w.comment, W - 2 * M) as string[];
+      y = ensure(pdf, y, n.length * 3.8 + 2);
+      pdf.text(n, M, y);
+      y += n.length * 3.8 + 2;
+    }
+    for (const p of w.proofs) {
+      const lines = [
+        `${p.kind === "link" ? "Lien" : "Fichier"} : ${p.name}`,
+        p.url ? `Source : ${p.url}${p.consultedAt ? ` (consultée le ${new Date(p.consultedAt).toLocaleString("fr-BE", BXL)})` : ""}` : "",
+        `Ajouté le ${new Date(p.addedAt).toLocaleString("fr-BE", BXL)} par ${p.addedBy}`,
+        p.sha256 ? `Empreinte SHA-256 : ${p.sha256}` : "",
+      ].filter(Boolean);
+      const wrapped = lines.flatMap((l) => pdf.splitTextToSize(l, W - 2 * M - 4) as string[]);
+      const blob = p.kind === "file" && p.mime.startsWith("image/") ? await getBlob(`proof:${p.id}`) : undefined;
+      const img = blob ? await toJpeg(blob) : null;
+      const ih = img ? Math.min(60, ((W - 2 * M) / 2 / img.w) * img.h) : 0;
+      y = ensure(pdf, y, wrapped.length * 3.6 + ih + 6);
+      pdf.setFontSize(7.5).setTextColor(...MUTED).text(wrapped, M + 2, y);
+      y += wrapped.length * 3.6 + 1;
+      if (img) {
+        pdf.addImage(img.url, "JPEG", M + 2, y, (ih / img.h) * img.w, ih);
+        y += ih + 3;
+      }
+      y += 2;
+    }
+    const pics = data.photos.filter((ph) => w.photoIds.includes(ph.id));
+    if (pics.length) y = await photoGrid(pdf, y, pics, (id) => getBlob(`photo:${id}`), lang);
+    y += 3;
+  }
+
+  y = ensure(pdf, y, 26);
+  pdf.setDrawColor(226, 232, 240).line(M, y, W - M, y);
+  y += 5;
+  pdf.setFont("helvetica", "normal").setFontSize(8).setTextColor(...INK);
+  pdf.text(`Établi par ${opts.author} le ${new Date().toLocaleString("fr-BE", BXL)}.`, M, y);
+  pdf.setFontSize(7).setTextColor(...MUTED);
+  pdf.text(
+    pdf.splitTextToSize(
+      "Les relevés « Open-Meteo » sont indicatifs ; la preuve officielle est le bulletin ou relevé de l'IRM joint. L'empreinte SHA-256 permet de vérifier qu'un fichier joint n'a pas été modifié depuis son ajout. Ce rapport est une pièce justificative : il ne remplace pas la déclaration de chômage temporaire auprès de l'ONEM.",
+      W - 2 * M,
+    ),
+    M,
+    y + 5,
+  );
+  footer(pdf, data, lang, watermark);
+  return pdf;
+}

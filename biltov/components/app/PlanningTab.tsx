@@ -11,7 +11,10 @@ import { badWeather, conflicts, fetchWeather, mondayOf, moveEvent, onDay, toIcs,
 import { downloadBlob } from "@/lib/app/send";
 import type { EventKind, PlanningEvent } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
-import { Field, Modal, Notice, PageHeader, inputClass } from "./ui";
+import { needsProof } from "@/lib/app/weather";
+import { holidayName } from "@/lib/app/workdays";
+import { Field, Modal, Notice, PageHeader, SubTabs, inputClass } from "./ui";
+import { WeatherTab } from "./WeatherTab";
 
 export const EVENT_KIND: Record<EventKind, { label: string; color: string }> = {
   job: { label: "Chantier", color: "#2563eb" },
@@ -163,7 +166,39 @@ export function EventForm({ event, onClose }: { event: PlanningEvent; onClose: (
 
 export const blankEvent = (day: string, p: Partial<PlanningEvent> = {}): PlanningEvent => ({ id: uid(), kind: "job", title: "", jobId: null, clientId: null, memberIds: [], start: `${day}T08:00`, end: `${day}T16:00`, notes: "", status: "planned", ...p });
 
-export function PlanningTab() {
+/** Page Planning : agenda des équipes et calendrier des intempéries. */
+export function PlanningTab({ view, onView }: { view?: string; onView?: (v: string) => void }) {
+  const { t } = useTr();
+  const { data } = useAppData();
+  const [local, setLocal] = useState(view === "intemperies" ? "intemperies" : "agenda");
+  const current = view === "intemperies" || view === "agenda" ? view : local;
+  const toJustify = data.weatherDays.filter(needsProof).length;
+  const change = (v: string) => (setLocal(v), onView?.(v));
+  return (
+    <div>
+      <div className="mb-5">
+        <SubTabs
+          tabs={[
+            { id: "agenda", label: t("Agenda") },
+            { id: "intemperies", label: t("Intempéries"), count: toJustify || undefined },
+          ]}
+          value={current}
+          onChange={change}
+        />
+      </div>
+      {current === "intemperies" ? (
+        <>
+          <PageHeader title={t("Intempéries")} subtitle={t("Jours de chantier arrêtés ou ralentis par la météo, avec preuve IRM.")} />
+          <WeatherTab />
+        </>
+      ) : (
+        <Agenda />
+      )}
+    </div>
+  );
+}
+
+function Agenda() {
   const { t } = useTr();
   const f = useFmt();
   const { data, upsert } = useAppData();
@@ -290,6 +325,7 @@ export function PlanningTab() {
                         </span>
                       )}
                     </span>
+                    {holidayName(d) && <span className="block truncate text-[11px] font-normal text-slate-400">{t(holidayName(d)!)}</span>}
                   </th>
                 );
               })}

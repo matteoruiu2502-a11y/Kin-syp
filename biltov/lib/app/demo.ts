@@ -6,7 +6,9 @@ import { addPayment, createQuote, issueDoc, logSend, quoteToInvoice, signQuote }
 import { recalcAll } from "./catalog/pricing";
 import { computeTotals } from "./money";
 import { importMoves } from "./bank";
-import type { Account, AccountData, GenericRecord, Photo } from "./types";
+import type { Account, AccountData, GenericRecord, Photo, WeatherDay } from "./types";
+import { computeHoursLost, newWeatherDay } from "./weather";
+import { isWorkday, plusDays } from "./workdays";
 
 export const DEMO_ID = "demo";
 export const demoAccount: Account = { id: DEMO_ID, email: "demo@biltov.be", salt: "", hash: "", createdAt: new Date(0).toISOString() };
@@ -114,7 +116,7 @@ export async function buildDemoData(): Promise<AccountData> {
   // Chantiers
   const jDurand = newJob({ clientId: durand.id, name: "Salle de bain Durand", trade: "plombier", status: "in_progress", date: d0(-40), firstOccupationYear: 1978, startDate: d0(-30), endDate: d0(5), memberIds: [karim.id], probability: 100 });
   const jPeeters = newJob({ clientId: peeters.id, name: "Badkamer Peeters", trade: "plombier", status: "sent", date: d0(-4), firstOccupationYear: 2019, probability: 60 });
-  const jBouw = newJob({ clientId: bouw.id, name: "Appartementen Bouw & Co — sanitair", trade: "plombier", status: "in_progress", date: d0(-50), memberIds: [piotr.id, karim.id], probability: 100 });
+  const jBouw = newJob({ clientId: bouw.id, name: "Appartementen Bouw & Co — sanitair", trade: "plombier", status: "in_progress", date: d0(-50), startDate: d0(-45), endDate: d0(30), memberIds: [piotr.id, karim.id], probability: 100, weatherSensitive: true, siteAddress: "Industrieweg 4, 9000 Gent" });
   const jHorizon = newJob({ clientId: horizon.id, name: "Remplacement chaudière Horizon", trade: "plombier", status: "draft", date: d0(0), privateHousing: false, probability: 40 });
   const jLead = newJob({ clientId: durand.id, name: "Visite : cuisine Durand (métré)", status: "lead", date: d0(1), probability: 20 });
   d.jobs = [jLead, jHorizon, jPeeters, jBouw, jDurand];
@@ -233,5 +235,25 @@ export async function buildDemoData(): Promise<AccountData> {
   d.contracts = [
     { id: uid(), clientId: durand.id, jobId: null, title: "Entretien annuel chaudière — Durand", frequency: "yearly", startDate: d0(-360), nextDate: d0(5), endDate: null, lines: [{ label: "Entretien chaudière gaz + attestation", qty: 1, unit: "forfait", unitPrice: 120, category: "fossil_boiler_service" }], memberIds: [karim.id], active: true, history: [] },
   ];
+  // Intempéries : une validée, une justifiée (lien IRM), une sans preuve (« à justifier »)
+  const workday = (n: number) => {
+    let x = d0(n);
+    while (!isWorkday(x, d.settings.planning)) x = plusDays(x, -1);
+    return x;
+  };
+  const irm = (at: string) => ({ id: uid(), kind: "link" as const, name: "meteo.be — observations climatologiques", mime: "", size: 0, sha256: "", url: "https://www.meteo.be/fr/climat/climat-de-la-belgique/climat-en-belgique/observations-climatologiques", consultedAt: at, addedAt: at, addedBy: "Jean Dupont" });
+  const wd = (p: Partial<WeatherDay> & Pick<WeatherDay, "start">) => {
+    const w = newWeatherDay({ createdBy: "Jean Dupont", ...p, end: p.end ?? p.start, createdAt: `${p.start}T17:30:00.000Z` });
+    return { ...w, hoursLost: computeHoursLost(w, d.settings.planning), history: [{ at: w.createdAt, user: w.createdBy, action: "Création", detail: "" }] };
+  };
+  const w1 = workday(-20);
+  const w2 = workday(-9);
+  const w3 = workday(-2);
+  d.weatherDays = [
+    wd({ start: w1, jobIds: [jBouw.id], kind: "heavy_rain", impact: "stop", memberIds: [piotr.id, karim.id], measures: { rainMm: 23.4, tMin: 8, tMax: 12, windKmh: 41, source: "manual" }, proofs: [irm(`${w1}T18:05:00.000Z`)], status: "validated", validatedBy: "Jean Dupont", comment: "Tranchées inondées, terrassement impossible." }),
+    wd({ start: w2, jobIds: [jBouw.id], kind: "wind", duration: "half", impact: "slowed", memberIds: [piotr.id], measures: { rainMm: 2.1, tMin: 9, tMax: 14, windKmh: 72, source: "manual" }, proofs: [irm(`${w2}T16:40:00.000Z`)], status: "justified", comment: "Rafales : travaux en hauteur suspendus l'après-midi." }),
+    wd({ start: w3, jobIds: [jDurand.id], kind: "rain", impact: "indoor", memberIds: [karim.id], comment: "Pose extérieure reportée, travail à l'intérieur." }),
+  ];
+
   return d;
 }

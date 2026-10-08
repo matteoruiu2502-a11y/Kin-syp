@@ -290,6 +290,32 @@ Planning semaine par ouvrier et par véhicule, avec glisser-déposer, détection
 **Cas particuliers :**
 - Un conflit (même ouvrier ou véhicule deux fois) est signalé en rouge.
 
+### Intempéries et preuve météo
+
+Page : /fonctionnalites/intemperies/
+
+Calendrier des jours où un chantier a été arrêté ou ralenti par la météo (pluie, orage, gel, neige, vent…), avec la preuve IRM jointe (capture, PDF ou lien), les heures perdues, les ouvriers concernés et un rapport PDF par chantier et période. Jours fériés belges, week-ends et congés du bâtiment affichés.
+
+**Où :** Menu « Planning » → onglet « Intempéries ». Les compteurs apparaissent aussi sur la fiche chantier ; l'ouvrier déclare depuis son espace.
+
+**Étapes :**
+1. Planning → Intempéries → « Déclarer une intempérie ».
+2. Touchez le chantier, puis le type (pluie, gel…), puis « Enregistrer ».
+3. Ouvrez « Durée, ouvriers, relevés, preuves et photos » pour joindre la capture ou le PDF de l'IRM, ou coller le lien.
+4. Exportez le rapport PDF ou la liste CSV de la période (filtrez par chantier si besoin).
+
+**Astuces :**
+- « Pré-remplir (indicatif) » propose les relevés Open-Meteo du jour ; la preuve officielle reste le document IRM joint.
+- Après l'enregistrement, Biltov propose de décaler la date de fin prévue du chantier (jamais automatiquement).
+- Chaque fichier joint garde une empreinte SHA-256 : on peut prouver qu'il n'a pas été modifié.
+
+**Cas particuliers :**
+- Un jour sans preuve est marqué « à justifier » et rappelé sur le tableau de bord.
+- Une intempérie validée par un administrateur ne peut plus être modifiée par l'ouvrier ; toute modification est historisée.
+- Les preuves sont gardées sur l'appareil : faites une sauvegarde (Paramètres → Sauvegarde).
+- Le rapport est une pièce justificative ; il ne remplace pas la déclaration de chômage temporaire à l'ONEM.
+- Les congés du bâtiment proposés sont à vérifier chaque année dans Paramètres → Calendrier.
+
 ### Photos, rapports et PV
 
 Page : /fonctionnalites/photos-rapports/
