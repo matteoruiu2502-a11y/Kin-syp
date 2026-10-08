@@ -54,7 +54,7 @@ export const DEFAULT_PERMISSIONS: Record<AssignableRole, Permissions> = {
   admin: { ...all("edit"), worker: "none" },
   employee: { ...all("none"), jobs: "edit", clients: "edit", quotes: "edit", invoices: "read", catalog: "read", planning: "edit", team: "read", time: "edit", worker: "edit", purchases: "edit", subcontractors: "read", stock: "edit", fleet: "read", tools: "edit", contracts: "read", modules: "read" },
   secretary: { ...all("none"), money: "read", jobs: "edit", clients: "edit", quotes: "edit", invoices: "edit", catalog: "edit", planning: "edit", team: "read", time: "edit", purchases: "edit", subcontractors: "edit", stock: "read", fleet: "edit", tools: "read", contracts: "edit", bank: "read", modules: "edit" },
-  accountant: { ...all("none"), money: "read", jobs: "read", profit: "read", clients: "read", quotes: "read", invoices: "edit", time: "read", purchases: "edit", subcontractors: "edit", bank: "edit", accounting: "edit" },
+  accountant: { ...all("none"), money: "read", jobs: "read", profit: "read", clients: "read", quotes: "read", invoices: "edit", planning: "read", time: "read", purchases: "edit", subcontractors: "edit", bank: "edit", accounting: "edit" },
   worker: { ...all("none"), worker: "edit" },
 };
 
@@ -90,8 +90,8 @@ export function migrateRoles(d: AccountData): AccountData {
 
 // ── Contrôle des écritures ───────────────────────────────────────────────────
 
-/** « superadmin » : réservé au super admin, quels que soient les droits. */
-type Need = PermModule[] | "superadmin" | "free";
+/** « superadmin » : réservé au super admin, quels que soient les droits ; « admin » : administrateur ou super admin. */
+type Need = PermModule[] | "superadmin" | "admin" | "free";
 type Item = { id: string } & Record<string, unknown>;
 
 const own = (item: Item, actor: Member) => item.memberId === actor.id || (Array.isArray(item.memberIds) && item.memberIds.length > 0 && (item.memberIds as string[]).every((x) => x === actor.id));
@@ -139,6 +139,13 @@ function itemNeed(key: keyof AccountData, before: Item | undefined, after: Item 
       return ["tools"];
     case "contracts":
       return ["contracts"];
+    case "weatherDays": {
+      // valider une intempérie (preuve vérifiée) : administrateur uniquement
+      if (after?.status === "validated" && before?.status !== "validated") return "admin";
+      // l'ouvrier déclare et complète ses propres intempéries tant qu'elles ne sont pas validées
+      const mine = item.createdById === actor.id && (!before || (before.createdById === actor.id && before.status !== "validated"));
+      return mine ? ["planning", "worker"] : ["planning"];
+    }
     case "members": {
       // créer, supprimer, changer le rôle, le code PIN ou les droits : super admin uniquement
       if (!before || !after) return "superadmin";
@@ -177,6 +184,9 @@ export function deniedWrites(prev: AccountData, next: AccountData, actor: Member
   const need = (n: Need) => {
     if (n === "free") return;
     if (n === "superadmin") out.add("users");
+    else if (n === "admin") {
+      if (actor!.role !== "admin" || !allows(p, "planning", "edit")) out.add("planning");
+    }
     else if (!n.some((m) => allows(p, m, "edit"))) out.add(n[0]);
   };
   for (const key of Object.keys(next) as (keyof AccountData)[]) {

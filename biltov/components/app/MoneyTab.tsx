@@ -14,6 +14,7 @@ import { todayIso } from "@/lib/app/defaults";
 import type { Doc } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
 import { Field, Notice, PageHeader, Stat, SubTabs, Toggle, inputClass } from "./ui";
+import { WeatherReminder } from "./WeatherTab";
 import { SendDialog } from "./SendDialog";
 
 const BUCKETS: { id: Bucket; label: string; tone: string }[] = [
@@ -72,6 +73,7 @@ export function MoneyTab({ onOpenDoc, onOpenJob }: { onOpenDoc: (id: string) => 
           </a>
         }
       />
+      <WeatherReminder onOpen={() => (window.location.hash = "planning/intemperies")} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label={t("À encaisser (TVAC)")} value={f.money0(rec.total)} sub={t("{n} facture(s) ouverte(s)", { n: rec.rows.length })} tone={rec.buckets.d60plus > 0 ? "danger" : rec.total - rec.buckets.notDue > 0 ? "warn" : "ok"} />
         <Stat label={t("Signé, pas encore facturé (HTVA)")} value={f.money0(toInvoice.reduce((s, r) => s + r.amount, 0))} sub={t("{n} chantier(s)", { n: toInvoice.length })} />

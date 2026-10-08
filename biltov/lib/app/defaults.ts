@@ -79,6 +79,20 @@ export const defaultSettings = (): Settings => ({
   defaultMargins: { own: 30, subcontract: 15 },
   terms: { b2c: "", b2b: "" },
   accounting: defaultAccounting(),
+  planning: defaultPlanningSettings(),
+});
+
+/**
+ * Congés du bâtiment proposés par défaut : vacances d'été (3 semaines autour du 21 juillet) et d'hiver
+ * (Noël – Nouvel An). Les dates officielles changent chaque année : à vérifier et ajuster dans Paramètres.
+ */
+export const defaultPlanningSettings = (year = new Date().getFullYear()): NonNullable<Settings["planning"]> => ({
+  constructionLeaves: [year, year + 1].flatMap((y) => [
+    { id: `ete-${y}`, label: `Congés d'été ${y} (à vérifier)`, start: `${y}-07-13`, end: `${y}-07-31` },
+    { id: `hiver-${y}`, label: `Congés d'hiver ${y}-${y + 1} (à vérifier)`, start: `${y}-12-24`, end: `${y + 1}-01-01` },
+  ]),
+  hoursPerDay: 8,
+  workdaysOnly: true,
 });
 
 /** Comptes du PCMN belge proposés par défaut (à adapter avec le comptable). */
@@ -121,6 +135,7 @@ export const emptyAccountData = (email: string): AccountData => ({
   bankMoves: [],
   tools: [],
   contracts: [],
+  weatherDays: [],
   audit: [],
 });
 

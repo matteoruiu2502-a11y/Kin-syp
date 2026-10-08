@@ -496,7 +496,7 @@ function Shell() {
               {page === "client" && (client ? <ClientDetail client={client} onBack={() => go({ page: "clients" })} onOpenJob={openJob} onOpenDoc={setDocId} onNewJob={(clientId) => setNewJob({ clientId })} /> : <NotFound onBack={() => go({ page: "clients" })} />)}
               {page === "documents" && <DocsTab onOpenDoc={setDocId} />}
               {page === "catalogue" && <CatalogTab />}
-              {page === "planning" && <PlanningTab />}
+              {page === "planning" && <PlanningTab view={route.id} onView={(v) => go({ page: "planning", id: v === "agenda" ? undefined : v })} />}
               {page === "equipe" && <TeamTab />}
               {page === "achats" && <PurchasesTab />}
               {page === "stock" && <StockTab />}

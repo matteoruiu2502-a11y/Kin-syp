@@ -91,6 +91,14 @@ export type Settings = {
   accounting: AccountingSettings;
   defaultMargins: { own: number; subcontract: number }; // marge par défaut : nos ouvriers / sous-traitance
   rolePermissions?: Partial<Record<AssignableRole, Partial<Permissions>>>; // droits par rôle modifiés par le super admin
+  planning?: PlanningSettings;
+};
+
+/** Calendrier de travail : congés du bâtiment (variables chaque année, commission paritaire 124) et journée type. */
+export type PlanningSettings = {
+  constructionLeaves: { id: string; label: string; start: ISODate; end: ISODate }[];
+  hoursPerDay: number; // heures perdues pour une journée complète d'intempérie
+  workdaysOnly: boolean; // durées en jours ouvrables (sans week-ends, fériés ni congés)
 };
 
 export type PriceList = { id: string; name: string; discountPercent: number; familyDiscounts: Record<string, number> };
@@ -140,6 +148,8 @@ export type Job = {
   salesRep: string;
   weatherSensitive: boolean;
   materialLinks?: Record<string, string>; // analyse matériaux : description achetée → matériau du devis (ou « __none »)
+  geo?: { lat: number; lng: number; label: string } | null; // localisation du chantier (météo historique)
+  contractEndDate?: ISODate | null; // date de fin contractuelle (pénalités de retard)
 };
 
 export type LineKind = "item" | "section" | "text";
@@ -414,6 +424,51 @@ export type Contract = {
 /** Enregistrements génériques des modules complémentaires (SAV, congés, recrutement…). */
 export type GenericRecord = { id: string; module: ModuleId; title: string; status: string; fields: Record<string, string | number | boolean>; jobId: string | null; clientId: string | null; memberId: string | null; createdAt: string; updatedAt: string };
 
+// ── Intempéries ──────────────────────────────────────────────────────────────
+
+export type WeatherKind = "rain" | "heavy_rain" | "storm" | "frost" | "snow" | "ice" | "wind" | "heat" | "fog" | "other";
+export type WeatherImpact = "stop" | "slowed" | "indoor";
+export type WeatherDuration = "full" | "half" | "hours";
+export type WeatherStatus = "draft" | "justified" | "validated";
+
+/** Pièce justificative : fichier (capture, PDF, photo du bulletin IRM) ou lien vers la source. */
+export type WeatherProof = {
+  id: string;
+  kind: "file" | "link";
+  name: string;
+  mime: string;
+  size: number;
+  sha256: string; // empreinte du fichier à l'ajout (montre qu'il n'a pas été modifié)
+  url: string; // lien vers la source (IRM…)
+  consultedAt: string; // date et heure de consultation de la source
+  addedAt: string;
+  addedBy: string;
+};
+
+export type WeatherDay = {
+  id: string;
+  jobIds: string[];
+  start: ISODate;
+  end: ISODate; // = start pour un seul jour
+  kind: WeatherKind;
+  duration: WeatherDuration;
+  fromTime: string; // HH:MM si durée en heures
+  toTime: string;
+  impact: WeatherImpact;
+  memberIds: string[]; // ouvriers impactés
+  hoursLost: number; // calculé (modifiable)
+  measures: { rainMm: number | null; tMin: number | null; tMax: number | null; windKmh: number | null; source: "manual" | "open-meteo" | "" };
+  proofs: WeatherProof[]; // fichiers stockés sous « proof:<id> »
+  photoIds: string[]; // photos du chantier (horodatées)
+  comment: string;
+  status: WeatherStatus;
+  validatedBy: string | null;
+  createdAt: string;
+  createdBy: string; // nom de l'auteur
+  createdById: string | null; // membre auteur (null = titulaire du compte)
+  history: { at: string; user: string; action: string; detail: string }[]; // journal non effaçable des modifications
+};
+
 export type AuditEntry = { at: string; user: string; action: string; entity: string; entityId: string; detail: string };
 
 export type AccountData = {
@@ -440,6 +495,7 @@ export type AccountData = {
   bankMoves: BankMove[];
   tools: Tool[];
   contracts: Contract[];
+  weatherDays: WeatherDay[];
   audit: AuditEntry[];
 };
 

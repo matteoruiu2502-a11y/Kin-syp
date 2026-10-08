@@ -5306,5 +5306,481 @@ export const DICT: Record<string, [string, string]> = {
  "Non prévu au devis": ["Niet voorzien in de offerte", "Im Angebot nicht vorgesehen"],
  "Découvrir Biltov": ["Biltov ontdekken", "Biltov entdecken"],
  "Aide": ["Hulp", "Hilfe"],
- "Fonctionnalités": ["Functies", "Funktionen"]
+ "Fonctionnalités": ["Functies", "Funktionen"],
+ "Agenda": [
+  "Agenda",
+  "Kalender"
+ ],
+ "Intempéries": [
+  "Weerverlet",
+  "Schlechtwetter"
+ ],
+ "Jours de chantier arrêtés ou ralentis par la météo, avec preuve IRM.": [
+  "Werfdagen stilgelegd of vertraagd door het weer, met KMI-bewijs.",
+  "Baustellentage, die wetterbedingt unterbrochen oder verlangsamt wurden, mit KMI-Nachweis."
+ ],
+ "Calendrier": [
+  "Kalender",
+  "Kalender"
+ ],
+ "Les 10 jours fériés légaux belges sont calculés automatiquement. Les congés du bâtiment changent chaque année : vérifiez les dates officielles et corrigez-les ici.": [
+  "De 10 wettelijke Belgische feestdagen worden automatisch berekend. Het bouwverlof verandert elk jaar: controleer de officiële data en pas ze hier aan.",
+  "Die 10 gesetzlichen belgischen Feiertage werden automatisch berechnet. Die Bauferien ändern sich jedes Jahr: Prüfen Sie die offiziellen Daten und korrigieren Sie sie hier."
+ ],
+ "Heures d'une journée de travail": [
+  "Uren van een werkdag",
+  "Stunden eines Arbeitstages"
+ ],
+ "Base du calcul des heures perdues par intempérie.": [
+  "Basis voor de berekening van de verloren uren door weerverlet.",
+  "Grundlage für die Berechnung der wetterbedingt verlorenen Stunden."
+ ],
+ "Durées en jours ouvrables": [
+  "Duur in werkdagen",
+  "Dauer in Arbeitstagen"
+ ],
+ "Sans week-ends, jours fériés ni congés du bâtiment.": [
+  "Zonder weekends, feestdagen of bouwverlof.",
+  "Ohne Wochenenden, Feiertage und Bauferien."
+ ],
+ "Congés du bâtiment": [
+  "Bouwverlof",
+  "Bauferien"
+ ],
+ "Congé": [
+  "Verlof",
+  "Urlaub"
+ ],
+ "Ajouter une période": [
+  "Periode toevoegen",
+  "Zeitraum hinzufügen"
+ ],
+ "Titulaire du compte": [
+  "Accounthouder",
+  "Kontoinhaber"
+ ],
+ "{n} intempérie(s) sans preuve météo : à justifier": [
+  "{n} weerverlet(ten) zonder weerbewijs: te staven",
+  "{n} Schlechtwettertag(e) ohne Wetternachweis: zu belegen"
+ ],
+ "Mois": [
+  "Maand",
+  "Monat"
+ ],
+ "Semaine": [
+  "Week",
+  "Woche"
+ ],
+ "Précédent": [
+  "Vorige",
+  "Zurück"
+ ],
+ "Aujourd'hui": [
+  "Vandaag",
+  "Heute"
+ ],
+ "Suivant": [
+  "Volgende",
+  "Weiter"
+ ],
+ "Rapport PDF de la période affichée": [
+  "PDF-rapport van de getoonde periode",
+  "PDF-Bericht für den angezeigten Zeitraum"
+ ],
+ "Déclarer une intempérie": [
+  "Weerverlet melden",
+  "Schlechtwetter melden"
+ ],
+ "À justifier": [
+  "Te staven",
+  "Zu belegen"
+ ],
+ "Justifié": [
+  "Gestaafd",
+  "Belegt"
+ ],
+ "Validé": [
+  "Goedgekeurd",
+  "Bestätigt"
+ ],
+ "Aucune intempérie sur cette période.": [
+  "Geen weerverlet in deze periode.",
+  "Kein Schlechtwetter in diesem Zeitraum."
+ ],
+ "Congés du bâtiment : dates proposées par défaut, à vérifier dans Paramètres → Calendrier.": [
+  "Bouwverlof: standaard voorgestelde data, te controleren in Instellingen → Kalender.",
+  "Bauferien: standardmäßig vorgeschlagene Daten, in Einstellungen → Kalender zu prüfen."
+ ],
+ "Week-end": [
+  "Weekend",
+  "Wochenende"
+ ],
+ "Jour férié": [
+  "Feestdag",
+  "Feiertag"
+ ],
+ "Congé du bâtiment": [
+  "Bouwverlof",
+  "Bauferien"
+ ],
+ "Intempérie": [
+  "Weerverlet",
+  "Schlechtwetter"
+ ],
+ "Chantiers en cours": [
+  "Lopende werven",
+  "Laufende Baustellen"
+ ],
+ "Aucun chantier": [
+  "Geen werf",
+  "Keine Baustelle"
+ ],
+ "Jours d'intempérie": [
+  "Dagen weerverlet",
+  "Schlechtwettertage"
+ ],
+ "Retard imputable à la météo": [
+  "Vertraging door het weer",
+  "Wetterbedingte Verzögerung"
+ ],
+ "j": [
+  "d",
+  "T"
+ ],
+ "Heures perdues": [
+  "Verloren uren",
+  "Verlorene Stunden"
+ ],
+ "Justifiés / à justifier": [
+  "Gestaafd / te staven",
+  "Belegt / zu belegen"
+ ],
+ "« {name} » dépasse 10 Mo : réduisez-le ou faites une capture d'écran.": [
+  "„{name}” is groter dan 10 MB: verklein het of maak een schermafbeelding.",
+  "„{name}“ ist größer als 10 MB: Verkleinern Sie die Datei oder machen Sie einen Screenshot."
+ ],
+ "Collez un lien complet (https://…).": [
+  "Plak een volledige link (https://…).",
+  "Fügen Sie einen vollständigen Link ein (https://…)."
+ ],
+ "Choisissez d'abord le chantier.": [
+  "Kies eerst de werf.",
+  "Wählen Sie zuerst die Baustelle."
+ ],
+ "Valeurs indicatives Open-Meteo pour {place}. La preuve officielle reste le document IRM joint.": [
+  "Indicatieve Open-Meteo-waarden voor {place}. Het officiële bewijs blijft het bijgevoegde KMI-document.",
+  "Richtwerte von Open-Meteo für {place}. Der offizielle Nachweis bleibt das beigefügte KMI-Dokument."
+ ],
+ "Localité du chantier introuvable : complétez l'adresse (code postal et commune) ou saisissez les valeurs.": [
+  "Gemeente van de werf niet gevonden: vul het adres aan (postcode en gemeente) of voer de waarden in.",
+  "Ort der Baustelle nicht gefunden: Ergänzen Sie die Adresse (Postleitzahl und Gemeinde) oder geben Sie die Werte ein."
+ ],
+ "Données météo indisponibles (pas de connexion ou période non couverte). Saisissez les valeurs à la main.": [
+  "Weergegevens niet beschikbaar (geen verbinding of periode niet gedekt). Voer de waarden manueel in.",
+  "Wetterdaten nicht verfügbar (keine Verbindung oder Zeitraum nicht abgedeckt). Geben Sie die Werte von Hand ein."
+ ],
+ "Choisissez au moins un chantier.": [
+  "Kies minstens één werf.",
+  "Wählen Sie mindestens eine Baustelle."
+ ],
+ "La date de fin doit suivre la date de début.": [
+  "De einddatum moet na de begindatum komen.",
+  "Das Enddatum muss nach dem Startdatum liegen."
+ ],
+ "L'heure de fin doit suivre l'heure de début.": [
+  "Het einduur moet na het beginuur komen.",
+  "Die Endzeit muss nach der Startzeit liegen."
+ ],
+ "Décaler la fin prévue de « {job} » de {n} jour(s) ouvrable(s) ({from} → {to}) ?": [
+  "Het geplande einde van „{job}” met {n} werkdag(en) verschuiven ({from} → {to})?",
+  "Das geplante Ende von „{job}“ um {n} Arbeitstag(e) verschieben ({from} → {to})?"
+ ],
+ "Supprimer cette intempérie ? Les preuves jointes seront retirées du rapport.": [
+  "Dit weerverlet verwijderen? De bijgevoegde bewijzen worden uit het rapport gehaald.",
+  "Diesen Schlechtwettertag löschen? Die beigefügten Nachweise werden aus dem Bericht entfernt."
+ ],
+ "Intempérie du {date}": [
+  "Weerverlet van {date}",
+  "Schlechtwetter vom {date}"
+ ],
+ "Intempérie validée par {name} : seule une personne administratrice peut la modifier.": [
+  "Weerverlet goedgekeurd door {name}: alleen een beheerder kan het wijzigen.",
+  "Schlechtwetter bestätigt von {name}: Nur eine Administratorin oder ein Administrator kann es ändern."
+ ],
+ "Chantier(s)": [
+  "Werf/werven",
+  "Baustelle(n)"
+ ],
+ "en cours": [
+  "lopend",
+  "laufend"
+ ],
+ "Aucun chantier : créez d'abord un chantier.": [
+  "Geen werf: maak eerst een werf aan.",
+  "Keine Baustelle: Legen Sie zuerst eine Baustelle an."
+ ],
+ "Type d'intempérie": [
+  "Soort weerverlet",
+  "Art des Schlechtwetters"
+ ],
+ "Jusqu'au (plusieurs jours)": [
+  "Tot (meerdere dagen)",
+  "Bis (mehrere Tage)"
+ ],
+ "Durée, ouvriers, relevés, preuves et photos": [
+  "Duur, arbeiders, metingen, bewijzen en foto's",
+  "Dauer, Arbeiter, Messwerte, Nachweise und Fotos"
+ ],
+ "Durée": [
+  "Duur",
+  "Dauer"
+ ],
+ "Impact": [
+  "Impact",
+  "Auswirkung"
+ ],
+ "À": [
+  "Tot",
+  "Bis"
+ ],
+ "Ouvriers impactés": [
+  "Getroffen arbeiders",
+  "Betroffene Arbeiter"
+ ],
+ "Valeur saisie à la main.": [
+  "Manueel ingevoerde waarde.",
+  "Von Hand eingegebener Wert."
+ ],
+ "Calcul : jours ouvrables × part de journée × ouvriers (arrêt 100 %, ralenti 50 %, intérieur 0 %).": [
+  "Berekening: werkdagen × deel van de dag × arbeiders (stilstand 100 %, vertraagd 50 %, binnen 0 %).",
+  "Berechnung: Arbeitstage × Tagesanteil × Arbeiter (Stillstand 100 %, verlangsamt 50 %, innen 0 %)."
+ ],
+ "Recalculer": [
+  "Herberekenen",
+  "Neu berechnen"
+ ],
+ "Valeurs météo constatées": [
+  "Vastgestelde weerwaarden",
+  "Festgestellte Wetterwerte"
+ ],
+ "Pré-remplir (indicatif)": [
+  "Vooraf invullen (indicatief)",
+  "Vorausfüllen (Richtwert)"
+ ],
+ "Pluie (mm)": [
+  "Regen (mm)",
+  "Regen (mm)"
+ ],
+ "T° min (°C)": [
+  "T° min (°C)",
+  "T° min (°C)"
+ ],
+ "T° max (°C)": [
+  "T° max (°C)",
+  "T° max (°C)"
+ ],
+ "Vent (km/h)": [
+  "Wind (km/u)",
+  "Wind (km/h)"
+ ],
+ "Source : Open-Meteo — valeurs indicatives, la preuve officielle est le document IRM.": [
+  "Bron: Open-Meteo — indicatieve waarden, het officiële bewijs is het KMI-document.",
+  "Quelle: Open-Meteo — Richtwerte, der offizielle Nachweis ist das KMI-Dokument."
+ ],
+ "Preuve météo (IRM)": [
+  "Weerbewijs (KMI)",
+  "Wetternachweis (KMI)"
+ ],
+ "Joignez une capture, un PDF ou une photo du bulletin ou relevé IRM, et/ou le lien vers la source.": [
+  "Voeg een schermafbeelding, pdf of foto van het KMI-bulletin of -overzicht toe, en/of de link naar de bron.",
+  "Fügen Sie einen Screenshot, ein PDF oder ein Foto des KMI-Berichts bzw. der Messwerte und/oder den Link zur Quelle bei."
+ ],
+ "Lien vers la source": [
+  "Link naar de bron",
+  "Link zur Quelle"
+ ],
+ "Consulté le": [
+  "Geraadpleegd op",
+  "Abgerufen am"
+ ],
+ "Ajouter le lien": [
+  "Link toevoegen",
+  "Link hinzufügen"
+ ],
+ "Joindre un fichier": [
+  "Bestand toevoegen",
+  "Datei anhängen"
+ ],
+ "Ajouté le {date} par {name}": [
+  "Toegevoegd op {date} door {name}",
+  "Hinzugefügt am {date} von {name}"
+ ],
+ "source consultée le {date}": [
+  "bron geraadpleegd op {date}",
+  "Quelle abgerufen am {date}"
+ ],
+ "Empreinte SHA-256 : prouve que le fichier n'a pas été modifié depuis son ajout": [
+  "SHA-256-vingerafdruk: bewijst dat het bestand sinds het toevoegen niet gewijzigd is",
+  "SHA-256-Fingerabdruck: belegt, dass die Datei seit dem Hinzufügen nicht verändert wurde"
+ ],
+ "Sans preuve, l'intempérie reste « à justifier ».": [
+  "Zonder bewijs blijft het weerverlet „te staven”.",
+  "Ohne Nachweis bleibt der Schlechtwettertag „zu belegen“."
+ ],
+ "{n} photo(s) du chantier jointe(s) (horodatées).": [
+  "{n} werffoto('s) bijgevoegd (met tijdstempel).",
+  "{n} Baustellenfoto(s) beigefügt (mit Zeitstempel)."
+ ],
+ "Commentaire": [
+  "Opmerking",
+  "Kommentar"
+ ],
+ "Pluie": [
+  "Regen",
+  "Regen"
+ ],
+ "Forte pluie": [
+  "Hevige regen",
+  "Starkregen"
+ ],
+ "Orage": [
+  "Onweer",
+  "Gewitter"
+ ],
+ "Gel": [
+  "Vorst",
+  "Frost"
+ ],
+ "Neige": [
+  "Sneeuw",
+  "Schnee"
+ ],
+ "Verglas": [
+  "IJzel",
+  "Glatteis"
+ ],
+ "Vent fort": [
+  "Harde wind",
+  "Starker Wind"
+ ],
+ "Canicule": [
+  "Hittegolf",
+  "Hitzewelle"
+ ],
+ "Brouillard": [
+  "Mist",
+  "Nebel"
+ ],
+ "Arrêt total": [
+  "Volledige stilstand",
+  "Vollständiger Stillstand"
+ ],
+ "Travail ralenti": [
+  "Vertraagd werk",
+  "Verlangsamte Arbeit"
+ ],
+ "Travaux intérieurs seulement": [
+  "Enkel binnenwerk",
+  "Nur Innenarbeiten"
+ ],
+ "Journée complète": [
+  "Volledige dag",
+  "Ganzer Tag"
+ ],
+ "Demi-journée": [
+  "Halve dag",
+  "Halber Tag"
+ ],
+ "Heures précises": [
+  "Precieze uren",
+  "Genaue Uhrzeiten"
+ ],
+ "Nouvel An": [
+  "Nieuwjaar",
+  "Neujahr"
+ ],
+ "Lundi de Pâques": [
+  "Paasmaandag",
+  "Ostermontag"
+ ],
+ "Fête du Travail": [
+  "Dag van de Arbeid",
+  "Tag der Arbeit"
+ ],
+ "Ascension": [
+  "O.L.H. Hemelvaart",
+  "Christi Himmelfahrt"
+ ],
+ "Lundi de Pentecôte": [
+  "Pinkstermaandag",
+  "Pfingstmontag"
+ ],
+ "Fête nationale": [
+  "Nationale feestdag",
+  "Nationalfeiertag"
+ ],
+ "Assomption": [
+  "O.L.V. Hemelvaart",
+  "Mariä Himmelfahrt"
+ ],
+ "Toussaint": [
+  "Allerheiligen",
+  "Allerheiligen"
+ ],
+ "Armistice": [
+  "Wapenstilstand",
+  "Waffenstillstand"
+ ],
+ "Noël": [
+  "Kerstmis",
+  "Weihnachten"
+ ],
+ "Samedi": [
+  "Zaterdag",
+  "Samstag"
+ ],
+ "Dimanche": [
+  "Zondag",
+  "Sonntag"
+ ],
+ "Lun": [
+  "Ma",
+  "Mo"
+ ],
+ "Mar": [
+  "Di",
+  "Di"
+ ],
+ "Mer": [
+  "Wo",
+  "Mi"
+ ],
+ "Jeu": [
+  "Do",
+  "Do"
+ ],
+ "Ven": [
+  "Vr",
+  "Fr"
+ ],
+ "Sam": [
+  "Za",
+  "Sa"
+ ],
+ "Dim": [
+  "Zo",
+  "So"
+ ],
+ "Création": [
+  "Aanmaak",
+  "Erstellung"
+ ],
+ "Validation": [
+  "Goedkeuring",
+  "Bestätigung"
+ ],
+ "Déclarée par {name} le {date}": [
+  "Gemeld door {name} op {date}",
+  "Gemeldet von {name} am {date}"
+ ]
 };

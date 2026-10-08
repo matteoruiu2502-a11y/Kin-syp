@@ -20,6 +20,7 @@ import { PhotosPanel } from "./PhotosPanel";
 import { JobProfitPanel } from "./JobProfitPanel";
 import { mapsEmbed, mapsRoute, wazeRoute } from "@/lib/app/geo";
 import { ExpensesList } from "./ExpensesPanel";
+import { JobWeatherSummary } from "./WeatherTab";
 import { ChatPanel, FilesPanel, ReportsPanel, TimePanel } from "./FieldPanels";
 
 type Tab = "docs" | "finance" | "materials" | "time" | "reports" | "photos" | "costs" | "files" | "chat";
@@ -128,6 +129,8 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
           </button>
         </div>}
       </div>
+
+      {can("planning") && <JobWeatherSummary jobId={job.id} onOpen={() => (window.location.hash = "planning/intemperies")} />}
 
       {showMap && address && (
         <iframe title={t("Carte du chantier")} src={mapsEmbed(address)} className="h-72 w-full rounded-2xl border border-white/10" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />

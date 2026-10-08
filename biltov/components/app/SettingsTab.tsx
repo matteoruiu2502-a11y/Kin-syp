@@ -6,15 +6,15 @@ import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
 import { downloadBlob } from "@/lib/app/send";
-import { todayIso, uid } from "@/lib/app/defaults";
+import { defaultPlanningSettings, emptyAccountData, todayIso, uid } from "@/lib/app/defaults";
 import { LEGAL_TABLE, legalRow, type LegalKey } from "@/lib/tax/belgium";
 import type { AccountData, Lang, Settings } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
 import { CompanyForm, companyMissing } from "./CompanyForm";
 import { BrandingForm } from "./BrandingForm";
-import { Field, Notice, PageHeader, SubTabs, inputClass } from "./ui";
+import { Field, Notice, PageHeader, SubTabs, Toggle, inputClass } from "./ui";
 
-type Section = "company" | "documents" | "prices" | "reminders" | "legal" | "backup" | "audit";
+type Section = "company" | "documents" | "prices" | "reminders" | "calendar" | "legal" | "backup" | "audit";
 const LANGS: Lang[] = ["fr", "nl", "de"];
 const STEPS = ["1er rappel (gratuit pour les particuliers)", "Relance avec frais / intérêts", "Mise en demeure"];
 
@@ -43,7 +43,7 @@ export function SettingsTab() {
       fr.onload = () => r(fr.result as string);
       fr.readAsDataURL(b);
     });
-    const keys = [...data.photos.map((p) => `photo:${p.id}`), ...data.expenses.filter((e) => e.receiptId).map((e) => `receipt:${e.receiptId}`), ...data.records.filter((r) => r.module === "documents").map((r) => `file:${r.id}`)];
+    const keys = [...data.photos.map((p) => `photo:${p.id}`), ...data.expenses.filter((e) => e.receiptId).map((e) => `receipt:${e.receiptId}`), ...data.records.filter((r) => r.module === "documents").map((r) => `file:${r.id}`), ...data.weatherDays.flatMap((w) => w.proofs.filter((p) => p.kind === "file").map((p) => `proof:${p.id}`))];
     const blobs: Record<string, string> = {};
     for (const k of keys) {
       const b = await getBlob(k);
@@ -59,7 +59,7 @@ export function SettingsTab() {
       if (json.app !== "biltov" || json.version !== 2 || !json.data?.company) throw new Error();
       if (!window.confirm(t("Remplacer toutes les données de ce compte par la sauvegarde ?"))) return;
       for (const [k, url] of Object.entries(json.blobs ?? {}) as [string, string][]) await putBlob(k, await (await fetch(url)).blob());
-      update(() => json.data as AccountData);
+      update(() => ({ ...emptyAccountData(""), ...json.data }) as AccountData); // anciennes sauvegardes : nouvelles collections vides
       setMsg({ tone: "ok", text: t("Sauvegarde restaurée.") });
     } catch {
       setMsg({ tone: "danger", text: t("Fichier de sauvegarde Biltov invalide.") });
@@ -89,6 +89,7 @@ export function SettingsTab() {
             { id: "documents", label: t("Devis & factures") },
             { id: "prices", label: t("Listes de prix") },
             { id: "reminders", label: t("Relances") },
+            { id: "calendar", label: t("Calendrier") },
             { id: "legal", label: t("Valeurs légales") },
             { id: "backup", label: t("Sauvegarde") },
             { id: "audit", label: t("Journal") },
@@ -194,6 +195,8 @@ export function SettingsTab() {
           </button>
         </div>
       )}
+
+      {section === "calendar" && <CalendarSettings value={settings.planning ?? defaultPlanningSettings()} onChange={(v) => set("planning", v)} />}
 
       {section === "reminders" && (
         <div className="space-y-4">
@@ -307,6 +310,55 @@ export function SettingsTab() {
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Calendrier de travail : congés du bâtiment (à vérifier chaque année), journée type, jours ouvrables. */
+function CalendarSettings({ value, onChange }: { value: NonNullable<Settings["planning"]>; onChange: (v: NonNullable<Settings["planning"]>) => void }) {
+  const { t } = useTr();
+  const leaves = [...value.constructionLeaves].sort((a, b) => a.start.localeCompare(b.start));
+  const setLeave = (id: string, p: Partial<(typeof leaves)[number]>) => onChange({ ...value, constructionLeaves: value.constructionLeaves.map((l) => (l.id === id ? { ...l, ...p } : l)) });
+  return (
+    <div className="space-y-6">
+      <Notice>
+        {t("Les 10 jours fériés légaux belges sont calculés automatiquement. Les congés du bâtiment changent chaque année : vérifiez les dates officielles et corrigez-les ici.")}
+      </Notice>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t("Heures d'une journée de travail")} hint={t("Base du calcul des heures perdues par intempérie.")}>
+          <input type="number" min={1} max={14} step={0.5} value={value.hoursPerDay} onChange={(e) => onChange({ ...value, hoursPerDay: Number(e.target.value) || 8 })} className={inputClass} />
+        </Field>
+        <div className="pt-6">
+          <Toggle checked={value.workdaysOnly} onChange={(v) => onChange({ ...value, workdaysOnly: v })} label={t("Durées en jours ouvrables")} hint={t("Sans week-ends, jours fériés ni congés du bâtiment.")} />
+        </div>
+      </div>
+      <div>
+        <p className="mb-2 text-sm font-semibold text-white">{t("Congés du bâtiment")}</p>
+        <div className="space-y-2">
+          {leaves.map((l) => (
+            <div key={l.id} className="grid gap-2 rounded-2xl border border-white/10 p-3 sm:grid-cols-[1fr_160px_160px_auto] sm:items-end">
+              <Field label={t("Libellé")}>
+                <input value={l.label} onChange={(e) => setLeave(l.id, { label: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label={t("Du")}>
+                <input type="date" value={l.start} onChange={(e) => setLeave(l.id, { start: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label={t("Au")}>
+                <input type="date" value={l.end} min={l.start} onChange={(e) => setLeave(l.id, { end: e.target.value })} className={inputClass} />
+              </Field>
+              <button onClick={() => onChange({ ...value, constructionLeaves: value.constructionLeaves.filter((x) => x.id !== l.id) })} className="btn-ghost !px-3 text-sm text-rose-300" aria-label={t("Supprimer")}>
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => onChange({ ...value, constructionLeaves: [...value.constructionLeaves, { id: uid(), label: t("Congé"), start: todayIso(), end: todayIso() }] })}
+          className="btn-ghost mt-3 text-sm"
+        >
+          <Plus className="h-4 w-4" /> {t("Ajouter une période")}
+        </button>
+      </div>
     </div>
   );
 }

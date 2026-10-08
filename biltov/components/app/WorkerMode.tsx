@@ -4,14 +4,15 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { ArrowLeft, CalendarDays, CalendarPlus, Camera, ClipboardCheck, LogOut, MapPin, MessageSquare, Navigation, Phone, Play, Receipt, Square } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarPlus, Camera, ClipboardCheck, CloudRain, LogOut, MapPin, MessageSquare, Navigation, Phone, Play, Receipt, Square } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { ROLE } from "@/lib/app/labels";
 import { useFmt } from "@/lib/app/format";
 import { addDays, todayIso, uid } from "@/lib/app/defaults";
 import { onDay } from "@/lib/app/planning";
-import type { Geo, Job, Member } from "@/lib/app/types";
+import type { Geo, Job, Member, WeatherDay } from "@/lib/app/types";
+import { newWeatherDay } from "@/lib/app/weather";
 import { currentGeo, mapsRoute, wazeRoute } from "@/lib/app/geo";
 import { toIcs } from "@/lib/app/planning";
 import { downloadBlob } from "@/lib/app/send";
@@ -20,6 +21,7 @@ import { Field, Modal, Notice, inputClass } from "./ui";
 import { hoursBetween, ChatPanel, ReportsPanel } from "./FieldPanels";
 import { ExpenseForm } from "./ExpensesPanel";
 import { PhotosPanel } from "./PhotosPanel";
+import { WeatherForm } from "./WeatherTab";
 
 const CLOCK = "biltov.clock";
 type Clock = { memberId: string; jobId: string; date: string; start: string; geo?: Geo | null };
@@ -193,6 +195,7 @@ function WorkerJob({ job, member, running, onStart, onBack }: { job: Job; member
   const { t } = useTr();
   const { data } = useAppData();
   const [panel, setPanel] = useState<"photos" | "reports" | "chat">("photos");
+  const [weather, setWeather] = useState<WeatherDay | null>(null);
   const client = data.clients.find((c) => c.id === job.clientId);
   const missions = data.events.filter((e) => e.jobId === job.id && e.memberIds.includes(member.id) && e.end.slice(0, 10) >= todayIso() && e.status !== "cancelled").slice(0, 5);
   const address = job.siteAddress || [client?.billing.street, client?.billing.postcode, client?.billing.city].filter(Boolean).join(", ");
@@ -240,7 +243,11 @@ function WorkerJob({ job, member, running, onStart, onBack }: { job: Job; member
             <Play className="h-4 w-4" /> {t("Commencer le pointage")}
           </button>
         )}
+        <button onClick={() => setWeather(newWeatherDay({ start: todayIso(), end: todayIso(), jobIds: [job.id], memberIds: [member.id], createdBy: member.name, createdById: member.id }))} className="btn-ghost w-full">
+          <CloudRain className="h-4 w-4" /> {t("Déclarer une intempérie")}
+        </button>
       </div>
+      {weather && <WeatherForm initial={weather} worker onClose={() => setWeather(null)} />}
       <div className="grid grid-cols-3 gap-2">
         {(
           [
