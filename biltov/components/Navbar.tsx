@@ -29,6 +29,7 @@ export function Navbar() {
     { href: "/#videos", label: t.nav.videos },
     { href: "/#metiers", label: t.nav.trades },
     { href: "/#tarif", label: t.nav.pricing },
+    { href: "/a-propos/", label: t.nav.about },
   ];
 
   const langSwitch = <LangSwitch />;

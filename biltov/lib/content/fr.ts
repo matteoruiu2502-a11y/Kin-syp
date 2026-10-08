@@ -25,6 +25,7 @@ export const fr = {
     videos: "Vidéos",
     trades: "Métiers",
     pricing: "Tarif",
+    about: "À propos",
     roi: "Calculateur",
     cta: "Essai gratuit 5 jours",
     dashboard: "Mon espace",

@@ -10,6 +10,7 @@ export const nl: Dict = {
     videos: "Video's",
     trades: "Vakken",
     pricing: "Prijs",
+    about: "Over ons",
     roi: "Rekenmodule",
     cta: "5 dagen gratis proberen",
     dashboard: "Mijn ruimte",

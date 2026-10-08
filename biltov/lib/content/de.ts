@@ -10,6 +10,7 @@ export const de: Dict = {
     videos: "Videos",
     trades: "Gewerke",
     pricing: "Preis",
+    about: "Über uns",
     roi: "Rechner",
     cta: "5 Tage kostenlos testen",
     dashboard: "Mein Bereich",
