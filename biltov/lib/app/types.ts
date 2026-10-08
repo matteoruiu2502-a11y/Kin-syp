@@ -344,7 +344,7 @@ export type Member = {
   permissions?: Partial<Permissions> | null; // exceptions propres à cette personne (sinon : droits du rôle)
 };
 
-export type TimeEntry = { id: string; memberId: string; jobId: string; date: ISODate; start: string; end: string; hours: number; note: string; geoStart?: Geo | null; geoEnd?: Geo | null };
+export type TimeEntry = { id: string; memberId: string; jobId: string; date: ISODate; start: string; end: string; hours: number; note: string; geoStart?: Geo | null; geoEnd?: Geo | null; taskId?: string | null };
 
 export type EventKind = "job" | "visit" | "appointment" | "leave" | "maintenance";
 export type PlanningEvent = { id: string; kind: EventKind; title: string; jobId: string | null; clientId: string | null; memberIds: string[]; vehicleIds?: string[]; start: string; end: string; notes: string; status: "planned" | "done" | "cancelled" | "requested" | "approved" | "refused" };

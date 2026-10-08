@@ -21,11 +21,12 @@ import { JobProfitPanel } from "./JobProfitPanel";
 import { mapsEmbed, mapsRoute, wazeRoute } from "@/lib/app/geo";
 import { ExpensesList } from "./ExpensesPanel";
 import { JobWeatherSummary } from "./WeatherTab";
+import { JobPlanning } from "./JobPlanning";
 import { ChatPanel, FilesPanel, ReportsPanel, TimePanel } from "./FieldPanels";
 
-type Tab = "docs" | "finance" | "materials" | "time" | "reports" | "photos" | "costs" | "files" | "chat";
+type Tab = "docs" | "planning" | "finance" | "materials" | "time" | "reports" | "photos" | "costs" | "files" | "chat";
 
-export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "docs" }: { job: Job; onBack: () => void; onOpenDoc: (id: string) => void; onOpenClient: (id: string) => void; initialTab?: "docs" | "finance" | "materials" }) {
+export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "docs" }: { job: Job; onBack: () => void; onOpenDoc: (id: string) => void; onOpenClient: (id: string) => void; initialTab?: "docs" | "planning" | "finance" | "materials" }) {
   const { t } = useTr();
   const f = useFmt();
   const { t: land } = useI18n();
@@ -51,6 +52,7 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
 
   const tabs: { id: Tab; label: string; count?: number; on?: boolean }[] = [
     { id: "docs", label: t("Devis & factures"), count: docs.length, on: seeMoney },
+    { id: "planning", label: t("Planning"), count: data.tasks.filter((x) => x.jobId === job.id && x.kind !== "phase").length, on: can("planning") },
     { id: "finance", label: t("Rentabilité"), on: can("profit") },
     { id: "materials", label: t("Matériaux prévu / réel"), on: can("profit") },
     { id: "time", label: t("Heures"), count: data.timeEntries.filter((x) => x.jobId === job.id).length, on: m.time },
@@ -177,6 +179,7 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
           )}
         </div>
       )}
+      {tab === "planning" && can("planning") && <JobPlanning job={job} />}
       {tab === "finance" && can("profit") && <JobProfitPanel job={job} />}
       {tab === "materials" && can("profit") && <MaterialsPanel job={job} />}
       {tab === "time" && <TimePanel job={job} />}

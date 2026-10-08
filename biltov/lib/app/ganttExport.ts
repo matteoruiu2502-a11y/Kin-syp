@@ -47,6 +47,7 @@ export type GanttModel = {
   cal: AccountData["settings"]["planning"];
   author: string;
   columns: "full" | "client"; // version client : sans colonne « état interne »
+  scope?: "global" | "job"; // légende et en-têtes adaptés
 };
 
 const fit = (s: Surface, text: string, w: number, size: number, bold = false) => {
@@ -94,7 +95,7 @@ function drawPage(s: Surface, m: GanttModel, W: number, H: number, rows: GanttRo
 
   // en-tête de tableau et de frise
   let cx = M;
-  const heads: Record<string, string> = { label: m.columns === "client" ? "Étape" : "Chantier / tâche", sub: "Client", start: "Début", end: "Fin", state: "État" };
+  const heads: Record<string, string> = { label: m.columns === "client" ? "Étape" : m.scope === "job" ? "Tâche" : "Chantier", sub: m.scope === "job" ? "Responsable / sous-traitant" : "Client", start: "Début", end: "Fin", state: "État" };
   for (const c of cols) {
     s.text(heads[c.k], cx + 1, top + 7, { size: 7, bold: true, color: MUTED });
     cx += c.w;
@@ -169,7 +170,17 @@ function drawPage(s: Surface, m: GanttModel, W: number, H: number, rows: GanttRo
   }
 
   // légende + pied
-  const legend: [RGB, string][] = [
+  const jobLegend: [RGB, string][] = [
+    [BRAND, "Tâche"],
+    [[100, 116, 139], "Phase"],
+    [INK, "Jalon / avancement"],
+    ...(m.columns === "client" ? [] : ([[[148, 163, 184], "Prévu (figé)"], [CONFLICT, "Conflit / chemin critique"]] as [RGB, string][])),
+    [WEEKEND, "Week-end"],
+    [HOLIDAY, "Jour férié"],
+    [LEAVE_RGB, "Congé du bâtiment"],
+    [WEATHER, "Intempérie"],
+  ];
+  const legend: [RGB, string][] = m.scope === "job" ? jobLegend : [
     [STATE_RGB.upcoming, "À venir"],
     [STATE_RGB.ongoing, "En cours"],
     [STATE_RGB.risk, "À risque"],
@@ -179,7 +190,7 @@ function drawPage(s: Surface, m: GanttModel, W: number, H: number, rows: GanttRo
     [HOLIDAY, "Jour férié"],
     [LEAVE_RGB, "Congé du bâtiment"],
     [WEATHER, "Intempérie"],
-    [CONFLICT, "Conflit / chemin critique"],
+    [CONFLICT, "Conflit"],
   ];
   let lx = M;
   const ly = H - 12;

@@ -11,6 +11,7 @@ import { ROLE } from "@/lib/app/labels";
 import { useFmt } from "@/lib/app/format";
 import { addDays, todayIso, uid } from "@/lib/app/defaults";
 import { onDay } from "@/lib/app/planning";
+import { isWorkday } from "@/lib/app/workdays";
 import type { Geo, Job, Member, WeatherDay } from "@/lib/app/types";
 import { newWeatherDay } from "@/lib/app/weather";
 import { currentGeo, mapsRoute, wazeRoute } from "@/lib/app/geo";
@@ -24,7 +25,7 @@ import { PhotosPanel } from "./PhotosPanel";
 import { WeatherForm } from "./WeatherTab";
 
 const CLOCK = "biltov.clock";
-type Clock = { memberId: string; jobId: string; date: string; start: string; geo?: Geo | null };
+type Clock = { memberId: string; jobId: string; date: string; start: string; geo?: Geo | null; taskId?: string | null };
 const readClock = (): Clock | null => {
   try {
     return JSON.parse(localStorage.getItem(CLOCK) ?? "null");
@@ -89,14 +90,16 @@ export function WorkerMode({ member, onExit }: { member: Member; onExit: () => v
   useEffect(() => setClock(readClock()), []);
 
   const mine = data.events.filter((e) => e.memberIds.includes(member.id) && e.status !== "cancelled");
-  const upcoming = Array.from({ length: 7 }, (_, i) => addDays(today, i)).map((d) => ({ day: d, events: mine.filter((e) => onDay(e, d)) }));
-  const jobIds = new Set([...mine.map((e) => e.jobId), ...data.jobs.filter((j) => j.memberIds.includes(member.id)).map((j) => j.id)].filter(Boolean) as string[]);
+  // tâches du planning détaillé qui me sont affectées (lecture seule)
+  const myTasks = data.tasks.filter((x) => x.kind === "task" && x.status !== "done" && x.memberIds.includes(member.id));
+  const upcoming = Array.from({ length: 7 }, (_, i) => addDays(today, i)).map((d) => ({ day: d, events: mine.filter((e) => onDay(e, d)), tasks: isWorkday(d, data.settings.planning) ? myTasks.filter((x) => x.start <= d && x.end >= d) : [] }));
+  const jobIds = new Set([...mine.map((e) => e.jobId), ...myTasks.map((x) => x.jobId), ...data.jobs.filter((j) => j.memberIds.includes(member.id)).map((j) => j.id)].filter(Boolean) as string[]);
   const jobs = data.jobs.filter((j) => jobIds.has(j.id) && !["done", "refused", "lost"].includes(j.status));
   const job = data.jobs.find((j) => j.id === jobId);
   const myHours = data.timeEntries.filter((e) => e.memberId === member.id && e.date >= addDays(today, -6)).reduce((s, e) => s + e.hours, 0);
 
-  const start = async (j: Job) => {
-    const c: Clock = { memberId: member.id, jobId: j.id, date: today, start: hhmm(), geo: await currentGeo() };
+  const start = async (j: Job, taskId: string | null = null) => {
+    const c: Clock = { memberId: member.id, jobId: j.id, date: today, start: hhmm(), geo: await currentGeo(), taskId };
     localStorage.setItem(CLOCK, JSON.stringify(c));
     setClock(c);
   };
@@ -104,7 +107,7 @@ export function WorkerMode({ member, onExit }: { member: Member; onExit: () => v
     if (!clock) return;
     const end = hhmm();
     const geoEnd = await currentGeo();
-    upsert("timeEntries", { id: uid(), memberId: clock.memberId, jobId: clock.jobId, date: clock.date, start: clock.start, end, hours: hoursBetween(clock.start, end), note: t("Pointage mobile"), geoStart: clock.geo ?? null, geoEnd });
+    upsert("timeEntries", { id: uid(), memberId: clock.memberId, jobId: clock.jobId, date: clock.date, start: clock.start, end, hours: hoursBetween(clock.start, end), note: t("Pointage mobile"), geoStart: clock.geo ?? null, geoEnd, taskId: clock.taskId ?? null });
     localStorage.removeItem(CLOCK);
     setClock(null);
   };
@@ -138,16 +141,23 @@ export function WorkerMode({ member, onExit }: { member: Member; onExit: () => v
           <div className="card p-4">
             <p className="mb-3 text-sm font-semibold text-white">{t("Mon planning")}</p>
             <ul className="space-y-2 text-sm">
-              {upcoming.map(({ day, events }) => (
+              {upcoming.map(({ day, events, tasks }) => (
                 <li key={day} className="flex gap-3">
                   <span className={cn("w-20 shrink-0 text-xs", day === today ? "font-bold text-cyan" : "text-slate-500")}>{new Date(`${day}T12:00`).toLocaleDateString(f.locale, { weekday: "short", day: "numeric" })}</span>
                   <span className="flex-1 space-y-1">
-                    {events.length ? (
-                      events.map((e) => (
-                        <button key={e.id} onClick={() => e.jobId && setJobId(e.jobId)} className="block text-left text-slate-200 hover:text-cyan">
-                          {e.title} <span className="text-xs text-slate-500">{e.start.slice(11)}–{e.end.slice(11)}</span>
-                        </button>
-                      ))
+                    {events.length || tasks.length ? (
+                      <>
+                        {events.map((e) => (
+                          <button key={e.id} onClick={() => e.jobId && setJobId(e.jobId)} className="block text-left text-slate-200 hover:text-cyan">
+                            {e.title} <span className="text-xs text-slate-500">{e.start.slice(11)}–{e.end.slice(11)}</span>
+                          </button>
+                        ))}
+                        {tasks.map((x) => (
+                          <button key={x.id} onClick={() => setJobId(x.jobId)} className="block text-left text-slate-200 hover:text-cyan">
+                            {x.name} <span className="text-xs text-slate-500">· {data.jobs.find((j) => j.id === x.jobId)?.name}</span>
+                          </button>
+                        ))}
+                      </>
                     ) : (
                       <span className="text-slate-600">—</span>
                     )}
@@ -180,7 +190,7 @@ export function WorkerMode({ member, onExit }: { member: Member; onExit: () => v
           <p className="text-center text-xs text-slate-500">{t("{h} h pointées ces 7 derniers jours", { h: f.num(myHours, 1) })}</p>
         </>
       ) : (
-        <WorkerJob job={job} member={member} running={!!running} onStart={() => start(job)} onBack={() => setJobId(null)} />
+        <WorkerJob job={job} member={member} running={!!running} onStart={(taskId) => start(job, taskId)} onBack={() => setJobId(null)} />
       )}
 
       <AnimatePresence>
@@ -191,11 +201,15 @@ export function WorkerMode({ member, onExit }: { member: Member; onExit: () => v
   );
 }
 
-function WorkerJob({ job, member, running, onStart, onBack }: { job: Job; member: Member; running: boolean; onStart: () => void; onBack: () => void }) {
+function WorkerJob({ job, member, running, onStart, onBack }: { job: Job; member: Member; running: boolean; onStart: (taskId: string | null) => void; onBack: () => void }) {
   const { t } = useTr();
   const { data } = useAppData();
   const [panel, setPanel] = useState<"photos" | "reports" | "chat">("photos");
   const [weather, setWeather] = useState<WeatherDay | null>(null);
+  // tâche pointée : par défaut celle du jour qui m'est affectée
+  const jobTasks = data.tasks.filter((x) => x.jobId === job.id && x.kind === "task" && x.status !== "done");
+  const mineToday = jobTasks.find((x) => x.memberIds.includes(member.id) && x.start <= todayIso() && x.end >= todayIso());
+  const [taskId, setTaskId] = useState<string>(mineToday?.id ?? "");
   const client = data.clients.find((c) => c.id === job.clientId);
   const missions = data.events.filter((e) => e.jobId === job.id && e.memberIds.includes(member.id) && e.end.slice(0, 10) >= todayIso() && e.status !== "cancelled").slice(0, 5);
   const address = job.siteAddress || [client?.billing.street, client?.billing.postcode, client?.billing.city].filter(Boolean).join(", ");
@@ -238,8 +252,20 @@ function WorkerJob({ job, member, running, onStart, onBack }: { job: Job; member
           </a>
         )}
         {job.notes && <p className="whitespace-pre-line text-sm text-slate-400">{job.notes}</p>}
+        {!running && jobTasks.length > 0 && (
+          <Field label={t("Tâche")}>
+            <select value={taskId} onChange={(e) => setTaskId(e.target.value)} className={inputClass}>
+              <option value="">{t("Sans tâche précise")}</option>
+              {jobTasks.map((x) => (
+                <option key={x.id} value={x.id}>
+                  {x.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         {!running && (
-          <button onClick={onStart} className="btn-primary w-full">
+          <button onClick={() => onStart(taskId || null)} className="btn-primary w-full">
             <Play className="h-4 w-4" /> {t("Commencer le pointage")}
           </button>
         )}

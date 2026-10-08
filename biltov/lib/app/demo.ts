@@ -8,6 +8,7 @@ import { computeTotals } from "./money";
 import { importMoves } from "./bank";
 import type { Account, AccountData, GenericRecord, Photo, WeatherDay } from "./types";
 import { computeHoursLost, newWeatherDay } from "./weather";
+import { phasesFromTemplate, plannedEnd } from "./schedule";
 import { isWorkday, plusDays } from "./workdays";
 
 export const DEMO_ID = "demo";
@@ -237,6 +238,28 @@ export async function buildDemoData(): Promise<AccountData> {
   d.contracts = [
     { id: uid(), clientId: durand.id, jobId: null, title: "Entretien annuel chaudière — Durand", frequency: "yearly", startDate: d0(-360), nextDate: d0(5), endDate: null, lines: [{ label: "Entretien chaudière gaz + attestation", qty: 1, unit: "forfait", unitPrice: 120, category: "fossil_boiler_service" }], memberIds: [karim.id], active: true, history: [] },
   ];
+  // Planning détaillé du chantier Bouw & Co : phases enchaînées, électricité sous-traitée, prévu figé
+  // quelques jours plus tôt (dérive visible), tâches passées terminées, tâche du jour en cours.
+  {
+    const job = d.jobs.find((j) => j.id === jBouw.id)!;
+    const today = todayIso();
+    const list = phasesFromTemplate(job, d.settings.planning, ["Installation de chantier", "Électricité", "Plomberie", "Chauffage / HVAC", "Carrelage", "Finitions", "Réception du chantier"], [piotr.id, karim.id]).map((t) => {
+      const base = { start: plusDays(t.start, -2), end: plusDays(t.end, -3) };
+      const done = t.end < today;
+      const current = t.start <= today && t.end >= today;
+      return {
+        ...t,
+        baseline: t.kind === "milestone" ? { start: base.end, end: base.end } : base,
+        status: done ? ("done" as const) : current ? ("in_progress" as const) : ("todo" as const),
+        progress: done ? 100 : current ? 40 : 0,
+        ...(t.name === "Électricité" ? { subcontractorId: soustraitant.id, memberIds: [] } : {}),
+        ...(t.name === "Plomberie" ? { memberIds: [piotr.id] } : {}),
+      };
+    });
+    d.tasks = list;
+    d.jobs = d.jobs.map((j) => (j.id === job.id ? { ...j, endDate: plannedEnd(list) ?? j.endDate } : j));
+  }
+
   // Intempéries : une validée, une justifiée (lien IRM), une sans preuve (« à justifier »)
   const workday = (n: number) => {
     let x = d0(n);

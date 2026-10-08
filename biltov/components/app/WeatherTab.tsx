@@ -61,6 +61,7 @@ import {
   weatherCsv,
 } from "@/lib/app/weather";
 import { addWorkdays, dayOff, eachDay, plusDays, weekday } from "@/lib/app/workdays";
+import { plannedEnd, shiftForWeather } from "@/lib/app/schedule";
 import type { Job, Photo, WeatherDay, WeatherDuration, WeatherImpact, WeatherKind, WeatherProof, WeatherStatus } from "@/lib/app/types";
 import { Field, Modal, Notice, PageHeader, SubTabs, inputClass } from "./ui";
 
@@ -486,7 +487,7 @@ const toNum = (v: string) => (v.trim() === "" ? null : Number(v.replace(",", "."
 export function WeatherForm({ initial, onClose, worker }: { initial: WeatherDay; onClose: () => void; worker?: boolean }) {
   const { t } = useTr();
   const f = useFmt();
-  const { data, upsert, remove, putBlob, blobUrl, actor, can } = useAppData();
+  const { data, upsert, update, remove, putBlob, blobUrl, actor, can } = useAppData();
   const cal = data.settings.planning;
   const isNew = !data.weatherDays.some((w) => w.id === initial.id);
   const [w, setW] = useState<WeatherDay>(initial);
@@ -603,11 +604,21 @@ export function WeatherForm({ initial, onClose, worker }: { initial: WeatherDay;
     }
     // décaler la fin prévue des chantiers (toujours sur confirmation)
     const extra = delayDays(next, cal) - (isNew ? 0 : delayDays(initial, cal));
-    if (extra >= 0.5 && can("jobs", "edit")) {
+    if (extra >= 0.5) {
       for (const id of next.jobIds) {
         const job = data.jobs.find((j) => j.id === id);
-        if (!job?.endDate || job.status === "done") continue;
+        if (!job || job.status === "done") continue;
         const n = Math.ceil(extra);
+        // chantier détaillé : on propose de décaler les tâches touchées (et leurs dépendantes)
+        const jobTasks = data.tasks.filter((x) => x.jobId === id);
+        if (jobTasks.length && can("planning", "edit")) {
+          const { tasks: shifted, moved } = shiftForWeather(jobTasks, next, n, cal);
+          const newEnd = plannedEnd(shifted);
+          if (moved.length && window.confirm(t("Décaler {k} tâche(s) de « {job} » de {n} jour(s) ouvrable(s) ? Fin prévue : {from} → {to}.", { k: moved.length, job: job.name, n, from: f.date(plannedEnd(jobTasks) ?? job.endDate), to: f.date(newEnd ?? job.endDate) })))
+            update((d) => ({ ...d, tasks: [...d.tasks.filter((x) => x.jobId !== id), ...shifted], jobs: can("jobs", "edit") && newEnd ? d.jobs.map((j) => (j.id === id ? { ...j, endDate: newEnd } : j)) : d.jobs }));
+          continue;
+        }
+        if (!job.endDate || !can("jobs", "edit")) continue;
         const end = addWorkdays(job.endDate, n, cal);
         if (window.confirm(t("Décaler la fin prévue de « {job} » de {n} jour(s) ouvrable(s) ({from} → {to}) ?", { job: job.name, n, from: f.date(job.endDate), to: f.date(end) }))) upsert("jobs", { ...job, endDate: end });
       }

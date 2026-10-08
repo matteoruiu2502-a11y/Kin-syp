@@ -5946,5 +5946,297 @@ export const DICT: Record<string, [string, string]> = {
  "Trimestre": [
   "Kwartaal",
   "Quartal"
+ ],
+ "Remplacer la planification de départ par les dates actuelles ?": [
+  "De oorspronkelijke planning vervangen door de huidige data?",
+  "Die Ausgangsplanung durch die aktuellen Daten ersetzen?"
+ ],
+ "non renseignée": [
+  "niet ingevuld",
+  "nicht angegeben"
+ ],
+ "{n} j d'avance": [
+  "{n} d voorsprong",
+  "{n} T Vorsprung"
+ ],
+ "À l'heure": [
+  "Op tijd",
+  "Pünktlich"
+ ],
+ "Tâches critiques": [
+  "Kritieke taken",
+  "Kritische Aufgaben"
+ ],
+ "Tâche": [
+  "Taak",
+  "Aufgabe"
+ ],
+ "Modèle de phases": [
+  "Fasesjabloon",
+  "Phasenvorlage"
+ ],
+ "Depuis le devis": [
+  "Vanuit de offerte",
+  "Aus dem Angebot"
+ ],
+ "Mémoriser les dates actuelles comme planification de départ (prévu)": [
+  "De huidige data bewaren als oorspronkelijke planning (gepland)",
+  "Die aktuellen Daten als Ausgangsplanung (geplant) speichern"
+ ],
+ "Figer le prévu": [
+  "Planning vastleggen",
+  "Planung festschreiben"
+ ],
+ "Version simplifiée pour le client, sans coûts ni alertes internes": [
+  "Vereenvoudigde versie voor de klant, zonder kosten of interne waarschuwingen",
+  "Vereinfachte Version für den Kunden, ohne Kosten und interne Warnungen"
+ ],
+ "PDF client": [
+  "PDF klant",
+  "PDF Kunde"
+ ],
+ "{n} alerte(s) sur le planning": [
+  "{n} waarschuwing(en) in de planning",
+  "{n} Warnung(en) in der Planung"
+ ],
+ "Aucune tâche. Partez d'un modèle de phases du bâtiment, du devis accepté, ou ajoutez vos tâches une à une.": [
+  "Geen taken. Vertrek van een fasesjabloon, van de goedgekeurde offerte, of voeg uw taken één voor één toe.",
+  "Keine Aufgaben. Starten Sie mit einer Phasenvorlage, dem angenommenen Angebot oder fügen Sie Ihre Aufgaben einzeln hinzu."
+ ],
+ "Afficher le prévu": [
+  "Gepland tonen",
+  "Geplantes anzeigen"
+ ],
+ "(sans nom)": [
+  "(zonder naam)",
+  "(ohne Namen)"
+ ],
+ "Chemin critique": [
+  "Kritiek pad",
+  "Kritischer Pfad"
+ ],
+ "crit.": [
+  "krit.",
+  "krit."
+ ],
+ "ext.": [
+  "ext.",
+  "ext."
+ ],
+ "{n} alerte(s)": [
+  "{n} waarschuwing(en)",
+  "{n} Warnung(en)"
+ ],
+ "Pointé": [
+  "Geprikt",
+  "Gestempelt"
+ ],
+ "Terminée": [
+  "Afgerond",
+  "Abgeschlossen"
+ ],
+ "Prévu (figé)": [
+  "Gepland (vastgelegd)",
+  "Geplant (festgeschrieben)"
+ ],
+ "Donnez un nom à la tâche.": [
+  "Geef de taak een naam.",
+  "Geben Sie der Aufgabe einen Namen."
+ ],
+ "Cette dépendance créerait une boucle.": [
+  "Deze afhankelijkheid zou een lus maken.",
+  "Diese Abhängigkeit würde eine Schleife erzeugen."
+ ],
+ "Nouvelle tâche": [
+  "Nieuwe taak",
+  "Neue Aufgabe"
+ ],
+ "Supprimer cette tâche ?": [
+  "Deze taak verwijderen?",
+  "Diese Aufgabe löschen?"
+ ],
+ "Phase": [
+  "Fase",
+  "Phase"
+ ],
+ "Avancement": [
+  "Voortgang",
+  "Fortschritt"
+ ],
+ "prévu": [
+  "gepland",
+  "geplant"
+ ],
+ "Sous-traitant (tâche externe)": [
+  "Onderaannemer (externe taak)",
+  "Subunternehmer (externe Aufgabe)"
+ ],
+ "Nos équipes": [
+  "Onze ploegen",
+  "Unsere Teams"
+ ],
+ "Ouvriers": [
+  "Arbeiders",
+  "Arbeiter"
+ ],
+ "Véhicules / matériel": [
+  "Voertuigen / materieel",
+  "Fahrzeuge / Material"
+ ],
+ "Dépendances": [
+  "Afhankelijkheden",
+  "Abhängigkeiten"
+ ],
+ "Après la fin de": [
+  "Na het einde van",
+  "Nach dem Ende von"
+ ],
+ "En même temps que le début de": [
+  "Tegelijk met het begin van",
+  "Gleichzeitig mit dem Beginn von"
+ ],
+ "Tâche précédente": [
+  "Voorgaande taak",
+  "Vorherige Aufgabe"
+ ],
+ "Tâche précédente…": [
+  "Voorgaande taak…",
+  "Vorherige Aufgabe…"
+ ],
+ "Lien": [
+  "Koppeling",
+  "Verknüpfung"
+ ],
+ "Fin → début": [
+  "Einde → begin",
+  "Ende → Beginn"
+ ],
+ "Début → début": [
+  "Begin → begin",
+  "Beginn → Beginn"
+ ],
+ "Délai (jours, négatif = avance)": [
+  "Vertraging (dagen, negatief = voorsprong)",
+  "Verzögerung (Tage, negativ = Vorlauf)"
+ ],
+ "Matériaux nécessaires": [
+  "Benodigde materialen",
+  "Benötigte Materialien"
+ ],
+ "stock": [
+  "voorraad",
+  "Lager"
+ ],
+ "Article du catalogue…": [
+  "Catalogusartikel…",
+  "Katalogartikel…"
+ ],
+ "Les dates d'une phase suivent celles de ses tâches.": [
+  "De data van een fase volgen die van haar taken.",
+  "Die Daten einer Phase folgen denen ihrer Aufgaben."
+ ],
+ "Cette tâche finit après la fin contractuelle du chantier.": [
+  "Deze taak eindigt na het contractuele einde van de werf.",
+  "Diese Aufgabe endet nach dem vertraglichen Ende der Baustelle."
+ ],
+ "Modèle de phases du bâtiment": [
+  "Fasesjabloon voor de bouw",
+  "Bauphasen-Vorlage"
+ ],
+ "Créer le planning depuis le devis": [
+  "Planning maken vanuit de offerte",
+  "Planung aus dem Angebot erstellen"
+ ],
+ "Remplacer les tâches existantes de ce chantier ?": [
+  "De bestaande taken van deze werf vervangen?",
+  "Die bestehenden Aufgaben dieser Baustelle ersetzen?"
+ ],
+ "Créer {n} élément(s)": [
+  "{n} element(en) aanmaken",
+  "{n} Element(e) erstellen"
+ ],
+ "Début des travaux": [
+  "Begin van de werken",
+  "Beginn der Arbeiten"
+ ],
+ "Devis accepté": [
+  "Goedgekeurde offerte",
+  "Angenommenes Angebot"
+ ],
+ "Durées proposées, modifiables ci-dessous ; chaque phase suit la précédente.": [
+  "Voorgestelde duur, hieronder aanpasbaar; elke fase volgt op de vorige.",
+  "Vorgeschlagene Dauer, unten änderbar; jede Phase folgt der vorherigen."
+ ],
+ "Une phase par titre du devis ; durée estimée d'après les heures de main-d'œuvre (modifiable) ; les lignes sous-traitées deviennent des tâches externes.": [
+  "Eén fase per titel van de offerte; duur geschat op basis van de arbeidsuren (aanpasbaar); uitbestede lijnen worden externe taken.",
+  "Eine Phase pro Angebotsüberschrift; Dauer geschätzt nach den Arbeitsstunden (änderbar); vergebene Positionen werden externe Aufgaben."
+ ],
+ "Ce devis n'a pas de ligne à planifier.": [
+  "Deze offerte heeft geen lijn om in te plannen.",
+  "Dieses Angebot hat keine zu planende Position."
+ ],
+ "Décaler {k} tâche(s) de « {job} » de {n} jour(s) ouvrable(s) ? Fin prévue : {from} → {to}.": [
+  "{k} taak/taken van „{job}” met {n} werkdag(en) verschuiven? Gepland einde: {from} → {to}.",
+  "{k} Aufgabe(n) von „{job}“ um {n} Arbeitstag(e) verschieben? Geplantes Ende: {from} → {to}."
+ ],
+ "Sans tâche précise": [
+  "Zonder specifieke taak",
+  "Ohne bestimmte Aufgabe"
+ ],
+ "À faire": [
+  "Te doen",
+  "Zu erledigen"
+ ],
+ "Bloquée": [
+  "Geblokkeerd",
+  "Blockiert"
+ ],
+ "Installation de chantier": [
+  "Werfinrichting",
+  "Baustelleneinrichtung"
+ ],
+ "Gros œuvre": [
+  "Ruwbouw",
+  "Rohbau"
+ ],
+ "Toiture": [
+  "Dakwerken",
+  "Dach"
+ ],
+ "Menuiseries extérieures": [
+  "Buitenschrijnwerk",
+  "Fenster und Außentüren"
+ ],
+ "Électricité": [
+  "Elektriciteit",
+  "Elektrik"
+ ],
+ "Plomberie": [
+  "Sanitair",
+  "Sanitär"
+ ],
+ "Chauffage / HVAC": [
+  "Verwarming / HVAC",
+  "Heizung / HLK"
+ ],
+ "Plafonnage": [
+  "Pleisterwerk",
+  "Verputz"
+ ],
+ "Carrelage": [
+  "Tegelwerk",
+  "Fliesen"
+ ],
+ "Peinture": [
+  "Schilderwerk",
+  "Malerarbeiten"
+ ],
+ "Finitions": [
+  "Afwerking",
+  "Feinarbeiten"
+ ],
+ "Réception du chantier": [
+  "Oplevering van de werf",
+  "Bauabnahme"
  ]
 };
