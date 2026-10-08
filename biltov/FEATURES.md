@@ -81,7 +81,8 @@ Ce fichier dit honnêtement ce qui fonctionne aujourd'hui.
 | Tickets de caisse lus par OCR (dans le navigateur) | ✅ |
 | Planning semaine par ouvrier **et par véhicule**, glisser-déposer, conflits, congés, export .ics (planning et agenda de l'ouvrier) | ✅ ; ⏳ flux .ics abonnable (URL publique, nécessite le serveur) |
 | Calendrier des **intempéries** (mois / semaine / liste) : jours fériés belges, week-ends, congés du bâtiment configurables, fiche en 3 gestes, preuve IRM (fichier avec empreinte SHA-256 ou lien), pré-remplissage indicatif Open-Meteo, heures perdues, statut à justifier / justifié / validé (admin), journal des modifications, rapport PDF et CSV, déclaration par l'ouvrier, décalage proposé de la fin du chantier | ✅ ; preuves stockées sur l'appareil (incluses dans la sauvegarde) |
-| Gantt tous chantiers et Gantt par chantier (dépendances, chemin critique, conflits de ressources) | ⏳ en cours (étapes 2 et 3) |
+| **Gantt de tous les chantiers** : états (à venir, en cours, à risque, en retard, terminé), avancement, chevauchements, conflits de ressources (ouvrier ou véhicule sur deux chantiers, ou en congé) avec bandeau cliquable, charge hebdomadaire nécessaires / disponibles, filtres (statut, responsable, client, commune, corps de métier), zoom jour → trimestre, fonds fériés / congés / intempéries, glisser-déposer avec annulation, « À planifier », export PDF A3 et image | ✅ |
+| Gantt par chantier (phases, tâches, dépendances, chemin critique, prévu / réel) | ⏳ étape 3 |
 | Pointage et photos géolocalisés (GPS de l'appareil, avec accord), itinéraire Google Maps / Waze, carte du chantier | ✅ |
 | Ordres de mission dans l'espace ouvrier | ✅ |
 | Rentabilité en temps réel (#chantier/<id>/rentabilite) : vendu (devis + avenants), facturé, matières, main-d'œuvre, sous-traitance, matériel, engagé, marge réelle contre prévue | ✅ |

@@ -15,6 +15,7 @@ import { needsProof } from "@/lib/app/weather";
 import { holidayName } from "@/lib/app/workdays";
 import { Field, Modal, Notice, PageHeader, SubTabs, inputClass } from "./ui";
 import { WeatherTab } from "./WeatherTab";
+import { GanttTab } from "./GanttTab";
 
 export const EVENT_KIND: Record<EventKind, { label: string; color: string }> = {
   job: { label: "Chantier", color: "#2563eb" },
@@ -170,8 +171,8 @@ export const blankEvent = (day: string, p: Partial<PlanningEvent> = {}): Plannin
 export function PlanningTab({ view, onView }: { view?: string; onView?: (v: string) => void }) {
   const { t } = useTr();
   const { data } = useAppData();
-  const [local, setLocal] = useState(view === "intemperies" ? "intemperies" : "agenda");
-  const current = view === "intemperies" || view === "agenda" ? view : local;
+  const [local, setLocal] = useState(view === "intemperies" || view === "gantt" ? view : "agenda");
+  const current = view === "intemperies" || view === "agenda" || view === "gantt" ? view : local;
   const toJustify = data.weatherDays.filter(needsProof).length;
   const change = (v: string) => (setLocal(v), onView?.(v));
   return (
@@ -180,13 +181,19 @@ export function PlanningTab({ view, onView }: { view?: string; onView?: (v: stri
         <SubTabs
           tabs={[
             { id: "agenda", label: t("Agenda") },
+            { id: "gantt", label: t("Gantt") },
             { id: "intemperies", label: t("Intempéries"), count: toJustify || undefined },
           ]}
           value={current}
           onChange={change}
         />
       </div>
-      {current === "intemperies" ? (
+      {current === "gantt" ? (
+        <>
+          <PageHeader title={t("Planning des chantiers")} subtitle={t("Tous les chantiers sur une frise : chevauchements, conflits d'équipe et charge de travail.")} />
+          <GanttTab />
+        </>
+      ) : current === "intemperies" ? (
         <>
           <PageHeader title={t("Intempéries")} subtitle={t("Jours de chantier arrêtés ou ralentis par la météo, avec preuve IRM.")} />
           <WeatherTab />

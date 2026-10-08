@@ -188,7 +188,22 @@ export function JobForm({ job, clientId, onClose, onSaved }: { job: Job | null; 
             <input type="date" className={inputClass} value={draft.startDate} onChange={(e) => set("startDate", e.target.value)} />
           </Field>
           <Field label={t("Fin prévue")}>
-            <input type="date" className={inputClass} value={draft.endDate} onChange={(e) => set("endDate", e.target.value)} />
+            <input type="date" className={inputClass} value={draft.endDate} min={draft.startDate || undefined} onChange={(e) => set("endDate", e.target.value)} />
+          </Field>
+          <Field label={t("Fin contractuelle")} hint={t("Date promise au client (pénalités de retard).")}>
+            <input type="date" className={inputClass} value={draft.contractEndDate ?? ""} min={draft.startDate || undefined} onChange={(e) => set("contractEndDate", e.target.value || null)} />
+          </Field>
+          <Field label={t("Responsable")}>
+            <select className={inputClass} value={draft.managerId ?? ""} onChange={(e) => set("managerId", e.target.value || null)}>
+              <option value="">—</option>
+              {data.members
+                .filter((m) => m.active && m.role !== "accountant")
+                .map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+            </select>
           </Field>
           <Field label={t("Probabilité de signature (%)")}>
             <input type="number" min={0} max={100} className={inputClass} value={draft.probability} onChange={(e) => set("probability", Math.max(0, Math.min(100, e.target.valueAsNumber || 0)))} />

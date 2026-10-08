@@ -290,6 +290,30 @@ Planning semaine par ouvrier et par véhicule, avec glisser-déposer, détection
 **Cas particuliers :**
 - Un conflit (même ouvrier ou véhicule deux fois) est signalé en rouge.
 
+### Planning Gantt des chantiers
+
+Page : /fonctionnalites/gantt/
+
+Une ligne par chantier, du début à la fin prévus, avec son état (à venir, en cours, à risque, en retard, terminé) et son avancement. Biltov signale les chevauchements, les conflits (même ouvrier ou véhicule sur deux chantiers le même jour, ou pendant un congé) et la charge de la semaine : ouvriers nécessaires contre disponibles. Week-ends, jours fériés belges, congés du bâtiment et intempéries sont tramés en fond.
+
+**Où :** Menu « Planning » → onglet « Gantt ».
+
+**Étapes :**
+1. Planning → Gantt : choisissez le zoom (jour, semaine, mois, trimestre).
+2. Touchez « X conflit(s) à résoudre » puis un conflit : la frise se place sur la période concernée.
+3. Dépliez un chantier pour voir son équipe (ou ses tâches) et les jours en conflit.
+4. Glissez une barre pour décaler un chantier, ou sa poignée droite pour changer la fin ; « Annuler » revient en arrière.
+5. Dans « À planifier », touchez « Planifier » (ou glissez le chantier sur la frise) pour lui donner des dates et une équipe.
+6. Exportez en PDF (A3 paysage) ou en image.
+
+**Astuces :**
+- Sur téléphone ou tablette, activez « Déplacer » pour faire glisser les barres au doigt.
+- Renseignez la fin contractuelle du chantier : s'il la dépasse, il passe « à risque ».
+
+**Cas particuliers :**
+- Seuls les chantiers signés (devis accepté) apparaissent.
+- Une durée se compte en jours ouvrables : sans week-ends, jours fériés ni congés du bâtiment.
+
 ### Intempéries et preuve météo
 
 Page : /fonctionnalites/intemperies/

@@ -150,6 +150,7 @@ export type Job = {
   materialLinks?: Record<string, string>; // analyse matériaux : description achetée → matériau du devis (ou « __none »)
   geo?: { lat: number; lng: number; label: string } | null; // localisation du chantier (météo historique)
   contractEndDate?: ISODate | null; // date de fin contractuelle (pénalités de retard)
+  managerId?: string | null; // responsable / conducteur de travaux (membre)
 };
 
 export type LineKind = "item" | "section" | "text";
@@ -424,6 +425,35 @@ export type Contract = {
 /** Enregistrements génériques des modules complémentaires (SAV, congés, recrutement…). */
 export type GenericRecord = { id: string; module: ModuleId; title: string; status: string; fields: Record<string, string | number | boolean>; jobId: string | null; clientId: string | null; memberId: string | null; createdAt: string; updatedAt: string };
 
+// ── Planning Gantt ───────────────────────────────────────────────────────────
+
+export type TaskKind = "phase" | "task" | "milestone";
+export type TaskStatus = "todo" | "in_progress" | "done" | "blocked";
+/** Dépendance : fin→début (FS) ou début→début (SS), avec délai (+) ou avance (−) en jours ouvrables. */
+export type TaskDep = { taskId: string; type: "FS" | "SS"; lag: number };
+
+export type Task = {
+  id: string;
+  jobId: string;
+  parentId: string | null; // phase parente
+  kind: TaskKind;
+  name: string;
+  start: ISODate;
+  end: ISODate; // = start pour un jalon
+  progress: number; // 0-100
+  ownerId: string | null; // responsable
+  memberIds: string[];
+  vehicleIds: string[];
+  subcontractorId: string | null; // tâche externe (sous-traitant)
+  status: TaskStatus;
+  notes: string;
+  deps: TaskDep[];
+  materials: { articleId: string; qty: number }[];
+  baseline: { start: ISODate; end: ISODate } | null; // planification de départ (prévu)
+  order: number;
+  sourceLineIds: string[]; // lignes du devis d'origine
+};
+
 // ── Intempéries ──────────────────────────────────────────────────────────────
 
 export type WeatherKind = "rain" | "heavy_rain" | "storm" | "frost" | "snow" | "ice" | "wind" | "heat" | "fog" | "other";
@@ -496,6 +526,7 @@ export type AccountData = {
   tools: Tool[];
   contracts: Contract[];
   weatherDays: WeatherDay[];
+  tasks: Task[];
   audit: AuditEntry[];
 };
 
