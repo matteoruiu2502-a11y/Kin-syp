@@ -314,6 +314,32 @@ Une ligne par chantier, du début à la fin prévus, avec son état (à venir, e
 - Seuls les chantiers signés (devis accepté) apparaissent.
 - Une durée se compte en jours ouvrables : sans week-ends, jours fériés ni congés du bâtiment.
 
+### Planning détaillé d'un chantier
+
+Page : /fonctionnalites/planning-chantier/
+
+Le Gantt d'un chantier : phases, tâches et jalons (réception, livraison…), dépendances fin → début ou début → début avec délai, flèches, chemin critique, fin prévue comparée à la fin contractuelle. Déplacer une tâche décale les tâches qui en dépendent et la fin du chantier. Prévu (figé) contre réel, alertes (retard, dépendance cassée, ouvrier réservé ailleurs, jour non ouvrable, intempérie, stock insuffisant), heures pointées par tâche.
+
+**Où :** Fiche chantier → onglet « Planning ». Les ouvriers voient leurs tâches dans « Mon planning » (espace ouvrier).
+
+**Étapes :**
+1. Ouvrez le chantier → Planning.
+2. « Modèle de phases » (gros œuvre, toiture, électricité, plomberie…) ou « Depuis le devis » pour partir du devis accepté ; ajustez les durées.
+3. Touchez une tâche pour régler dates, durée, ouvriers, sous-traitant, dépendances et matériaux.
+4. Glissez une barre pour la déplacer, sa poignée droite pour l'allonger ; « Annuler » et « Rétablir » sont à côté.
+5. « Figer le prévu » mémorise la planification de départ pour suivre les dérives.
+6. Exportez le PDF (interne) ou le « PDF client », sans coûts ni alertes internes.
+
+**Astuces :**
+- Les tâches marquées « crit. » sont sur le chemin critique : un jour de retard sur elles retarde la réception.
+- Après une intempérie, Biltov propose de décaler les tâches touchées (jamais automatiquement).
+- À l'ouvrier qui pointe, Biltov propose la tâche du jour : les heures alimentent le réel.
+
+**Cas particuliers :**
+- Les durées se comptent en jours ouvrables (sans week-ends, jours fériés ni congés du bâtiment).
+- Une dépendance qui créerait une boucle est refusée.
+- Un lien « version client » en ligne demande un serveur : la version client est donc un PDF.
+
 ### Intempéries et preuve météo
 
 Page : /fonctionnalites/intemperies/

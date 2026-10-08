@@ -491,7 +491,7 @@ function Shell() {
               )}
               {page === "apercu" && <MoneyTab onOpenDoc={setDocId} onOpenJob={openJob} />}
               {page === "chantiers" && <JobsTab onOpen={openJob} onAdd={() => setNewJob({})} />}
-              {page === "chantier" && (job ? <JobDetail key={job.id + (route.sub ?? "")} job={job} initialTab={route.sub === "rentabilite" ? "finance" : route.sub === "materiaux" ? "materials" : "docs"} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
+              {page === "chantier" && (job ? <JobDetail key={job.id + (route.sub ?? "")} job={job} initialTab={route.sub === "rentabilite" ? "finance" : route.sub === "materiaux" ? "materials" : route.sub === "planning" ? "planning" : "docs"} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
               {page === "clients" && <ClientsTab onOpen={openClient} />}
               {page === "client" && (client ? <ClientDetail client={client} onBack={() => go({ page: "clients" })} onOpenJob={openJob} onOpenDoc={setDocId} onNewJob={(clientId) => setNewJob({ clientId })} /> : <NotFound onBack={() => go({ page: "clients" })} />)}
               {page === "documents" && <DocsTab onOpenDoc={setDocId} />}
