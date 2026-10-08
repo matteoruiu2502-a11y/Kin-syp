@@ -136,6 +136,7 @@ export const emptyAccountData = (email: string): AccountData => ({
   tools: [],
   contracts: [],
   weatherDays: [],
+  tasks: [],
   audit: [],
 });
 

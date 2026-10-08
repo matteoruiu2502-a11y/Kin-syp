@@ -139,6 +139,8 @@ function itemNeed(key: keyof AccountData, before: Item | undefined, after: Item 
       return ["tools"];
     case "contracts":
       return ["contracts"];
+    case "tasks":
+      return ["planning"];
     case "weatherDays": {
       // valider une intempérie (preuve vérifiée) : administrateur uniquement
       if (after?.status === "validated" && before?.status !== "validated") return "admin";

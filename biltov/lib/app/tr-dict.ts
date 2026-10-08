@@ -5782,5 +5782,169 @@ export const DICT: Record<string, [string, string]> = {
  "Déclarée par {name} le {date}": [
   "Gemeld door {name} op {date}",
   "Gemeldet von {name} am {date}"
+ ],
+ "« {job} » déplacé de {n} jour(s).": [
+  "„{job}” verschoven met {n} dag(en).",
+  "„{job}“ um {n} Tag(e) verschoben."
+ ],
+ "Fin de « {job} » modifiée.": [
+  "Einde van „{job}” gewijzigd.",
+  "Ende von „{job}“ geändert."
+ ],
+ "{n} conflit(s) à résoudre": [
+  "{n} conflict(en) op te lossen",
+  "{n} Konflikt(e) zu lösen"
+ ],
+ "le {date}": [
+  "op {date}",
+  "am {date}"
+ ],
+ "du {from} au {to}": [
+  "van {from} tot {to}",
+  "vom {from} bis {to}"
+ ],
+ "{n} jour(s)": [
+  "{n} dag(en)",
+  "{n} Tag(e)"
+ ],
+ "Voir sur la frise": [
+  "Tonen op de tijdlijn",
+  "Auf der Zeitleiste zeigen"
+ ],
+ "Déplacer": [
+  "Verplaatsen",
+  "Verschieben"
+ ],
+ "Image": [
+  "Afbeelding",
+  "Bild"
+ ],
+ "Filtres": [
+  "Filters",
+  "Filter"
+ ],
+ "Tous les responsables": [
+  "Alle verantwoordelijken",
+  "Alle Verantwortlichen"
+ ],
+ "Commune": [
+  "Gemeente",
+  "Gemeinde"
+ ],
+ "Toutes les communes": [
+  "Alle gemeenten",
+  "Alle Gemeinden"
+ ],
+ "Corps de métier": [
+  "Vakgebied",
+  "Gewerk"
+ ],
+ "Tous les corps de métier": [
+  "Alle vakgebieden",
+  "Alle Gewerke"
+ ],
+ "Mode déplacement : faites glisser une barre pour décaler le chantier, ou sa poignée droite pour changer la fin.": [
+  "Verplaatsmodus: sleep een balk om de werf te verschuiven, of de rechterhendel om het einde te wijzigen.",
+  "Verschiebemodus: Ziehen Sie einen Balken, um die Baustelle zu verschieben, oder den rechten Griff, um das Ende zu ändern."
+ ],
+ "Aucun chantier ne correspond aux filtres.": [
+  "Geen werf komt overeen met de filters.",
+  "Keine Baustelle entspricht den Filtern."
+ ],
+ "Aucun chantier signé avec des dates. Planifiez un chantier ci-dessous ou depuis sa fiche.": [
+  "Geen ondertekende werf met data. Plan een werf hieronder of vanuit de werffiche.",
+  "Keine unterschriebene Baustelle mit Daten. Planen Sie eine Baustelle unten oder in ihrer Karte."
+ ],
+ "S{n}": [
+  "W{n}",
+  "KW{n}"
+ ],
+ "chevauche {n}": [
+  "overlapt {n}",
+  "überschneidet {n}"
+ ],
+ "{n} conflit(s)": [
+  "{n} conflict(en)",
+  "{n} Konflikt(e)"
+ ],
+ "Conflit": [
+  "Conflict",
+  "Konflikt"
+ ],
+ "Charge": [
+  "Bezetting",
+  "Auslastung"
+ ],
+ "ouvriers nécessaires / disponibles": [
+  "nodige / beschikbare arbeiders",
+  "benötigte / verfügbare Arbeiter"
+ ],
+ "Semaine du {date}": [
+  "Week van {date}",
+  "Woche vom {date}"
+ ],
+ "À planifier": [
+  "In te plannen",
+  "Zu planen"
+ ],
+ "Chantiers signés sans dates ou sans équipe. Glissez-les sur la frise ou touchez « Planifier ».": [
+  "Ondertekende werven zonder data of ploeg. Sleep ze op de tijdlijn of tik op „Plannen”.",
+  "Unterschriebene Baustellen ohne Daten oder Team. Ziehen Sie sie auf die Zeitleiste oder tippen Sie auf „Planen“."
+ ],
+ "Sans dates": [
+  "Zonder data",
+  "Ohne Daten"
+ ],
+ "Sans équipe": [
+  "Zonder ploeg",
+  "Ohne Team"
+ ],
+ "Planifier « {job} »": [
+  "„{job}” plannen",
+  "„{job}“ planen"
+ ],
+ "Durée (jours ouvrables)": [
+  "Duur (werkdagen)",
+  "Dauer (Arbeitstage)"
+ ],
+ "sans week-ends, jours fériés ni congés du bâtiment": [
+  "zonder weekends, feestdagen of bouwverlof",
+  "ohne Wochenenden, Feiertage und Bauferien"
+ ],
+ "Fin contractuelle": [
+  "Contractueel einde",
+  "Vertragliches Ende"
+ ],
+ "Date promise au client (pénalités de retard).": [
+  "Aan de klant beloofde datum (vertragingsboetes).",
+  "Dem Kunden zugesagtes Datum (Verzugsstrafen)."
+ ],
+ "Gantt": [
+  "Gantt",
+  "Gantt"
+ ],
+ "Planning des chantiers": [
+  "Werfplanning",
+  "Baustellenplanung"
+ ],
+ "Tous les chantiers sur une frise : chevauchements, conflits d'équipe et charge de travail.": [
+  "Alle werven op één tijdlijn: overlappingen, ploegconflicten en werklast.",
+  "Alle Baustellen auf einer Zeitleiste: Überschneidungen, Teamkonflikte und Auslastung."
+ ],
+ "À venir": [
+  "Gepland",
+  "Geplant"
+ ],
+ "À risque": [
+  "Risico",
+  "Gefährdet"
+ ],
+ "Jour": [
+  "Dag",
+  "Tag"
+ ],
+ "Trimestre": [
+  "Kwartaal",
+  "Quartal"
  ]
 };

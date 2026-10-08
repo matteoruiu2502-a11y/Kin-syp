@@ -114,12 +114,14 @@ export async function buildDemoData(): Promise<AccountData> {
   d.clients = [durand, peeters, bouw, horizon];
 
   // Chantiers
-  const jDurand = newJob({ clientId: durand.id, name: "Salle de bain Durand", trade: "plombier", status: "in_progress", date: d0(-40), firstOccupationYear: 1978, startDate: d0(-30), endDate: d0(5), memberIds: [karim.id], probability: 100 });
+  const jDurand = newJob({ clientId: durand.id, name: "Salle de bain Durand", trade: "plombier", status: "in_progress", date: d0(-40), firstOccupationYear: 1978, startDate: d0(-30), endDate: d0(5), memberIds: [karim.id], probability: 100, managerId: patron.id, contractEndDate: d0(10) });
   const jPeeters = newJob({ clientId: peeters.id, name: "Badkamer Peeters", trade: "plombier", status: "sent", date: d0(-4), firstOccupationYear: 2019, probability: 60 });
-  const jBouw = newJob({ clientId: bouw.id, name: "Appartementen Bouw & Co — sanitair", trade: "plombier", status: "in_progress", date: d0(-50), startDate: d0(-45), endDate: d0(30), memberIds: [piotr.id, karim.id], probability: 100, weatherSensitive: true, siteAddress: "Industrieweg 4, 9000 Gent" });
+  const jBouw = newJob({ clientId: bouw.id, name: "Appartementen Bouw & Co — sanitair", trade: "plombier", status: "in_progress", date: d0(-50), startDate: d0(-45), endDate: d0(30), memberIds: [piotr.id, karim.id], probability: 100, weatherSensitive: true, siteAddress: "Industrieweg 4, 9000 Gent", managerId: patron.id, contractEndDate: d0(25) });
   const jHorizon = newJob({ clientId: horizon.id, name: "Remplacement chaudière Horizon", trade: "plombier", status: "draft", date: d0(0), privateHousing: false, probability: 40 });
+  // signé mais pas encore planifié : apparaît dans « À planifier » du Gantt
+  const jFacade = newJob({ clientId: horizon.id, name: "Façade et descentes d'eau Horizon", trade: "plombier", status: "accepted", date: d0(-6), privateHousing: false, probability: 100 });
   const jLead = newJob({ clientId: durand.id, name: "Visite : cuisine Durand (métré)", status: "lead", date: d0(1), probability: 20 });
-  d.jobs = [jLead, jHorizon, jPeeters, jBouw, jDurand];
+  d.jobs = [jLead, jHorizon, jPeeters, jFacade, jBouw, jDurand];
 
   const line = (art: (typeof d.articles)[number], qty: number) => newLine({ articleId: art.id, label: art.name.fr, qty, unit: art.unit, unitPrice: d.articles.find((x) => x.id === art.id)!.salePrice, category: art.category, costPrice: d.articles.find((x) => x.id === art.id)!.purchasePrice });
   const lineNl = (art: (typeof d.articles)[number], qty: number) => ({ ...line(art, qty), label: art.name.nl });
