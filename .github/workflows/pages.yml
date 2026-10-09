@@ -51,6 +51,9 @@ jobs:
           # Fonction serveur IA (Supabase, voir biltov/supabase/README.md). Vide : chat et dictée en mode local.
           NEXT_PUBLIC_AI_ENDPOINT: ${{ vars.BILTOV_AI_ENDPOINT }}
           NEXT_PUBLIC_SUPPORT_EMAIL: ${{ vars.BILTOV_SUPPORT_EMAIL }}
+          # Projet Supabase (clé publiable, conçue pour être exposée dans le navigateur).
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.BILTOV_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.BILTOV_SUPABASE_PUBLISHABLE_KEY }}
         run: |
           npm ci
           npm run build
