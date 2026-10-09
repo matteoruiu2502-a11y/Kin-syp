@@ -27,6 +27,7 @@ export const Building3D = dynamic(() => import("./Building3D").then((m) => m.Bui
 export function useMode3D(accountId: string, memberId: string | null) {
   const [on, setOnState] = useState(false);
   const [notice, setNotice] = useState<Unsupported | null>(null);
+  const [ready, setReady] = useState(false);
 
   // restauration du choix mémorisé, avec repli automatique si l'appareil ne peut pas afficher la 3D
   useEffect(() => {
@@ -37,6 +38,7 @@ export function useMode3D(accountId: string, memberId: string | null) {
       setNotice(reason);
     }
     setOnState(wanted && !reason);
+    setReady(true);
   }, [accountId, memberId]);
 
   // « réduire les animations » activé en cours d'utilisation : retour au mode normal
@@ -48,13 +50,18 @@ export function useMode3D(accountId: string, memberId: string | null) {
     return () => mq.removeEventListener("change", onChange);
   });
 
+  /** Change de mode ; renvoie false si la 3D est impossible sur cet appareil (un message s'affiche). */
   const setOn = useCallback(
     (v: boolean) => {
       const reason = v ? unsupportedReason() : null;
-      if (reason) return setNotice(reason);
+      if (reason) {
+        setNotice(reason);
+        return false;
+      }
       writeMode(accountId, memberId, v);
       setOnState(v);
       setNotice(null);
+      return true;
     },
     [accountId, memberId],
   );
@@ -69,7 +76,7 @@ export function useMode3D(accountId: string, memberId: string | null) {
     [accountId, memberId],
   );
 
-  return { on, setOn, fallback, notice, clearNotice: useCallback(() => setNotice(null), []) };
+  return { on, ready, setOn, fallback, notice, clearNotice: useCallback(() => setNotice(null), []) };
 }
 
 /** Interrupteur « Normal | 3D » de l'en-tête. */
@@ -87,7 +94,7 @@ export function Mode3DToggle({ on, onChange }: { on: boolean; onChange: (v: bool
           className={cn("flex items-center gap-1 rounded-md px-2 py-1", on === v ? "bg-white/10 text-white" : "text-slate-500 hover:text-white")}
         >
           {v ? <Box className="h-3.5 w-3.5" /> : <LayoutList className="h-3.5 w-3.5" />}
-          <span className={v ? "" : "hidden sm:inline"}>{v ? "3D" : t("Normal")}</span>
+          <span className={v ? "" : "hidden 2xl:inline"}>{v ? "3D" : t("Normal")}</span>
         </button>
       ))}
     </div>

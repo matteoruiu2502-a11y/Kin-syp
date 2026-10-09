@@ -334,10 +334,18 @@ function Shell() {
     if (n && !n.on) return "off";
     return can(p as Page) ? "ok" : "locked";
   };
+  const firstNormal = nav.find((n) => n.page !== "batiment" && n.on && can(n.page))?.page ?? "apercu";
   const switchMode = (v: boolean) => {
-    m3d.setOn(v);
-    go({ page: v ? "batiment" : (nav.find((n) => n.page !== "batiment" && n.on && can(n.page))?.page ?? "apercu") });
+    if (m3d.setOn(v)) go({ page: v ? "batiment" : firstNormal });
   };
+  // 3D désactivée (repli automatique, autre appareil…) alors que l'adresse est celle du bâtiment : page normale
+  useEffect(() => {
+    if (m3d.ready && !m3d.on && route.page === "batiment") {
+      const next: Route = { page: member && workerOnly(perms) ? "mon-espace" : firstNormal };
+      window.history.replaceState(null, "", toHash(next));
+      setRoute(next);
+    }
+  }, [m3d.ready, m3d.on, route.page, firstNormal, member, perms]);
 
   if (member && !member.active)
     return (
@@ -357,7 +365,7 @@ function Shell() {
       <div className="min-h-dvh px-4 py-6">
         {/* mode 3D de l'ouvrier : seule la pièce « Pointage » (son espace) s'ouvre, les autres restent verrouillées */}
         <div className="mx-auto mb-4 flex max-w-lg justify-end">
-          <Mode3DToggle on={m3d.on} onChange={(v) => (m3d.setOn(v), go({ page: v ? "batiment" : "mon-espace" }))} />
+          <Mode3DToggle on={m3d.on} onChange={(v) => m3d.setOn(v) && go({ page: v ? "batiment" : "mon-espace" })} />
         </div>
         {m3d.on && route.page === "batiment" ? (
           <Building3D access={pageAccess} onOpen={() => go({ page: "mon-espace" })} onExit={() => (m3d.setOn(false), go({ page: "mon-espace" }))} onFallback={(r) => (m3d.fallback(r), go({ page: "mon-espace" }))} />
