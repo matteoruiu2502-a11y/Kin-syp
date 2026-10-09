@@ -74,7 +74,7 @@ export function readPalette(): Palette {
         van: "#ffffff",
         glass: "#bfdbfe",
         person: "#64748b",
-        cloud: "#ffffff",
+        cloud: "#f1f5f9",
         sign: "#ffffff",
         soon: "#d1d5db",
         ...status,

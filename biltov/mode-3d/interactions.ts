@@ -29,7 +29,7 @@ function createCameraAt() {
  * Cadrage selon la taille de l'écran : la boîte englobante de la scène (bâtiment, enseigne, parking),
  * vue depuis la position de départ, remplit l'écran avec une petite marge.
  */
-export function fitCamera(cam: THREE.OrthographicCamera, width: number, height: number, b: Bounds, top = 5.6) {
+export function fitCamera(cam: THREE.OrthographicCamera, width: number, height: number, b: Bounds, top = 6.4) {
   const v = new THREE.Vector3();
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const x of [b.minX, b.maxX]) for (const y of [0, top]) for (const z of [b.minZ, b.maxZ]) {

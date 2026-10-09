@@ -541,7 +541,7 @@ export function Building3D({ access, onOpen, onExit, onFallback }: Building3DPro
         </div>
       </div>
 
-      <p className="pointer-events-none absolute bottom-2 left-3 z-30 text-[11px]" style={{ color: "var(--muted)" }}>
+      <p className="pointer-events-none absolute bottom-2 left-3 z-30 max-w-[70%] text-[11px] sm:max-w-none" style={{ color: "var(--muted)" }}>
         {touch ? t("Un doigt pour déplacer · deux doigts pour zoomer et pivoter · appuyez sur une pièce") : t("Glisser pour déplacer · clic droit pour pivoter · molette pour zoomer · Tab pour parcourir les pièces")}
       </p>
     </div>
