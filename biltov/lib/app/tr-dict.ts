@@ -1,6 +1,26 @@
 // Dictionnaire FR → [NL, DE] de l'interface. Généré à partir des textes passés à t() ; compléter au besoin.
 // Les textes absents restent affichés en français.
 export const DICT: Record<string, [string, string]> = {
+ "Un compte existe déjà avec cet e-mail. Connectez-vous.": [
+  "Er bestaat al een account met dit e-mailadres. Log in.",
+  "Mit dieser E-Mail-Adresse besteht bereits ein Konto. Bitte melden Sie sich an."
+ ],
+ "Compte créé. Ouvrez le lien reçu par e-mail pour confirmer votre adresse, puis connectez-vous.": [
+  "Account aangemaakt. Open de link in de ontvangen e-mail om uw adres te bevestigen en log daarna in.",
+  "Konto erstellt. Öffnen Sie den Link in der erhaltenen E-Mail, um Ihre Adresse zu bestätigen, und melden Sie sich dann an."
+ ],
+ "Adresse e-mail pas encore confirmée : ouvrez le lien reçu par e-mail, puis reconnectez-vous.": [
+  "E-mailadres nog niet bevestigd: open de link in de ontvangen e-mail en log opnieuw in.",
+  "E-Mail-Adresse noch nicht bestätigt: Öffnen Sie den Link in der erhaltenen E-Mail und melden Sie sich erneut an."
+ ],
+ "Connexion impossible. Vérifiez votre accès à Internet et réessayez.": [
+  "Verbinding mislukt. Controleer uw internetverbinding en probeer opnieuw.",
+  "Verbindung nicht möglich. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+ ],
+ "Vos données sont enregistrées en ligne et sur cet appareil : retrouvez-les sur votre téléphone, tablette ou ordinateur.": [
+  "Uw gegevens worden online en op dit toestel bewaard: u vindt ze terug op uw telefoon, tablet of computer.",
+  "Ihre Daten werden online und auf diesem Gerät gespeichert: Sie finden sie auf Ihrem Telefon, Tablet oder Computer wieder."
+ ],
  "(brouillon)": [
   "(concept)",
   "(Entwurf)"

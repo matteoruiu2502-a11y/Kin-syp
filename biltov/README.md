@@ -39,6 +39,7 @@ Pour publier dans un sous-dossier : `NEXT_PUBLIC_BASE_PATH=/mon/dossier npm run 
 | `content/videos.json` + `public/videos/` | Vidéos du site : ajouter le fichier .mp4 (H.264) et son image .jpg, puis une entrée JSON (pages : `accueil`, `fonctionnalites`, `fonctionnalites/<slug>`) — aucun code |
 | `public/screenshots/` + `scripts/screenshots.mjs` | Captures prises dans la démo sur écran d'iPhone (`npm run build`, servir `out/`, puis `npm run screenshots`) |
 | `lib/ai.ts`, `supabase/` | Client et fonction serveur IA (clé jamais dans le site) : chat d'aide et dictée vocale. Voir `supabase/README.md`. Sans `NEXT_PUBLIC_AI_ENDPOINT`, mode local |
+| `utils/supabase/`, `lib/app/cloud.ts` | Comptes et données en ligne (Supabase Auth, table `account_data`, bucket `biltov`, RLS). Voir `supabase/README.md`. Sans `NEXT_PUBLIC_SUPABASE_URL`, comptes et données sur l'appareil |
 | `components/app/VoiceQuoteChat.tsx`, `lib/app/voiceQuote.ts`, `useVoiceRecorder.ts` | Dictée vocale en conversation : vocal (chrono, onde), transcription, questions manquantes, corrections vocales, aperçu du devis |
 
 ## Logo

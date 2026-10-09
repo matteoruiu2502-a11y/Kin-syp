@@ -29,3 +29,37 @@ de la base de connaissances (sans IA générative) et la dictée utilise l'analy
 - Origines autorisées (`ALLOWED_ORIGINS`), 30 messages de chat et 40 analyses de dictée par IP et par 10 minutes,
   20 messages d'historique et 2 000 caractères par message au maximum.
 - Modèle : `claude-opus-5-5` (effort bas pour des réponses rapides), avec repli automatique en cas de refus.
+
+# Comptes et données en ligne
+
+Le site utilise Supabase pour les comptes artisans (Supabase Auth) et pour enregistrer leurs données
+(clients, chantiers, devis, factures…) et leurs fichiers (photos, tickets, plans). Chaque appareil garde
+une copie locale : l'espace fonctionne hors ligne et les modifications partent dès que la connexion revient.
+
+| Élément | Rôle |
+|---|---|
+| `utils/supabase/client.ts` | Client navigateur (URL et clé publiable du projet) |
+| `lib/app/auth.ts` | Inscription, connexion, déconnexion via Supabase Auth |
+| `lib/app/cloud.ts` | Lecture des données en ligne et file d'envoi (conservée sur l'appareil en cas de coupure) |
+| `migrations/20261009000000_account_data.sql` | Table `account_data`, bucket privé `biltov` et leurs règles RLS |
+
+## Mise en service (une fois)
+
+1. Tableau de bord Supabase → **SQL Editor** → coller le contenu de
+   `migrations/20261009000000_account_data.sql` → **Run**.
+2. **Authentication → URL Configuration** :
+   - Site URL : `https://matteoruiu2502-a11y.github.io/Kin-syp/biltov/tableau-de-bord/`
+   - Redirect URLs : ajouter la même adresse (lien de confirmation envoyé par e-mail).
+3. Facultatif : **Authentication → Sign In / Providers → Email**, désactiver « Confirm email » pour que le
+   compte soit utilisable tout de suite (sinon l'artisan doit d'abord cliquer le lien reçu par e-mail).
+
+## Sécurité
+
+La clé publiable est visible dans le site : c'est normal. La protection repose sur les règles RLS : chaque
+compte ne lit et ne modifie que ses propres lignes de `account_data` et son propre dossier du bucket `biltov`.
+
+## Comptes créés avant le passage en ligne
+
+Ils étaient enregistrés uniquement sur l'appareil. L'artisan crée un compte en ligne avec **le même e-mail**
+sur le même appareil : ses données locales (et leurs fichiers) sont reprises et envoyées en ligne
+automatiquement.

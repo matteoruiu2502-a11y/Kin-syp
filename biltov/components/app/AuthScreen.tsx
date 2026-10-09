@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, Lock, Mail, PlayCircle } from "lucide-react";
 import { AuthError, enterDemo, logIn, signUp } from "@/lib/app/auth";
+import { supabaseConfigured } from "@/utils/supabase/client";
 import { useApp } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { cn } from "@/lib/utils";
@@ -12,9 +13,12 @@ import { BiltovLogo } from "../BiltovLogo";
 import { Field, Notice, inputClass } from "./ui";
 
 const MESSAGES: Record<AuthError["code"], string> = {
-  exists: "Un compte existe déjà avec cet e-mail sur cet appareil. Connectez-vous.",
+  exists: supabaseConfigured ? "Un compte existe déjà avec cet e-mail. Connectez-vous." : "Un compte existe déjà avec cet e-mail sur cet appareil. Connectez-vous.",
   invalid: "E-mail ou mot de passe incorrect.",
   weak: "Le mot de passe doit contenir au moins 8 caractères.",
+  confirm: "Compte créé. Ouvrez le lien reçu par e-mail pour confirmer votre adresse, puis connectez-vous.",
+  unconfirmed: "Adresse e-mail pas encore confirmée : ouvrez le lien reçu par e-mail, puis reconnectez-vous.",
+  network: "Connexion impossible. Vérifiez votre accès à Internet et réessayez.",
 };
 
 /** Création de compte obligatoire avant tout accès à l'espace artisan. */
@@ -27,6 +31,7 @@ export function AuthScreen() {
   const [confirm, setConfirm] = useState("");
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const demo = async () => {
@@ -46,6 +51,7 @@ export function AuthScreen() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     if (mode === "signup") {
       if (password !== confirm) return setError(t("Les deux mots de passe ne correspondent pas."));
       if (!terms) return setError(t("Vous devez accepter les conditions d'utilisation."));
@@ -55,6 +61,12 @@ export function AuthScreen() {
       const account = mode === "signup" ? await signUp(email, password) : await logIn(email, password);
       await signedIn(account);
     } catch (err) {
+      if (err instanceof AuthError && err.code === "confirm") {
+        setMode("login");
+        setPassword("");
+        setConfirm("");
+        return setInfo(t(MESSAGES.confirm));
+      }
       setError(err instanceof AuthError ? t(MESSAGES[err.code]) : t("Une erreur est survenue. Réessayez."));
     } finally {
       setBusy(false);
@@ -97,6 +109,7 @@ export function AuthScreen() {
                 onClick={() => {
                   setMode(m);
                   setError(null);
+                  setInfo(null);
                 }}
                 className={cn("rounded-lg py-2 text-sm font-semibold transition-colors", mode === m ? "bg-blue text-white" : "text-slate-400 hover:text-white")}
               >
@@ -134,6 +147,7 @@ export function AuthScreen() {
                 </label>
               </>
             )}
+            {info && <Notice>{info}</Notice>}
             {error && <Notice tone="warn">{error}</Notice>}
             <button type="submit" disabled={busy} className="btn-primary w-full text-sm disabled:opacity-60">
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -141,7 +155,7 @@ export function AuthScreen() {
             </button>
           </form>
 
-          <p className="mt-5 text-center text-xs text-slate-500">{t("Votre compte et vos données sont enregistrés sur cet appareil. Mot de passe chiffré (PBKDF2).")}</p>
+          <p className="mt-5 text-center text-xs text-slate-500">{supabaseConfigured ? t("Vos données sont enregistrées en ligne et sur cet appareil : retrouvez-les sur votre téléphone, tablette ou ordinateur.") : t("Votre compte et vos données sont enregistrés sur cet appareil. Mot de passe chiffré (PBKDF2).")}</p>
         </div>
       </motion.div>
     </div>

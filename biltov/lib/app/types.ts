@@ -542,4 +542,5 @@ export type AccountData = {
 
 export type CollectionKey = { [K in keyof AccountData]: AccountData[K] extends { id: string }[] ? K : never }[keyof AccountData];
 
-export type Account = { id: string; email: string; salt: string; hash: string; createdAt: string };
+/** cloud : compte Supabase (données enregistrées en ligne) ; sinon compte de l'appareil. */
+export type Account = { id: string; email: string; salt: string; hash: string; createdAt: string; cloud?: boolean };
