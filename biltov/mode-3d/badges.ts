@@ -2,9 +2,9 @@
 // Aucune logique métier propre : on réutilise les fonctions existantes (stock, devis, factures, planning).
 // Chaque compteur ne tient compte que de ce que l'utilisateur a le droit de voir.
 
-import type { AccountData, Member, PermModule } from "@/lib/app/types";
-import { openInvoices, pendingQuotes } from "@/lib/app/finance";
-import { jobState, plannedJobs } from "@/lib/app/gantt";
+import type { AccountData, Member, PermModule } from "../lib/app/types";
+import { openInvoices, pendingQuotes } from "../lib/app/finance";
+import { jobState, plannedJobs } from "../lib/app/gantt";
 
 export type Tone = "danger" | "warning" | "ok" | "neutral";
 export type Badge = { count: number; tone: Tone; text: string };
