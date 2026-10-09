@@ -1,0 +1,29 @@
+# Serveur Biltov sur Cloudflare Workers (offre gratuite) : abonnements Stripe, licence signée, envoi Peppol.
+# Mise en place : voir README.md de ce dossier.
+name = "biltov-billing"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "biltov"
+database_id = "À_REMPLACER_PAR_L_ID_DE_LA_BASE"
+
+# Chaque nuit : facturation des factures Peppol au-delà du forfait Max sur les périodes terminées
+[triggers]
+crons = ["17 3 * * *"]
+
+[vars]
+# Adresse publique du site (pour les retours de paiement) et origine autorisée à appeler le serveur
+SITE_URL = "https://matteoruiu2502-a11y.github.io/Kin-syp/biltov"
+ALLOWED_ORIGIN = "https://matteoruiu2502-a11y.github.io"
+# Identifiants des prix Stripe (HTVA) : forfait_cycle → price_…
+STRIPE_PRICES = '{"starter_monthly":"","starter_yearly":"","pro_monthly":"","pro_yearly":"","max_monthly":"","max_yearly":""}'
+# Taux de TVA Stripe de 21 % (exclusif) : txr_…
+STRIPE_TAX_RATE = ""
+# Prestataire Peppol : "simulation" (tests, aucun envoi réel) ou "http" (voir src/peppol.ts)
+PEPPOL_PROVIDER = "simulation"
+PEPPOL_API_URL = ""
+
+# Secrets (jamais dans ce fichier) : npx wrangler secret put <NOM>
+#   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, LICENSE_PRIVATE_KEY, PEPPOL_API_KEY
