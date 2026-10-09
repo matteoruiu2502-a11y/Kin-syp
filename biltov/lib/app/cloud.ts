@@ -5,7 +5,7 @@
 // l'appareil : rien n'est perdu si l'onglet se ferme ou si la connexion tombe.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "../../utils/supabase/client";
 
 const TABLE = "account_data";
 const BUCKET = "biltov";

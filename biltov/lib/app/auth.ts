@@ -3,7 +3,7 @@
 // jamais stocké en clair.
 
 import type { User } from "@supabase/supabase-js";
-import { createClient, supabaseConfigured } from "@/utils/supabase/client";
+import { createClient, supabaseConfigured } from "../../utils/supabase/client";
 import { idbGet, idbSet } from "./db";
 import type { Account } from "./types";
 import { DEMO_ID, demoAccount } from "./demo";
