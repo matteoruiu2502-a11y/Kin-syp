@@ -515,11 +515,7 @@ function Shell() {
                 </p>
               )}
               {page !== "batiment" && m3d.on && <BackToBuilding onClick={() => go({ page: "batiment" })} />}
-              {page === "batiment" && (
-                <div className="h-[calc(100dvh-15rem)] min-h-[420px] md:h-[calc(100dvh-8.5rem)]">
-                  <Building3D access={pageAccess} onOpen={(target) => go(parse(`#${target}`))} onExit={() => switchMode(false)} onFallback={(r) => (m3d.fallback(r), go({ page: "apercu" }))} />
-                </div>
-              )}
+              {page === "batiment" && <Building3D access={pageAccess} onOpen={(target) => go(parse(`#${target}`))} onExit={() => switchMode(false)} onFallback={(r) => (m3d.fallback(r), go({ page: "apercu" }))} />}
               {page === "apercu" && <MoneyTab onOpenDoc={setDocId} onOpenJob={openJob} />}
               {page === "chantiers" && <JobsTab onOpen={openJob} onAdd={() => setNewJob({})} />}
               {page === "chantier" && (job ? <JobDetail key={job.id + (route.sub ?? "")} job={job} initialTab={route.sub === "rentabilite" ? "finance" : route.sub === "materiaux" ? "materials" : route.sub === "planning" ? "planning" : "docs"} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}

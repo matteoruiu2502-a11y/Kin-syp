@@ -19,7 +19,8 @@ export type BadgeCtx = {
   t: TFn;
 };
 
-const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+// en français, 0 et 1 sont au singulier
+const plural = (n: number, one: string, many: string) => (n <= 1 ? one : many);
 
 /** Articles suivis en stock sous leur stock minimum (même règle que l'écran Stock). */
 export function lowStockCount(d: Pick<AccountData, "articles" | "stockMoves">) {

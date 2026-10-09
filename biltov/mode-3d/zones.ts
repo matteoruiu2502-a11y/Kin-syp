@@ -14,6 +14,8 @@ export type Decor = "racks" | "desks" | "lockers" | "board" | "parking" | "empty
 export type ZoneConfig = {
   id: string;
   name: string;
+  /** nom court pour les petits écrans (facultatif) */
+  short?: string;
   description: string;
   targets: string[];
   badge: ((ctx: BadgeCtx) => Badge | null) | null;
@@ -26,8 +28,8 @@ export type ZoneConfig = {
 export const ZONES: ZoneConfig[] = [
   { id: "entrepot", name: "Entrepôt", description: "Stock et catalogue de matériaux", targets: ["stock", "catalogue"], badge: stockBadge, area: [-7, -5, 7, 5], decor: "racks" },
   { id: "bureau", name: "Bureau", description: "Devis, factures et comptabilité", targets: ["documents", "comptabilite"], badge: officeBadge, area: [0, -5, 7, 5], decor: "desks" },
-  { id: "pointage", name: "Pointage et vestiaire", description: "Pointage et ouvriers", targets: ["equipe", "mon-espace"], badge: timeBadge, area: [-7, 0, 7, 5], decor: "lockers" },
-  { id: "planning", name: "Salle de planning", description: "Gantt et jours d'intempéries", targets: ["planning/gantt"], badge: planningBadge, area: [0, 0, 7, 5], decor: "board" },
+  { id: "pointage", name: "Pointage et vestiaire", short: "Pointage", description: "Pointage et ouvriers", targets: ["equipe", "mon-espace"], badge: timeBadge, area: [-7, 0, 7, 5], decor: "lockers" },
+  { id: "planning", name: "Salle de planning", short: "Planning", description: "Gantt et jours d'intempéries", targets: ["planning/gantt"], badge: planningBadge, area: [0, 0, 7, 5], decor: "board" },
   { id: "parking", name: "Parking", description: "Chantiers en cours", targets: ["chantiers"], badge: parkingBadge, area: [8.5, -5, 7, 10], decor: "parking", outdoor: true },
 ];
 
