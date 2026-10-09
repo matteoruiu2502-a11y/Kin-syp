@@ -2,11 +2,13 @@
 
 // État de l'espace artisan. Chaque collection est enregistrée séparément dans IndexedDB
 // (clé « v2:<compte>:<collection> ») : seules les collections modifiées sont réécrites.
-// Couche d'accès unique : pourra être remplacée par une base serveur (Supabase) sans toucher l'UI.
+// Compte en ligne (Supabase) : IndexedDB sert de copie locale (hors ligne) et chaque modification
+// est aussi envoyée à Supabase (voir cloud.ts).
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { idbDel, idbGet, idbSet } from "./db";
-import { currentAccount, setSession } from "./auth";
+import { idbDel, idbGet, idbKeys, idbSet } from "./db";
+import { AuthError, currentAccount, localAccountFor, signOut } from "./auth";
+import { CloudSync, cloudGetBlob, cloudLoad } from "./cloud";
 import { DEMO_ID, buildDemoData } from "./demo";
 import { emptyAccountData, uid } from "./defaults";
 import { PermissionError, allows, deniedWrites, isSuperAdmin, migrateRoles, permissionsOf, type Denied } from "./permissions";
@@ -106,18 +108,65 @@ export async function compressImage(file: Blob, max = 2000, quality = 0.85): Pro
   return { blob, width, height };
 }
 
-async function loadAll(accId: string): Promise<AccountData | null> {
-  const parts = await Promise.all(KEYS.map((key) => idbGet(k(accId, key))));
-  if (parts.every((p) => p === undefined)) return null;
+/** Assemble les collections enregistrées (null : aucune). */
+function fromParts(parts: Partial<Record<keyof AccountData, unknown>>): AccountData | null {
+  if (KEYS.every((key) => parts[key] === undefined || parts[key] === null)) return null;
   const base = emptyAccountData("");
   const out = { ...base } as Record<string, unknown>;
-  KEYS.forEach((key, i) => {
-    const v = parts[i];
-    if (v === undefined) return;
+  KEYS.forEach((key) => {
+    const v = parts[key];
+    if (v === undefined || v === null) return;
     // fusion des objets simples avec les valeurs par défaut (nouveaux champs)
     out[key] = v && typeof v === "object" && !Array.isArray(v) ? { ...(base[key] as object), ...(v as object) } : v;
   });
   return out as AccountData;
+}
+
+async function loadAll(accId: string): Promise<AccountData | null> {
+  const parts = await Promise.all(KEYS.map((key) => idbGet(k(accId, key))));
+  return fromParts(Object.fromEntries(KEYS.map((key, i) => [key, parts[i]])));
+}
+
+/** Clés des fichiers de l'appareil utilisés par ces données (identifiants présents dans les collections). */
+async function blobKeysOf(data: AccountData) {
+  const text = JSON.stringify(data);
+  return (await idbKeys("blob:")).map((key) => key.slice(5)).filter((key) => {
+    const id = key.slice(key.lastIndexOf(":") + 1);
+    return id.length >= 6 && text.includes(id);
+  });
+}
+
+/**
+ * Compte en ligne : données Supabase, sauf les collections modifiées sur l'appareil et pas encore envoyées.
+ * Première connexion : reprise des données déjà présentes sur l'appareil (cache ou ancien compte local
+ * du même e-mail), envoyées en ligne avec leurs fichiers. Hors ligne : copie locale.
+ */
+async function loadCloud(a: Account, sync: CloudSync): Promise<AccountData | null> {
+  const local = await loadAll(a.id);
+  let remote: Record<string, unknown>;
+  try {
+    remote = await cloudLoad(a.id);
+  } catch {
+    // hors ligne sans copie locale : ne jamais repartir d'un espace vide (il écraserait les données en ligne)
+    if (!local) throw new AuthError("network");
+    return local;
+  }
+  const pending = new Set(sync.pendingData());
+  const parts = Object.fromEntries(KEYS.map((key) => [key, pending.has(key) && local ? local[key] : remote[key]]));
+  const merged = fromParts(parts);
+  if (merged) {
+    await saveAll(a.id, merged);
+    return merged;
+  }
+  const legacy = await localAccountFor(a.email);
+  const imported = local ?? (legacy ? await loadAll(legacy.id) : null);
+  if (!imported) return null;
+  // l'abonnement reste celui de l'entreprise d'origine auprès du serveur
+  if (legacy && !local) imported.billing = { ...imported.billing, accountId: imported.billing?.accountId || legacy.id };
+  await saveAll(a.id, imported);
+  sync.markData(KEYS);
+  for (const key of await blobKeysOf(imported)) sync.markBlob(key);
+  return imported;
 }
 
 async function saveAll(accId: string, data: AccountData) {
@@ -135,6 +184,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const actorRef = useRef<Member | null>(null);
   const [denied, setDenied] = useState<Denied[] | null>(null);
   const [planBlockState, setPlanBlockState] = useState<PlanBlock | null>(null);
+  const syncRef = useRef<CloudSync | null>(null);
   const entRef = useRef<Entitlement>(entitlementOf(trialSubscription(new Date().toISOString())));
   // Utilisateur supprimé ou désactivé : aucun droit (jamais de retour silencieux au super admin).
   const actor = useMemo<Member | null>(() => {
@@ -184,11 +234,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(
     async (a: Account) => {
-      let stored = await loadAll(a.id);
+      syncRef.current?.stop();
+      const sync = a.cloud ? new CloudSync(a.id, { value: (key) => idbGet(k(a.id, key)), blob: (key) => idbGet<Blob>(`blob:${key}`) }) : null;
+      syncRef.current = sync;
+      let stored = sync ? await loadCloud(a, sync) : await loadAll(a.id);
       if (!stored) {
         stored = a.id === DEMO_ID ? await buildDemoData() : { ...emptyAccountData(a.email) };
         await saveAll(a.id, stored);
+        sync?.markData(KEYS);
       }
+      void sync?.flush();
       stored = migrateRoles(stored);
       saved.current = stored;
       commit(stored);
@@ -204,16 +259,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, [load]);
 
-  // Sauvegarde différentielle
+  // Sauvegarde différentielle (puis envoi en ligne pour un compte Supabase)
   useEffect(() => {
     if (!account || !data) return;
     const id = setTimeout(() => {
       const prev = saved.current;
-      for (const key of KEYS) if (!prev || prev[key] !== data[key]) void idbSet(k(account.id, key), data[key]);
+      const changed = KEYS.filter((key) => !prev || prev[key] !== data[key]);
       saved.current = data;
+      if (!changed.length) return;
+      const sync = syncRef.current;
+      void Promise.all(changed.map((key) => idbSet(k(account.id, key), data[key]))).then(() => sync?.markData(changed));
     }, 250);
     return () => clearTimeout(id);
   }, [account, data]);
+
+  // Retour de la connexion : envoi immédiat de ce qui attend
+  useEffect(() => {
+    const online = () => void syncRef.current?.flush();
+    window.addEventListener("online", online);
+    return () => window.removeEventListener("online", online);
+  }, []);
 
   const rolePerms = useMemo(() => permissionsOf(data?.settings ?? {}, actor), [data?.settings, actor]);
 
@@ -316,6 +381,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const ctx = useMemo<Ctx>(() => {
     const cur = () => ref.current!;
+    /** Fichier de l'appareil, sinon téléchargé depuis Supabase (autre appareil) et gardé en copie locale. */
+    const getBlob = async (key: string) => {
+      const local = await idbGet<Blob>(`blob:${key}`);
+      if (local || !account?.cloud) return local;
+      const remote = await cloudGetBlob(account.id, key);
+      if (remote) await idbSet(`blob:${key}`, remote);
+      return remote;
+    };
     return {
       account,
       data,
@@ -323,7 +396,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isDemo: account?.id === DEMO_ID,
       signedIn: load,
       logOut: () => {
-        setSession(null);
+        // les envois en attente restent notés sur l'appareil et partiront à la prochaine connexion
+        void syncRef.current?.flush();
+        syncRef.current?.stop();
+        syncRef.current = null;
+        void signOut();
         setActorId(null);
         setAccount(null);
         ref.current = null;
@@ -366,12 +443,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       putBlob: async (key, blob) => {
         await idbSet(`blob:${key}`, blob);
         urlCache.current.delete(key);
+        syncRef.current?.markBlob(key);
       },
-      getBlob: (key) => idbGet<Blob>(`blob:${key}`),
+      getBlob,
       blobUrl: async (key) => {
         const cache = urlCache.current;
         if (cache.has(key)) return cache.get(key)!;
-        const blob = await idbGet<Blob>(`blob:${key}`);
+        const blob = await getBlob(key);
         if (!blob) return null;
         const url = URL.createObjectURL(blob);
         cache.set(key, url);
@@ -388,6 +466,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const { blob, width, height } = await compressImage(file);
           const photo: Photo = { id: uid(), jobId, phase, caption: "", takenAt: new Date(file.lastModified || Date.now()).toISOString(), addedAt: new Date().toISOString(), width, height, geo };
           await idbSet(`blob:photo:${photo.id}`, blob);
+          syncRef.current?.markBlob(`photo:${photo.id}`);
           added.push(photo);
         }
         const d = cur();

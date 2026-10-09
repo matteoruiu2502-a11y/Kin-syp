@@ -1,6 +1,9 @@
-// Comptes enregistrés sur l'appareil. Mot de passe dérivé par PBKDF2-SHA256 (WebCrypto) :
-// il n'est jamais stocké en clair.
+// Comptes Biltov. Supabase branché : comptes en ligne (Supabase Auth), retrouvés sur tous les appareils.
+// Sinon : comptes enregistrés sur l'appareil, mot de passe dérivé par PBKDF2-SHA256 (WebCrypto),
+// jamais stocké en clair.
 
+import type { User } from "@supabase/supabase-js";
+import { createClient, supabaseConfigured } from "../../utils/supabase/client";
 import { idbGet, idbSet } from "./db";
 import type { Account } from "./types";
 import { DEMO_ID, demoAccount } from "./demo";
@@ -25,13 +28,52 @@ export async function listAccounts() {
 }
 
 export class AuthError extends Error {
-  constructor(public code: "exists" | "invalid" | "weak") {
+  constructor(public code: "exists" | "invalid" | "weak" | "confirm" | "unconfirmed" | "network") {
     super(code);
   }
 }
 
+const cloudAccount = (u: User): Account => ({ id: u.id, email: u.email ?? "", salt: "", hash: "", createdAt: u.created_at, cloud: true });
+
+/** Traduit les erreurs de Supabase Auth. */
+function cloudError(err: { code?: string; message?: string; status?: number }): AuthError {
+  if (err.code === "user_already_exists" || err.code === "email_exists") return new AuthError("exists");
+  if (err.code === "email_not_confirmed") return new AuthError("unconfirmed");
+  if (err.code === "weak_password") return new AuthError("weak");
+  if (err.code === "invalid_credentials") return new AuthError("invalid");
+  return new AuthError(err.status && err.status < 500 ? "invalid" : "network");
+}
+
+async function cloudSignUp(email: string, password: string): Promise<Account> {
+  const { data, error } = await createClient()
+    .auth.signUp({ email: normalizeEmail(email), password, options: { emailRedirectTo: window.location.origin + window.location.pathname } })
+    .catch(() => ({ data: null, error: { status: 0 } }));
+  if (error) throw cloudError(error);
+  // e-mail déjà inscrit : Supabase répond sans erreur mais avec un utilisateur sans identité
+  if (data?.user && !data.user.identities?.length) throw new AuthError("exists");
+  // confirmation par e-mail activée : pas de session tant que le lien n'a pas été ouvert
+  if (!data?.session || !data.user) throw new AuthError("confirm");
+  setSession(null);
+  return cloudAccount(data.user);
+}
+
+async function cloudLogIn(email: string, password: string): Promise<Account> {
+  const { data, error } = await createClient()
+    .auth.signInWithPassword({ email: normalizeEmail(email), password })
+    .catch(() => ({ data: null, error: { status: 0 } }));
+  if (error || !data?.user) throw cloudError(error ?? {});
+  setSession(null);
+  return cloudAccount(data.user);
+}
+
+/** Compte enregistré sur cet appareil avant le passage en ligne (même e-mail) : ses données sont reprises. */
+export async function localAccountFor(email: string) {
+  return (await listAccounts()).find((a) => a.email === normalizeEmail(email)) ?? null;
+}
+
 export async function signUp(email: string, password: string): Promise<Account> {
   if (password.length < 8) throw new AuthError("weak");
+  if (supabaseConfigured) return cloudSignUp(email, password);
   const accounts = await listAccounts();
   const e = normalizeEmail(email);
   if (accounts.some((a) => a.email === e)) throw new AuthError("exists");
@@ -43,6 +85,7 @@ export async function signUp(email: string, password: string): Promise<Account> 
 }
 
 export async function logIn(email: string, password: string): Promise<Account> {
+  if (supabaseConfigured) return cloudLogIn(email, password);
   const account = (await listAccounts()).find((a) => a.email === normalizeEmail(email));
   if (!account || (await derive(password, fromHex(account.salt))) !== account.hash) throw new AuthError("invalid");
   setSession(account.id);
@@ -61,9 +104,20 @@ export async function currentAccount(): Promise<Account | null> {
   try {
     id = localStorage.getItem(SESSION_KEY);
   } catch {}
-  if (!id) return null;
   if (id === DEMO_ID) return demoAccount;
+  if (supabaseConfigured) {
+    // session Supabase gardée par le navigateur ; getSession() fonctionne aussi hors ligne
+    const { data } = await createClient().auth.getSession();
+    return data.session ? cloudAccount(data.session.user) : null;
+  }
+  if (!id) return null;
   return (await listAccounts()).find((a) => a.id === id) ?? null;
+}
+
+/** Déconnexion (session de l'appareil et session Supabase). */
+export async function signOut() {
+  setSession(null);
+  if (supabaseConfigured) await createClient().auth.signOut({ scope: "local" }).catch(() => {});
 }
 
 /** Entre dans l'espace de démonstration (aucun compte nécessaire). */

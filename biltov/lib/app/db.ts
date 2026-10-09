@@ -29,3 +29,7 @@ async function run<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRe
 export const idbGet = <T>(key: string) => run<T | undefined>("readonly", (s) => s.get(key));
 export const idbSet = (key: string, value: unknown) => run<IDBValidKey>("readwrite", (s) => s.put(value, key));
 export const idbDel = (key: string) => run<undefined>("readwrite", (s) => s.delete(key));
+
+/** Clés commençant par un préfixe (ex. « blob: »). */
+export const idbKeys = async (prefix: string) =>
+  ((await run<IDBValidKey[]>("readonly", (s) => s.getAllKeys(IDBKeyRange.bound(prefix, prefix + "\uffff")))) as string[]);
