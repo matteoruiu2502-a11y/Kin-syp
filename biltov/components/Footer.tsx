@@ -15,7 +15,7 @@ const SOCIALS: { name: string; label?: string; href: string; path: string }[] = 
 
 const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
 // Liens valables depuis toutes les pages du site.
-const PRODUCT_ANCHORS = [`${base}/fonctionnalites/`, `${base}/#metiers`, `${base}/#tarif`, `${base}/#roi`, `${base}/#demo`];
+const PRODUCT_ANCHORS = [`${base}/fonctionnalites/`, `${base}/#metiers`, `${base}/tarifs/`, `${base}/#roi`, `${base}/#demo`];
 const COMPANY_LINKS = [`${base}/a-propos/`];
 const COMPLIANCE_ICONS = [Lock, BadgeCheck, Server];
 

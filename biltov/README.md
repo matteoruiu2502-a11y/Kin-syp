@@ -57,25 +57,20 @@ Tous les taux, seuils et délais sont dans `lib/tax/belgium/config.ts`, avec leu
 et leur source. Ceux qui ne sont pas confirmés portent `verified: false` et apparaissent « à vérifier »
 dans *Paramètres → Valeurs légales* : faites-les valider par un comptable avant la mise en service commerciale.
 
-## Abonnement : essai de 5 jours sans carte, puis 99 € HTVA / mois
+## Forfaits : Starter, Pro, Max (essai de 5 jours sans carte)
 
-- **Essai** : 5 jours gratuits à partir de la création du compte (compte obligatoire, **aucune carte demandée**).
-  Un bandeau indique les jours restants. À la fin de l'essai, l'espace affiche l'écran d'abonnement
-  (les données restent exportables depuis *Paramètres → Sauvegarde*).
-- **Abonnement** : 99 € HTVA / mois ou 948 € HTVA / an (79 € / mois), via des **liens de paiement Stripe**.
-  Prix et durée : `lib/checkout.ts` (`PRICE_MONTHLY`, `PRICE_YEARLY`, `TRIAL_DAYS`).
+- **Configuration centrale** : `lib/plans.ts` — prix HTVA, factures Peppol incluses par mois, prix du dépassement,
+  utilisateurs, modules de chaque forfait, essai, délai de grâce. Le site, l'application et le serveur lisent ce fichier.
+- **Essai** : 5 jours avec tout le forfait Max, 5 factures Peppol au maximum. Ensuite : lecture seule jusqu'au choix d'un forfait
+  (aucune donnée supprimée).
+- **Contrôle** : une seule fonction `canAccess(entreprise, module)` (`lib/billing/entitlement.ts`). Les droits des rôles sont
+  limités par le forfait ; un module non inclus reste visible, grisé, avec « Disponible dans le forfait X ».
+- **Serveur** (`server/`, Cloudflare Workers, gratuit) : paiements Stripe (TVA 21 %, prorata, délai de grâce, annulation),
+  licence signée que l'application vérifie, envoi Peppol avec le quota vérifié côté serveur et le dépassement Max facturé.
+  Mise en place : `server/README.md`. Variables GitHub du site : `BILTOV_BILLING_API_URL` et `BILTOV_BILLING_PUBLIC_KEY`.
 
-Réglage Stripe (une fois) :
-
-1. **Stripe → Catalogue de produits** : produit « Biltov Pro » avec deux prix récurrents, **99 € / mois** et **948 € / an**.
-2. **Stripe → Liens de paiement → Nouveau** (un lien par prix), **sans période d'essai** (l'essai est géré par Biltov) ;
-   onglet **Après le paiement** → rediriger vers
-   `https://matteoruiu2502-a11y.github.io/Kin-syp/biltov/tableau-de-bord/?paiement=ok`.
-3. **GitHub → Settings → Secrets and variables → Actions → Variables** : `BILTOV_STRIPE_LINK_MONTHLY` et
-   `BILTOV_STRIPE_LINK_YEARLY` (les URL `https://buy.stripe.com/…`), puis relancer « Publier le site ».
-4. **Stripe → Portail client** : l'activer pour que vos clients puissent résilier eux-mêmes.
-
-Tant que les liens ne sont pas configurés, l'accès reste ouvert après l'essai (avec un avertissement).
+Tant que le serveur n'est pas configuré, l'essai est calculé sur l'appareil et l'accès reste ouvert après l'essai (avec un
+avertissement), comme avant.
 
 ## Mode jour / nuit
 
@@ -88,4 +83,5 @@ de l'appareil ; le choix est mémorisé. Les couleurs du mode jour sont dans `ap
 - Les envois partent depuis les applications de l'artisan (Mail, WhatsApp, SMS) ; la facture Peppol (UBL)
   se dépose chez le prestataire Peppol de l'artisan.
 - Les rôles limitent l'affichage sur l'appareil, ce n'est pas un contrôle d'accès.
-- L'essai et l'abonnement sont contrôlés dans le navigateur (date de création du compte, retour de Stripe) : sans serveur, ce contrôle n'est pas infalsifiable.
+- Avec le serveur d'abonnement, le forfait (licence signée) et le quota Peppol ne sont pas falsifiables ; la limite d'utilisateurs
+  et l'accès aux modules restent appliqués dans le navigateur, car les données sont sur l'appareil.

@@ -161,7 +161,7 @@ Activables dans *Modules* : SAV / helpdesk, location de matériel, maintenance d
 ## Interface
 
 - Mode jour / nuit sur tout le site (suit l'appareil par défaut, choix mémorisé). ✅
-- Essai gratuit de 5 jours dès la création du compte, sans carte ; ensuite abonnement 99 € HTVA / mois via Stripe. 🟡 Contrôle dans le navigateur ; ⏳ vérification côté serveur.
+- Forfaits Starter, Pro et Max (`lib/plans.ts`) : essai de 5 jours avec tout le Max, modules et utilisateurs par forfait, quota de factures Peppol, page Tarifs et « Mon abonnement ». ✅ Licence signée et quota Peppol vérifiés par le serveur (`server/`) ; 🟡 utilisateurs et modules contrôlés dans le navigateur.
 
 - Espace artisan entièrement traduit en français, néerlandais et allemand (`lib/app/tr-dict.ts`, contrôlé par un test).
 - Page d'accueil en français, néerlandais et allemand.

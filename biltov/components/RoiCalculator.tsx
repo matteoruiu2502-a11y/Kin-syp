@@ -5,11 +5,11 @@ import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { ArrowRight, Clock, PiggyBank, TrendingUp, Wallet } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
-import { PRICE_MONTHLY } from "@/lib/checkout";
+import { HIGHLIGHTED_PLAN, PLANS } from "@/lib/plans";
 import { SectionHeading } from "./SectionHeading";
 import { Reveal } from "./Reveal";
 
-const PRICE = PRICE_MONTHLY;
+const PRICE = PLANS[HIGHLIGHTED_PLAN].monthly; // forfait mis en avant (lib/plans.ts)
 const MINUTES_WITH_BILTOV = 3;
 const RECOVERY_SHARE = 0.3;
 

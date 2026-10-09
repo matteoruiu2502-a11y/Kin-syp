@@ -27,7 +27,7 @@ Biltov s'utilise avec un compte (e-mail et mot de passe). L'essai gratuit de 5 j
 **Cas particuliers :**
 - Aujourd'hui, le compte et les données sont enregistrés sur l'appareil utilisé (navigateur). Un autre téléphone ne voit pas encore les mêmes données : la synchronisation en ligne est prévue.
 - Mot de passe oublié : il n'existe pas encore de réinitialisation par e-mail, car le compte est local. Conservez votre mot de passe et faites des sauvegardes.
-- Après l'essai : abonnement Biltov Pro à 99 € HTVA par mois (ou 948 € HTVA par an), résiliable à tout moment.
+- Après l'essai : choix d'un forfait Starter, Pro ou Max (prix sur la page Tarifs), résiliable à tout moment. Sans forfait, les données restent consultables en lecture seule.
 
 ### Mode démonstration
 
@@ -599,21 +599,28 @@ Les données sont enregistrées dans le navigateur de l'appareil. Une sauvegarde
 **Cas particuliers :**
 - Vider les données du navigateur efface Biltov sur cet appareil : gardez une sauvegarde.
 
-### Abonnement et tarif
+### Forfaits et abonnement
 
 Page : /fonctionnalites/abonnement/
 
-Biltov Pro coûte 99 € HTVA par mois ou 948 € HTVA par an, sans engagement. Le paiement se fait par Stripe, avec prélèvement automatique.
+Biltov propose trois forfaits mensuels ou annuels (2 mois offerts) : Starter pour l'artisan seul, Pro pour une petite équipe, Max pour une entreprise structurée. Les devis sont illimités partout ; chaque forfait inclut un nombre de factures envoyées via Peppol par mois et un nombre d'utilisateurs. Les prix exacts sont sur la page Tarifs (hors TVA, TVA belge de 21 % en plus).
 
-**Où :** Bandeau d'essai dans votre espace → « S'abonner », ou section Tarif de la page d'accueil.
+**Où :** Menu → « Mon abonnement » (super admin), ou page Tarifs du site.
 
 **Étapes :**
-1. Cliquez sur « S'abonner ».
-2. Payez sur la page sécurisée Stripe.
-3. Vous revenez dans votre espace, abonnement actif.
+1. Ouvrez « Mon abonnement ».
+2. Choisissez mensuel ou annuel, puis le forfait.
+3. Payez sur la page sécurisée Stripe (carte, Bancontact ou domiciliation).
+4. Vous revenez dans votre espace, forfait actif.
+
+**Astuces :**
+- La barre « factures ce mois-ci » montre votre usage ; une alerte apparaît à 80 % puis à 100 %.
+- Un module hors forfait reste visible, grisé, avec le forfait qui l'inclut.
 
 **Cas particuliers :**
-- Après l'essai, vos données restent exportables même sans abonnement.
+- Changement de forfait au prorata ; avant de descendre, Biltov signale ce qui dépasse le nouveau forfait.
+- Essai terminé, impayé ou abonnement annulé : lecture seule, aucune donnée supprimée.
+- Starter et Pro : l'envoi Peppol est bloqué au quota ; Max : chaque facture en plus est facturée en fin de période.
 
 ### Installer Biltov sur le téléphone
 
