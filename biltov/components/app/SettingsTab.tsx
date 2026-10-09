@@ -21,7 +21,7 @@ const STEPS = ["1er rappel (gratuit pour les particuliers)", "Relance avec frais
 export function SettingsTab() {
   const { t } = useTr();
   const f = useFmt();
-  const { data, update, getBlob, putBlob, isDemo } = useAppData();
+  const { data, update, getBlob, putBlob, isDemo, restoreAll } = useAppData();
   const [section, setSection] = useState<Section>("company");
   const [company, setCompany] = useState(data.company);
   const [branding, setBranding] = useState(data.branding);
@@ -59,7 +59,7 @@ export function SettingsTab() {
       if (json.app !== "biltov" || json.version !== 2 || !json.data?.company) throw new Error();
       if (!window.confirm(t("Remplacer toutes les données de ce compte par la sauvegarde ?"))) return;
       for (const [k, url] of Object.entries(json.blobs ?? {}) as [string, string][]) await putBlob(k, await (await fetch(url)).blob());
-      update(() => ({ ...emptyAccountData(""), ...json.data }) as AccountData); // anciennes sauvegardes : nouvelles collections vides
+      restoreAll({ ...emptyAccountData(""), ...json.data } as AccountData); // anciennes sauvegardes : nouvelles collections vides
       setMsg({ tone: "ok", text: t("Sauvegarde restaurée.") });
     } catch {
       setMsg({ tone: "danger", text: t("Fichier de sauvegarde Biltov invalide.") });

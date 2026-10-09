@@ -175,19 +175,25 @@ function changedItems(prev: Item[], next: Item[]) {
 
 export type Denied = PermModule | "users";
 
+/** Titulaire du compte (super admin) pour l'analyse des éléments modifiés. */
+const OWNER = { id: "__owner__", role: "owner" } as Member;
+
 /**
  * Liste des droits manquants pour passer de `prev` à `next` (vide = autorisé).
  * Le journal d'audit et les compteurs de numérotation suivent l'opération qui les modifie.
  */
-export function deniedWrites(prev: AccountData, next: AccountData, actor: Member | null): Denied[] {
-  if (isSuperAdmin(actor)) return [];
-  const p = permissionsOf(prev.settings, actor);
+export function deniedWrites(prev: AccountData, next: AccountData, actor: Member | null, cap?: (p: Permissions) => Permissions): Denied[] {
+  const superAdmin = isSuperAdmin(actor);
+  if (superAdmin && !cap) return [];
+  // `cap` : droits limités en plus (forfait d'abonnement), y compris pour le super admin
+  const p = cap ? cap(permissionsOf(prev.settings, actor)) : permissionsOf(prev.settings, actor);
   const out = new Set<Denied>();
   const need = (n: Need) => {
     if (n === "free") return;
-    if (n === "superadmin") out.add("users");
-    else if (n === "admin") {
-      if (actor!.role !== "admin" || !allows(p, "planning", "edit")) out.add("planning");
+    if (n === "superadmin") {
+      if (!superAdmin) out.add("users");
+    } else if (n === "admin") {
+      if ((!superAdmin && actor!.role !== "admin") || !allows(p, "planning", "edit")) out.add("planning");
     }
     else if (!n.some((m) => allows(p, m, "edit"))) out.add(n[0]);
   };
@@ -200,7 +206,7 @@ export function deniedWrites(prev: AccountData, next: AccountData, actor: Member
         need(sk === "rolePermissions" ? "superadmin" : ["settings"]);
       }
     } else if (Array.isArray(next[key])) {
-      for (const [b, a] of changedItems(prev[key] as unknown as Item[], next[key] as unknown as Item[])) need(itemNeed(key, b, a, actor!));
+      for (const [b, a] of changedItems(prev[key] as unknown as Item[], next[key] as unknown as Item[])) need(itemNeed(key, b, a, actor ?? OWNER));
     }
   }
   return [...out];

@@ -9,8 +9,36 @@ import { idbDel, idbGet, idbSet } from "./db";
 import { currentAccount, setSession } from "./auth";
 import { DEMO_ID, buildDemoData } from "./demo";
 import { emptyAccountData, uid } from "./defaults";
-import { PermissionError, allows, deniedWrites, migrateRoles, permissionsOf, type Denied } from "./permissions";
+import { PermissionError, allows, deniedWrites, isSuperAdmin, migrateRoles, permissionsOf, type Denied } from "./permissions";
 import type { Access, Account, AccountData, CollectionKey, Geo, Member, PermModule, Permissions, PhotoPhase, Photo } from "./types";
+import type { Feature } from "../plans";
+import { canAccess, capPermissions, effectiveStatus, entitlementOf, trialSubscription, usedInPeriod, type Entitlement, type Subscription, type Usage } from "../billing/entitlement";
+import { OFFLINE_GRACE_DAYS, verifyLicense, type LicensePayload } from "../billing/license";
+import { BILLING_PUBLIC_KEY, billingApi, billingConfigured, type Creds } from "../billing/client";
+import { planBlock as checkPlan, type PlanBlock } from "../billing/guard";
+
+/** Écriture refusée par le forfait (module non inclus, limite d'utilisateurs, lecture seule). */
+export class PlanError extends Error {
+  constructor(public block: PlanBlock) {
+    super(`plan:${block.kind}`);
+    this.name = "PlanError";
+  }
+}
+
+/** Abonnement de l'entreprise tel que l'application le connaît. */
+export type BillingInfo = {
+  /** server : licence signée vérifiée ; local : essai calculé sur l'appareil (serveur pas encore joint) ;
+   *  unconfigured : paiement pas encore branché (accès ouvert) ; demo : démonstration */
+  source: "server" | "local" | "unconfigured" | "demo";
+  sub: Subscription;
+  usage: Usage | null;
+  used: number;
+  /** licence trop ancienne (appareil hors ligne trop longtemps) */
+  offline: boolean;
+  creds: Creds | null;
+  refresh: () => Promise<void>;
+  applyLicense: (token: string) => Promise<void>;
+};
 
 type Ctx = {
   account: Account | null;
@@ -20,6 +48,9 @@ type Ctx = {
   signedIn: (a: Account) => Promise<void>;
   logOut: () => void;
   resetDemo: () => Promise<void>;
+  /** Restauration d'une sauvegarde complète (super admin) : remplace les données sans contrôle de module ;
+   *  l'abonnement de la sauvegarde est repris s'il existe (changement d'appareil). */
+  restoreAll: (next: AccountData) => void;
   /** Applique une opération pure et renvoie son résultat. */
   run: <R>(op: (d: AccountData) => [AccountData, R]) => R;
   update: (fn: (d: AccountData) => AccountData) => void;
@@ -37,6 +68,16 @@ type Ctx = {
   /** Dernière écriture refusée faute de droits. */
   denied: Denied[] | null;
   clearDenied: () => void;
+  /** Forfait : droits de l'entreprise, abonnement, accès aux fonctionnalités. */
+  ent: Entitlement;
+  billing: BillingInfo;
+  feature: (f: Feature) => boolean;
+  /** Droits du rôle seuls (sans le forfait) : sert à afficher un module grisé « Disponible dans le forfait X ». */
+  rolePerms: Permissions;
+  canRole: (m: PermModule, need?: Access) => boolean;
+  planBlock: PlanBlock | null;
+  showPlanBlock: (b: PlanBlock) => void;
+  clearPlanBlock: () => void;
 };
 
 const AppContext = createContext<Ctx | null>(null);
@@ -93,6 +134,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [actorId, setActorId] = useState<string | null>(null);
   const actorRef = useRef<Member | null>(null);
   const [denied, setDenied] = useState<Denied[] | null>(null);
+  const [planBlockState, setPlanBlockState] = useState<PlanBlock | null>(null);
+  const entRef = useRef<Entitlement>(entitlementOf(trialSubscription(new Date().toISOString())));
   // Utilisateur supprimé ou désactivé : aucun droit (jamais de retour silencieux au super admin).
   const actor = useMemo<Member | null>(() => {
     if (!actorId || !data) return null;
@@ -115,6 +158,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setDenied(missing);
         throw new PermissionError(missing);
       }
+      const block = checkPlan(prev, next, entRef.current);
+      if (block) {
+        setPlanBlockState(block);
+        throw new PlanError(block);
+      }
       commit(next);
     },
     [commit],
@@ -124,7 +172,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const swallow = (e: ErrorEvent | PromiseRejectionEvent) => {
       const err = "reason" in e ? e.reason : e.error;
-      if (err instanceof PermissionError) e.preventDefault();
+      if (err instanceof PermissionError || err instanceof PlanError) e.preventDefault();
     };
     window.addEventListener("error", swallow);
     window.addEventListener("unhandledrejection", swallow);
@@ -167,7 +215,104 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(id);
   }, [account, data]);
 
-  const perms = useMemo(() => permissionsOf(data?.settings ?? {}, actor), [data?.settings, actor]);
+  const rolePerms = useMemo(() => permissionsOf(data?.settings ?? {}, actor), [data?.settings, actor]);
+
+  // ── Abonnement : licence signée par le serveur, ou essai local tant que le serveur n'est pas joint ──
+  const [verified, setVerified] = useState<LicensePayload | null>(null);
+  const [tick, setTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setTick(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const token = data?.billing?.license ?? null;
+  // identifiant de l'entreprise auprès du serveur (celui du compte d'origine après une restauration)
+  const serverId = data?.billing?.accountId || account?.id || null;
+  useEffect(() => {
+    let alive = true;
+    if (!token || !billingConfigured) setVerified(null);
+    else verifyLicense(token, BILLING_PUBLIC_KEY).then((p) => alive && setVerified(p && p.acc === serverId ? p : null));
+    return () => {
+      alive = false;
+    };
+  }, [token, serverId]);
+
+  const isDemo = account?.id === DEMO_ID;
+  const billingBase = useMemo(() => {
+    const created = account?.createdAt ?? new Date().toISOString();
+    if (isDemo) {
+      // démonstration : tout le forfait Max, sans limite de temps
+      return { source: "demo" as const, sub: { ...trialSubscription(created), plan: "max" as const, status: "active" as const, cycle: "monthly" as const, periodStart: created }, usage: null, offline: false };
+    }
+    if (billingConfigured && verified) {
+      const offline = tick > verified.exp + OFFLINE_GRACE_DAYS * 864e5;
+      return { source: "server" as const, sub: verified.sub, usage: verified.usage, offline };
+    }
+    const trial = trialSubscription(created);
+    // paiement pas encore branché : l'accès reste ouvert après l'essai (comme avant les forfaits)
+    if (!billingConfigured && effectiveStatus(trial, tick) === "expired") return { source: "unconfigured" as const, sub: { ...trial, plan: "max" as const, status: "active" as const, cycle: "monthly" as const, periodStart: created }, usage: null, offline: false };
+    return { source: "local" as const, sub: trial, usage: null, offline: false };
+  }, [account?.createdAt, isDemo, verified, tick]);
+
+  const ent = useMemo<Entitlement>(() => {
+    // heure réelle du calcul (`tick` ne sert qu'à recalculer chaque minute)
+    const e = entitlementOf(billingBase.sub, Math.max(tick, Date.now()));
+    // hors ligne trop longtemps : lecture seule jusqu'à la prochaine vérification
+    return billingBase.offline ? { ...e, readOnly: true } : e;
+  }, [billingBase, tick]);
+  entRef.current = ent;
+  const perms = useMemo(() => capPermissions(rolePerms, ent), [rolePerms, ent]);
+
+  /** Enregistre l'état d'abonnement sans passer par le contrôle des droits (il ne touche aucune donnée métier). */
+  const setBilling = useCallback(
+    (b: AccountData["billing"]) => {
+      if (ref.current) commit({ ...ref.current, billing: b });
+    },
+    [commit],
+  );
+  const secret = data?.billing?.secret;
+  const creds = useMemo(() => (account && serverId && secret && !isDemo ? { accountId: serverId, secret } : null), [account, serverId, secret, isDemo]);
+
+  const refresh = useCallback(async () => {
+    const d = ref.current;
+    if (!billingConfigured || !account || !d || account.id === DEMO_ID || !d.company.bce) return;
+    let secret = d.billing?.secret;
+    const accountId = d.billing?.accountId || account.id;
+    if (!secret) {
+      secret = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, "0")).join("");
+      setBilling({ accountId, secret, license: null });
+    }
+    const c = { accountId, secret };
+    try {
+      const r = d.billing?.license ? await billingApi.license(c).catch((e) => (e.code === "unknown_account" ? billingApi.register(c, { email: account.email, bce: d.company.bce, createdAt: account.createdAt }) : Promise.reject(e))) : await billingApi.register(c, { email: account.email, bce: d.company.bce, createdAt: account.createdAt });
+      setBilling({ accountId, secret, license: r.license });
+    } catch {
+      // hors ligne ou serveur indisponible : la dernière licence reste valable quelques jours
+    }
+  }, [account, setBilling]);
+
+  const applyLicense = useCallback(
+    async (license: string) => {
+      const d = ref.current;
+      if (d) setBilling({ ...d.billing, license });
+    },
+    [setBilling],
+  );
+
+  // vérification à l'ouverture, au retour du paiement et toutes les 6 heures
+  const companyBce = data?.company.bce;
+  useEffect(() => {
+    if (!account || !companyBce) return;
+    try {
+      const u = new URL(window.location.href);
+      if (u.searchParams.get("abonnement")) {
+        u.searchParams.delete("abonnement");
+        window.history.replaceState(null, "", u.pathname + u.search + u.hash);
+      }
+    } catch {}
+    void refresh();
+    const id = setInterval(() => void refresh(), 6 * 3600_000);
+    return () => clearInterval(id);
+  }, [account, companyBce, refresh]);
 
   const ctx = useMemo<Ctx>(() => {
     const cur = () => ref.current!;
@@ -196,6 +341,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return result;
       },
       update: (fn) => write(fn(cur())),
+      restoreAll: (next) => {
+        const prev = cur();
+        if (!isSuperAdmin(actorRef.current)) {
+          setDenied(["users"]);
+          throw new PermissionError(["users"]);
+        }
+        if (entRef.current.readOnly) {
+          setPlanBlockState({ kind: "readonly" });
+          throw new PlanError({ kind: "readonly" });
+        }
+        commit({ ...next, billing: next.billing?.secret && next.billing.accountId ? next.billing : prev.billing });
+      },
       upsert: (key, item) => {
         const d = cur();
         const list = d[key] as { id: string }[];
@@ -249,8 +406,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       can: (m, need = "read") => allows(perms, m, need),
       denied,
       clearDenied: () => setDenied(null),
+      ent,
+      billing: { ...billingBase, used: usedInPeriod(billingBase.usage, ent.period), creds, refresh, applyLicense },
+      feature: (f) => canAccess(ent, f),
+      rolePerms,
+      canRole: (m, need = "read") => allows(rolePerms, m, need),
+      planBlock: planBlockState,
+      showPlanBlock: setPlanBlockState,
+      clearPlanBlock: () => setPlanBlockState(null),
     };
-  }, [account, data, loading, load, commit, write, actor, perms, denied]);
+  }, [account, data, loading, load, commit, write, actor, perms, denied, ent, billingBase, creds, refresh, applyLicense, rolePerms, planBlockState]);
 
   return <AppContext.Provider value={ctx}>{children}</AppContext.Provider>;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Download, FileCode2, Mail, MessageCircle, Printer, Share2, Smartphone } from "lucide-react";
+import { CheckCircle2, Download, FileCode2, Loader2, Mail, MessageCircle, Printer, Send, Share2, Smartphone } from "lucide-react";
 import { useAppData } from "@/lib/app/store";
 import { useTr } from "@/lib/app/tr";
 import { useFmt } from "@/lib/app/format";
@@ -17,6 +17,10 @@ import { docTitle } from "@/lib/app/pdf";
 import type { Doc, Lang, SendLog } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
 import { Field, Modal, Notice, inputClass } from "./ui";
+import { UsageMeter, openPlans } from "./PlanGate";
+import { PLANS, type PlanId } from "@/lib/plans";
+import { canSendInvoice } from "@/lib/billing/entitlement";
+import { BillingError, billingApi, billingConfigured } from "@/lib/billing/client";
 
 const GREET: Record<Lang, (n: string) => string> = { fr: (n) => `Bonjour ${n},`, nl: (n) => `Beste ${n},`, de: (n) => `Guten Tag ${n},` };
 const BODY: Record<Lang, (what: string, num: string, amount: string, job: string, extra: string) => string> = {
@@ -29,7 +33,7 @@ const BODY: Record<Lang, (what: string, num: string, amount: string, job: string
 export function SendDialog({ doc, reminder, onClose }: { doc: Doc; reminder?: boolean; onClose: () => void }) {
   const { t } = useTr();
   const f = useFmt();
-  const { data, update, run } = useAppData();
+  const { data, update, run, billing } = useAppData();
   const { make } = usePdf();
   const job = data.jobs.find((j) => j.id === doc.jobId)!;
   const client = data.clients.find((c) => c.id === doc.clientId);
@@ -74,7 +78,9 @@ export function SendDialog({ doc, reminder, onClose }: { doc: Doc; reminder?: bo
           <div className="space-y-3 rounded-2xl border border-cyan/30 bg-cyan/5 p-4 text-sm">
             <p className="font-semibold text-white">{t("Facture B2B : transmission Peppol obligatoire")}</p>
             <p className="text-slate-300">{t("Destinataire")} : {client?.peppolId || `0208:${client?.bce}`}. {t("Un PDF envoyé par e-mail n'est pas une facture électronique valable entre entreprises belges.")}</p>
-            {!peppolProvider.configured && <Notice tone="warn">{t("Aucun Access Point Peppol n'est encore branché : téléchargez le fichier UBL et déposez-le chez votre prestataire Peppol, puis marquez la facture comme transmise.")}</Notice>}
+            {billingConfigured && billing.creds && <PeppolSend doc={doc} receiver={client?.peppolId || `0208:${client?.bce}`} onSent={() => record("peppol")} />}
+            {!peppolProvider.configured && !billingConfigured && <Notice tone="warn">{t("Aucun Access Point Peppol n'est encore branché : téléchargez le fichier UBL et déposez-le chez votre prestataire Peppol, puis marquez la facture comme transmise.")}</Notice>}
+            {billingConfigured && <p className="text-xs text-slate-500">{t("Ou passez par votre propre prestataire Peppol :")}</p>}
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => {
@@ -162,5 +168,74 @@ export function SendDialog({ doc, reminder, onClose }: { doc: Doc; reminder?: bo
         )}
       </div>
     </Modal>
+  );
+}
+
+/**
+ * Envoi Peppol par Biltov : le serveur vérifie l'abonnement et le quota, envoie, puis compte la facture
+ * (uniquement si l'envoi réussit). Alertes à 80 et 100 % du quota.
+ */
+function PeppolSend({ doc, receiver, onSent }: { doc: Doc; receiver: string; onSent: () => void }) {
+  const { t } = useTr();
+  const { data, update, billing, ent } = useAppData();
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ tone: "ok" | "danger" | "warn"; text: string; upgrade?: PlanId | null } | null>(null);
+  const client = data.clients.find((c) => c.id === doc.clientId);
+  const already = doc.peppol.status === "sent" || doc.peppol.status === "delivered";
+  const check = canSendInvoice(ent, billing.used);
+  const send = async () => {
+    if (!billing.creds || !client) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const ubl = buildUbl(doc, data, client, doc.sourceId ? data.docs.find((d) => d.id === doc.sourceId) : null).xml;
+      const r = await billingApi.peppolSend(billing.creds, { docId: doc.id, documentNumber: doc.number ?? doc.id, receiver, ubl });
+      await billing.applyLicense(r.license);
+      update((d) => audit({ ...d, docs: d.docs.map((x) => (x.id === doc.id ? { ...x, peppol: { status: r.status === "delivered" ? "delivered" : "sent", at: new Date().toISOString(), message: t("Envoyée via Peppol par Biltov") } } : x)) }, "peppol", doc.type, doc.id, "sent"));
+      onSent();
+      setMsg({ tone: "ok", text: r.overage && ent.overagePrice !== null ? t("Facture envoyée via Peppol. Au-delà du quota : {p} € HTVA facturés en fin de période.", { p: ent.overagePrice.toFixed(2).replace(".", ",") }) : t("Facture envoyée via Peppol.") });
+    } catch (e) {
+      const code = e instanceof BillingError ? e.code : "";
+      if (code === "quota") setMsg({ tone: "warn", text: t("Quota de factures Peppol atteint pour cette période."), upgrade: (e as BillingError).extra.upgrade as PlanId | null });
+      else if (code === "readonly") setMsg({ tone: "danger", text: t("Abonnement expiré ou impayé : envoi impossible. Vos données sont conservées.") });
+      else if (code === "offline") setMsg({ tone: "danger", text: t("Pas de connexion Internet : réessayez dès que possible.") });
+      else setMsg({ tone: "danger", text: t("L'envoi Peppol a échoué ; la facture n'est pas comptée. Détail : {m}", { m: String((e as BillingError).extra?.message ?? code) }) });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.02] p-3">
+      <UsageMeter />
+      {already && msg?.tone === "ok" ? null : already ? (
+        <p className="flex items-center gap-2 text-emerald">
+          <CheckCircle2 className="h-4 w-4" /> {t("Déjà transmise via Peppol.")}
+        </p>
+      ) : (
+        <button onClick={send} disabled={busy || !check.ok} className="btn-primary w-full !py-2 text-sm disabled:opacity-50">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {t("Envoyer via Peppol")}
+        </button>
+      )}
+      {!already && !check.ok && !msg && (
+        <p className="text-xs" style={{ color: "var(--warning-text)" }}>
+          {check.reason === "readonly" ? t("Abonnement expiré ou impayé : envoi impossible.") : t("Quota de factures Peppol atteint pour cette période.")}{" "}
+          {check.reason === "quota" && check.upgrade && (
+            <button onClick={() => openPlans(check.upgrade!)} className="font-semibold underline">
+              {t("Passer au forfait {p}", { p: PLANS[check.upgrade].name })}
+            </button>
+          )}
+        </p>
+      )}
+      {msg && (
+        <Notice tone={msg.tone === "ok" ? "ok" : msg.tone === "warn" ? "warn" : "danger"}>
+          {msg.text}{" "}
+          {msg.upgrade && (
+            <button onClick={() => openPlans(msg.upgrade!)} className="font-semibold underline">
+              {t("Passer au forfait {p}", { p: PLANS[msg.upgrade].name })}
+            </button>
+          )}
+        </Notice>
+      )}
+    </div>
   );
 }

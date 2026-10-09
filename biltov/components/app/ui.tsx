@@ -69,7 +69,7 @@ export function Modal({ title, onClose, children, wide, footer }: { title: strin
   );
 }
 
-export function SubTabs<T extends string>({ tabs, value, onChange }: { tabs: { id: T; label: string; count?: number }[]; value: T; onChange: (v: T) => void }) {
+export function SubTabs<T extends string>({ tabs, value, onChange }: { tabs: { id: T; label: string; count?: number; locked?: string }[]; value: T; onChange: (v: T) => void }) {
   return (
     <div role="tablist" className="flex gap-1 overflow-x-auto rounded-xl border border-white/10 bg-white/[0.02] p-1">
       {tabs.map((tb) => (
@@ -82,6 +82,8 @@ export function SubTabs<T extends string>({ tabs, value, onChange }: { tabs: { i
         >
           {tb.label}
           {tb.count !== undefined && <span className="rounded-full bg-white/10 px-1.5 text-[10px] tabular-nums">{tb.count}</span>}
+          {/* fonction hors forfait : onglet grisé avec le forfait requis */}
+          {tb.locked && <span className={cn("rounded-md border px-1 text-[9px] font-bold uppercase", value === tb.id ? "border-white/40" : "border-white/15 opacity-70")}>{tb.locked}</span>}
         </button>
       ))}
     </div>

@@ -15,6 +15,9 @@ import type { Access, AssignableRole, Expense, Member, PermModule, Permissions, 
 import { ASSIGNABLE_ROLES, DEFAULT_PERMISSIONS, PERM_LABEL, PERM_MODULES, READ_ONLY_MODULES, ROLE_DESC, isSuperAdmin, rolePermissions } from "@/lib/app/permissions";
 import { cn } from "@/lib/utils";
 import { Badge, Empty, Field, Modal, Notice, PageHeader, SubTabs, Toggle, inputClass } from "./ui";
+import { PlanGate } from "./PlanGate";
+import { PLANS, planFor } from "@/lib/plans";
+import { activeUsers, canAddUser } from "@/lib/billing/entitlement";
 import { TimeForm } from "./FieldPanels";
 import { ExpenseForm, expenseHt } from "./ExpensesPanel";
 
@@ -70,9 +73,12 @@ export function PermissionGrid({ value, base, onChange, disabled }: { value: Par
 
 function MemberForm({ member, onClose }: { member: Member | null; onClose: () => void }) {
   const { t } = useTr();
-  const { data, upsert, remove, actor } = useAppData();
+  const { data, upsert, remove, actor, feature } = useAppData();
   const superAdmin = isSuperAdmin(actor);
-  const [m, setM] = useState<Member>(member ?? { id: uid(), name: "", role: "worker", phone: "", email: "", lang: data.company.lang, hourlyCost: 35, color: COLORS[data.members.length % COLORS.length], pin: "", active: true, permissions: null });
+  // forfait : rôle « ouvrier » et accès personnalisés réservés au forfait qui les inclut
+  const roles = ASSIGNABLE_ROLES.filter((r) => r !== "worker" || feature("worker") || member?.role === "worker");
+  const customAllowed = feature("customRoles");
+  const [m, setM] = useState<Member>(member ?? { id: uid(), name: "", role: roles.includes("worker") ? "worker" : "secretary", phone: "", email: "", lang: data.company.lang, hourlyCost: 35, color: COLORS[data.members.length % COLORS.length], pin: "", active: true, permissions: null });
   const [custom, setCustom] = useState(!!member?.permissions && Object.keys(member.permissions).length > 0);
   const set = <K extends keyof Member>(k: K, v: Member[K]) => setM((x) => ({ ...x, [k]: v }));
   const isOwner = m.role === "owner";
@@ -112,7 +118,7 @@ function MemberForm({ member, onClose }: { member: Member | null; onClose: () =>
               </p>
             ) : (
               <select disabled={!superAdmin} className={inputClass} value={m.role} onChange={(e) => set("role", e.target.value as Role)}>
-                {ASSIGNABLE_ROLES.map((r) => (
+                {roles.map((r) => (
                   <option key={r} value={r}>
                     {t(ROLE[r])}
                   </option>
@@ -160,12 +166,12 @@ function MemberForm({ member, onClose }: { member: Member | null; onClose: () =>
             <Toggle
               checked={custom}
               onChange={(v) => {
-                if (!superAdmin) return;
+                if (!superAdmin || (v && !customAllowed)) return;
                 setCustom(v);
                 if (!v) set("permissions", null);
               }}
               label={t("Accès personnalisés pour cette personne")}
-              hint={superAdmin ? t("Sinon, elle reçoit les droits de son rôle ({r}).", { r: t(ROLE[m.role]) }) : t("Réservé au super admin.")}
+              hint={!customAllowed ? t("Disponible dans le forfait {p}.", { p: PLANS[planFor("customRoles")].name }) : superAdmin ? t("Sinon, elle reçoit les droits de son rôle ({r}).", { r: t(ROLE[m.role]) }) : t("Réservé au super admin.")}
             />
             {custom && (
               <PermissionGrid
@@ -226,9 +232,13 @@ function RolesPanel() {
 export function TeamTab() {
   const { t } = useTr();
   const f = useFmt();
-  const { data, upsert, actor, account, can } = useAppData();
+  const { data, upsert, actor, account, canRole: can, feature, ent, showPlanBlock } = useAppData();
   const superAdmin = isSuperAdmin(actor);
   const [tab, setTab] = useState<"members" | "hours" | "expenses" | "roles">(can("team") ? "members" : "hours");
+  // forfait : chaque onglet hors forfait reste visible, grisé, avec la mise à niveau proposée
+  const TAB_FEATURE = { members: "users", hours: "time", expenses: "team", roles: "customRoles" } as const;
+  const lockOf = (id: keyof typeof TAB_FEATURE) => (feature(TAB_FEATURE[id]) ? undefined : PLANS[planFor(TAB_FEATURE[id])].name);
+  const addUser = () => (canAddUser(ent, activeUsers(data.members)) ? setEditing("new") : showPlanBlock(ent.maxUsers !== null && feature("users") ? { kind: "users", max: ent.maxUsers } : { kind: "feature", feature: "users", plan: planFor("users") }));
   const [editing, setEditing] = useState<Member | "new" | null>(null);
   const [time, setTime] = useState<TimeEntry | "new" | null>(null);
   const [expense, setExpense] = useState<Expense | null>(null);
@@ -252,7 +262,7 @@ export function TeamTab() {
         subtitle={t("{n} membre(s)", { n: data.members.length })}
         actions={
           superAdmin && (
-            <button onClick={() => setEditing("new")} className="btn-primary !py-2.5 text-sm">
+            <button onClick={addUser} className="btn-primary !py-2.5 text-sm">
               <Plus className="h-4 w-4" /> {t("Nouvel utilisateur")}
             </button>
           )
@@ -263,14 +273,18 @@ export function TeamTab() {
           value={tab}
           onChange={setTab}
           tabs={[
-            ...(can("team") ? [{ id: "members" as const, label: t("Utilisateurs"), count: data.members.length }] : []),
-            ...(can("time") ? [{ id: "hours" as const, label: t("Heures de la semaine") }] : []),
-            ...(can("team") ? [{ id: "expenses" as const, label: t("Notes de frais"), count: notes.filter((n) => n.status === "submitted").length }] : []),
-            ...(superAdmin ? [{ id: "roles" as const, label: t("Rôles et accès") }] : []),
+            ...(can("team") ? [{ id: "members" as const, label: t("Utilisateurs"), count: data.members.length, locked: lockOf("members") }] : []),
+            ...(can("time") ? [{ id: "hours" as const, label: t("Heures de la semaine"), locked: lockOf("hours") }] : []),
+            ...(can("team") ? [{ id: "expenses" as const, label: t("Notes de frais"), count: notes.filter((n) => n.status === "submitted").length, locked: lockOf("expenses") }] : []),
+            ...(superAdmin ? [{ id: "roles" as const, label: t("Rôles et accès"), locked: lockOf("roles") }] : []),
           ]}
         />
       </div>
 
+      {lockOf(tab) ? (
+        <PlanGate feature={TAB_FEATURE[tab]} />
+      ) : (
+      <>
       {tab === "roles" && superAdmin && <RolesPanel />}
 
       {tab === "members" && !data.members.some((m) => m.role === "owner") && (
@@ -410,6 +424,8 @@ export function TeamTab() {
             ))}
           </ul>
         ))}
+      </>
+      )}
 
       <AnimatePresence>
         {editing && <MemberForm member={editing === "new" ? null : editing} onClose={() => setEditing(null)} />}

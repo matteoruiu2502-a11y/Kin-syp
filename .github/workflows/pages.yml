@@ -44,10 +44,10 @@ jobs:
         working-directory: biltov
         env:
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/biltov
-          # Liens de paiement Stripe (Settings → Secrets and variables → Actions → Variables).
-          # Vides : le bouton « Essai gratuit » ouvre le tableau de bord en mode démonstration.
-          NEXT_PUBLIC_STRIPE_LINK_MONTHLY: ${{ vars.BILTOV_STRIPE_LINK_MONTHLY }}
-          NEXT_PUBLIC_STRIPE_LINK_YEARLY: ${{ vars.BILTOV_STRIPE_LINK_YEARLY }}
+          # Serveur d'abonnement (biltov/server, Cloudflare Workers) et clé publique des licences
+          # (Settings → Secrets and variables → Actions → Variables). Vides : essai local, paiement non branché.
+          NEXT_PUBLIC_BILLING_API_URL: ${{ vars.BILTOV_BILLING_API_URL }}
+          NEXT_PUBLIC_BILLING_PUBLIC_KEY: ${{ vars.BILTOV_BILLING_PUBLIC_KEY }}
           # Fonction serveur IA (Supabase, voir biltov/supabase/README.md). Vide : chat et dictée en mode local.
           NEXT_PUBLIC_AI_ENDPOINT: ${{ vars.BILTOV_AI_ENDPOINT }}
           NEXT_PUBLIC_SUPPORT_EMAIL: ${{ vars.BILTOV_SUPPORT_EMAIL }}

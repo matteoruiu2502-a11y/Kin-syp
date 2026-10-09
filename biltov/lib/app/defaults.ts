@@ -138,6 +138,7 @@ export const emptyAccountData = (email: string): AccountData => ({
   weatherDays: [],
   tasks: [],
   audit: [],
+  billing: { secret: "", license: null },
 });
 
 export const newClient = (p: Partial<Client> = {}): Client => ({

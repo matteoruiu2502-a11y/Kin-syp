@@ -28,7 +28,7 @@ export function Navbar() {
     { href: "/fonctionnalites/", label: t.nav.features },
     { href: "/#videos", label: t.nav.videos },
     { href: "/#metiers", label: t.nav.trades },
-    { href: "/#tarif", label: t.nav.pricing },
+    { href: "/tarifs/", label: t.nav.pricing },
     { href: "/a-propos/", label: t.nav.about },
   ];
 
