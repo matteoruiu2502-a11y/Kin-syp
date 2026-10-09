@@ -207,7 +207,7 @@ function PeppolSend({ doc, receiver, onSent }: { doc: Doc; receiver: string; onS
   return (
     <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.02] p-3">
       <UsageMeter />
-      {already ? (
+      {already && msg?.tone === "ok" ? null : already ? (
         <p className="flex items-center gap-2 text-emerald">
           <CheckCircle2 className="h-4 w-4" /> {t("Déjà transmise via Peppol.")}
         </p>

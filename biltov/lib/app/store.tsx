@@ -9,7 +9,7 @@ import { idbDel, idbGet, idbSet } from "./db";
 import { currentAccount, setSession } from "./auth";
 import { DEMO_ID, buildDemoData } from "./demo";
 import { emptyAccountData, uid } from "./defaults";
-import { PermissionError, allows, deniedWrites, migrateRoles, permissionsOf, type Denied } from "./permissions";
+import { PermissionError, allows, deniedWrites, isSuperAdmin, migrateRoles, permissionsOf, type Denied } from "./permissions";
 import type { Access, Account, AccountData, CollectionKey, Geo, Member, PermModule, Permissions, PhotoPhase, Photo } from "./types";
 import type { Feature } from "../plans";
 import { canAccess, capPermissions, effectiveStatus, entitlementOf, trialSubscription, usedInPeriod, type Entitlement, type Subscription, type Usage } from "../billing/entitlement";
@@ -48,6 +48,9 @@ type Ctx = {
   signedIn: (a: Account) => Promise<void>;
   logOut: () => void;
   resetDemo: () => Promise<void>;
+  /** Restauration d'une sauvegarde complète (super admin) : remplace les données sans contrôle de module ;
+   *  l'abonnement de la sauvegarde est repris s'il existe (changement d'appareil). */
+  restoreAll: (next: AccountData) => void;
   /** Applique une opération pure et renvoie son résultat. */
   run: <R>(op: (d: AccountData) => [AccountData, R]) => R;
   update: (fn: (d: AccountData) => AccountData) => void;
@@ -222,14 +225,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, []);
   const token = data?.billing?.license ?? null;
+  // identifiant de l'entreprise auprès du serveur (celui du compte d'origine après une restauration)
+  const serverId = data?.billing?.accountId || account?.id || null;
   useEffect(() => {
     let alive = true;
     if (!token || !billingConfigured) setVerified(null);
-    else verifyLicense(token, BILLING_PUBLIC_KEY).then((p) => alive && setVerified(p && p.acc === account?.id ? p : null));
+    else verifyLicense(token, BILLING_PUBLIC_KEY).then((p) => alive && setVerified(p && p.acc === serverId ? p : null));
     return () => {
       alive = false;
     };
-  }, [token, account?.id]);
+  }, [token, serverId]);
 
   const isDemo = account?.id === DEMO_ID;
   const billingBase = useMemo(() => {
@@ -249,7 +254,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [account?.createdAt, isDemo, verified, tick]);
 
   const ent = useMemo<Entitlement>(() => {
-    const e = entitlementOf(billingBase.sub, tick);
+    // heure réelle du calcul (`tick` ne sert qu'à recalculer chaque minute)
+    const e = entitlementOf(billingBase.sub, Math.max(tick, Date.now()));
     // hors ligne trop longtemps : lecture seule jusqu'à la prochaine vérification
     return billingBase.offline ? { ...e, readOnly: true } : e;
   }, [billingBase, tick]);
@@ -264,20 +270,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [commit],
   );
   const secret = data?.billing?.secret;
-  const creds = useMemo(() => (account && secret && !isDemo ? { accountId: account.id, secret } : null), [account, secret, isDemo]);
+  const creds = useMemo(() => (account && serverId && secret && !isDemo ? { accountId: serverId, secret } : null), [account, serverId, secret, isDemo]);
 
   const refresh = useCallback(async () => {
     const d = ref.current;
     if (!billingConfigured || !account || !d || account.id === DEMO_ID || !d.company.bce) return;
     let secret = d.billing?.secret;
+    const accountId = d.billing?.accountId || account.id;
     if (!secret) {
       secret = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, "0")).join("");
-      setBilling({ secret, license: null });
+      setBilling({ accountId, secret, license: null });
     }
-    const c = { accountId: account.id, secret };
+    const c = { accountId, secret };
     try {
       const r = d.billing?.license ? await billingApi.license(c).catch((e) => (e.code === "unknown_account" ? billingApi.register(c, { email: account.email, bce: d.company.bce, createdAt: account.createdAt }) : Promise.reject(e))) : await billingApi.register(c, { email: account.email, bce: d.company.bce, createdAt: account.createdAt });
-      setBilling({ secret, license: r.license });
+      setBilling({ accountId, secret, license: r.license });
     } catch {
       // hors ligne ou serveur indisponible : la dernière licence reste valable quelques jours
     }
@@ -286,7 +293,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const applyLicense = useCallback(
     async (license: string) => {
       const d = ref.current;
-      if (d) setBilling({ secret: d.billing.secret, license });
+      if (d) setBilling({ ...d.billing, license });
     },
     [setBilling],
   );
@@ -334,6 +341,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return result;
       },
       update: (fn) => write(fn(cur())),
+      restoreAll: (next) => {
+        const prev = cur();
+        if (!isSuperAdmin(actorRef.current)) {
+          setDenied(["users"]);
+          throw new PermissionError(["users"]);
+        }
+        if (entRef.current.readOnly) {
+          setPlanBlockState({ kind: "readonly" });
+          throw new PlanError({ kind: "readonly" });
+        }
+        commit({ ...next, billing: next.billing?.secret && next.billing.accountId ? next.billing : prev.billing });
+      },
       upsert: (key, item) => {
         const d = cur();
         const list = d[key] as { id: string }[];

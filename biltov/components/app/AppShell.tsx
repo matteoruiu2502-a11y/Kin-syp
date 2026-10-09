@@ -307,6 +307,11 @@ function Shell() {
     const id = setTimeout(clearDenied, 6000);
     return () => clearTimeout(id);
   }, [denied, clearDenied]);
+  useEffect(() => {
+    if (!planBlock) return;
+    const id = setTimeout(clearPlanBlock, 8000);
+    return () => clearTimeout(id);
+  }, [planBlock, clearPlanBlock]);
 
   const mods = data.settings.modules;
   const reminders = dueReminders(data).length;
