@@ -44,12 +44,12 @@ import { dueReminders } from "@/lib/app/reminders";
 import { MODULES } from "@/lib/app/labels";
 import type { Lang, Member, ModuleId, PermModule } from "@/lib/app/types";
 import { PERM_LABEL, PERM_MODULES, docVisible, isSuperAdmin, workerOnly } from "@/lib/app/permissions";
-import { logIn } from "@/lib/app/auth";
+import { RECOVERY_PARAM, logIn } from "@/lib/app/auth";
 import { openHelp } from "@/lib/help";
 import { cn } from "@/lib/utils";
 import { BiltovLogo } from "../BiltovLogo";
 import { ThemeToggle } from "../ThemeToggle";
-import { AuthScreen } from "./AuthScreen";
+import { AuthScreen, NewPasswordScreen } from "./AuthScreen";
 import { Onboarding } from "./Onboarding";
 import { companyMissing } from "./CompanyForm";
 import { MoneyTab } from "./MoneyTab";
@@ -172,6 +172,8 @@ export function App() {
 /** Compte obligatoire (ou démo), puis identité de l'entreprise, puis tableau de bord. */
 function Gate() {
   const { account, data, loading } = useApp();
+  const [recovery, setRecovery] = useState(false);
+  useEffect(() => setRecovery(new URLSearchParams(window.location.search).has(RECOVERY_PARAM)), []);
   if (loading)
     return (
       <div className="flex min-h-dvh items-center justify-center">
@@ -179,6 +181,7 @@ function Gate() {
       </div>
     );
   if (!account || !data) return <AuthScreen />;
+  if (recovery && account.cloud) return <NewPasswordScreen onDone={() => setRecovery(false)} />;
   if (!data.company.name || !data.company.bce) return <Onboarding />;
   return <Shell />;
 }

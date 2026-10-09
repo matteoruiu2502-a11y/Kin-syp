@@ -17,6 +17,7 @@ const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
 // Liens valables depuis toutes les pages du site.
 const PRODUCT_ANCHORS = [`${base}/fonctionnalites/`, `${base}/#metiers`, `${base}/tarifs/`, `${base}/#roi`, `${base}/#demo`];
 const COMPANY_LINKS = [`${base}/a-propos/`];
+const LEGAL_LINKS = [`${base}/mentions-legales/`, `${base}/conditions-generales/`, `${base}/confidentialite/`, `${base}/cookies/`];
 const COMPLIANCE_ICONS = [Lock, BadgeCheck, Server];
 
 export function Footer() {
@@ -53,7 +54,7 @@ export function Footer() {
 
           <FooterColumn title={f.product} items={f.links.product.map((label, i) => ({ label, href: PRODUCT_ANCHORS[i] ?? `${base}/` }))} />
           <FooterColumn title={f.company} items={f.links.company.map((label, i) => ({ label, href: COMPANY_LINKS[i] ?? "#" }))} />
-          <FooterColumn title={f.legal} items={f.links.legal.map((label) => ({ label, href: "#" }))} />
+          <FooterColumn title={f.legal} items={f.links.legal.map((label, i) => ({ label, href: LEGAL_LINKS[i] ?? "#" }))} />
         </div>
 
         <div className="mt-14 flex flex-wrap gap-3">
