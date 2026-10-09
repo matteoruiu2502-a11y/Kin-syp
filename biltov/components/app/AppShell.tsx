@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Blocks,
+  Building2,
   Boxes,
   Car,
   Repeat,
@@ -43,7 +44,7 @@ import { Field, Modal, Notice, ReadOnlyContext, inputClass } from "./ui";
 import { dueReminders } from "@/lib/app/reminders";
 import { MODULES } from "@/lib/app/labels";
 import type { Lang, Member, ModuleId, PermModule } from "@/lib/app/types";
-import { PERM_LABEL, docVisible, isSuperAdmin, workerOnly } from "@/lib/app/permissions";
+import { PERM_LABEL, PERM_MODULES, docVisible, isSuperAdmin, workerOnly } from "@/lib/app/permissions";
 import { logIn } from "@/lib/app/auth";
 import { openHelp } from "@/lib/help";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ import { companyMissing } from "./CompanyForm";
 import { MoneyTab } from "./MoneyTab";
 import { WorkerLogin, WorkerMode } from "./WorkerMode";
 import { VOICE_EVENT, VoiceQuoteButton, VoiceQuoteChat } from "./VoiceQuoteChat";
+import { BackToBuilding, Building3D, Mode3DNotice, Mode3DToggle, useMode3D } from "@/mode-3d";
 
 // Chaque page de l'espace artisan est chargée à la demande : l'ouverture de l'app est plus rapide sur téléphone.
 function PageLoading() {
@@ -85,10 +87,10 @@ const DocEditor = dynamic(() => import("./DocEditor").then((m) => m.DocEditor), 
 const ClientsTab = dynamic(() => import("./ClientsTab").then((m) => m.ClientsTab), { ssr: false, loading: PageLoading });
 const ClientDetail = dynamic(() => import("./ClientsTab").then((m) => m.ClientDetail), { ssr: false, loading: PageLoading });
 
-type Page = "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "outils" | "contrats" | "modules" | "module" | "parametres" | "mon-espace";
+type Page = "batiment" | "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "outils" | "contrats" | "modules" | "module" | "parametres" | "mon-espace";
 type Route = { page: Page; id?: string; sub?: string };
 
-const PAGES: Page[] = ["apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "banque", "comptabilite", "sous-traitants", "outils", "contrats", "modules", "module", "parametres", "mon-espace"];
+const PAGES: Page[] = ["batiment", "apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "banque", "comptabilite", "sous-traitants", "outils", "contrats", "modules", "module", "parametres", "mon-espace"];
 const parse = (hash: string): Route => {
   const [a, b, c] = hash.replace(/^#/, "").split("/");
   const page = (PAGES as string[]).includes(a) ? (a as Page) : "apercu";
@@ -100,6 +102,7 @@ const toHash = (r: Route) => `#${r.page}${r.id ? `/${r.id}` : ""}${r.sub ? `/${r
 /** Pages accessibles selon le rôle de la personne connectée sur l'appareil. */
 /** Module de droits qui ouvre chaque page (au moins un en lecture). */
 const PAGE_MODULES: Record<Page, PermModule[]> = {
+  batiment: PERM_MODULES, // mode 3D : la scène elle-même ; chaque pièce vérifie ses propres droits
   apercu: ["money"],
   chantiers: ["jobs"],
   chantier: ["jobs"],
@@ -236,6 +239,15 @@ function Shell() {
   const [drawer, setDrawer] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [voice, setVoice] = useState(false);
+  const m3d = useMode3D(account?.id ?? "", member?.id ?? null);
+
+  // mode 3D mémorisé : l'application s'ouvre sur le bâtiment (sauf adresse précise demandée)
+  useEffect(() => {
+    if (m3d.on && !window.location.hash) {
+      window.history.replaceState(null, "", "#batiment");
+      setRoute({ page: "batiment" });
+    }
+  }, [m3d.on]);
 
   // « Dictée vocale » ouverte depuis n'importe quel écran
   useEffect(() => {
@@ -282,10 +294,11 @@ function Shell() {
   const mods = data.settings.modules;
   const reminders = dueReminders(data).length;
   const superAdmin = isSuperAdmin(member);
-  const can = (p: Page) => (p === "mon-espace" ? !superAdmin && canModule("worker") : PAGE_MODULES[p].some((m) => canModule(m)));
+  const can = (p: Page) => (p === "batiment" ? m3d.on : p === "mon-espace" ? !superAdmin && canModule("worker") : PAGE_MODULES[p].some((m) => canModule(m)));
   const canEdit = (p: Page) => PAGE_MODULES[p].some((m) => canModule(m, "edit"));
 
   const nav: { page: Page; label: string; icon: typeof HardHat; badge?: number; on: boolean; group: 0 | 1 | 2 | 3 }[] = [
+    { page: "batiment", label: t("Bâtiment"), icon: Building2, on: m3d.on, group: 0 },
     { page: "apercu", label: t("Argent à recevoir"), icon: HandCoins, badge: reminders || undefined, on: true, group: 0 },
     { page: "chantiers", label: t("Chantiers"), icon: HardHat, on: true, group: 0 },
     { page: "clients", label: t("Clients"), icon: Contact, on: mods.clients, group: 0 },
@@ -313,7 +326,26 @@ function Shell() {
   const firstAllowed = visible[0]?.page ?? "apercu";
   const routeOk = can(route.page) && !(route.page === "chantier" && (route.sub === "rentabilite" || route.sub === "materiaux") && !canModule("profit"));
   const page: Page = routeOk ? route.page : firstAllowed;
-  const readOnly = !superAdmin && page !== "mon-espace" && !canEdit(page);
+  const readOnly = !superAdmin && page !== "mon-espace" && page !== "batiment" && !canEdit(page);
+  // Mode 3D : accès à une page pour les pièces du bâtiment (mêmes droits et modules activés que le menu)
+  const pageAccess = (p: string): "ok" | "locked" | "off" => {
+    if (!(PAGES as string[]).includes(p)) return "off";
+    const n = nav.find((x) => x.page === p);
+    if (n && !n.on) return "off";
+    return can(p as Page) ? "ok" : "locked";
+  };
+  const firstNormal = nav.find((n) => n.page !== "batiment" && n.on && can(n.page))?.page ?? "apercu";
+  const switchMode = (v: boolean) => {
+    if (m3d.setOn(v)) go({ page: v ? "batiment" : firstNormal });
+  };
+  // 3D désactivée (repli automatique, autre appareil…) alors que l'adresse est celle du bâtiment : page normale
+  useEffect(() => {
+    if (m3d.ready && !m3d.on && route.page === "batiment") {
+      const next: Route = { page: member && workerOnly(perms) ? "mon-espace" : firstNormal };
+      window.history.replaceState(null, "", toHash(next));
+      setRoute(next);
+    }
+  }, [m3d.ready, m3d.on, route.page, firstNormal, member, perms]);
 
   if (member && !member.active)
     return (
@@ -331,7 +363,19 @@ function Shell() {
   if (member && workerOnly(perms))
     return (
       <div className="min-h-dvh px-4 py-6">
-        <WorkerMode member={member} onExit={() => setSwitching(true)} />
+        {/* mode 3D de l'ouvrier : seule la pièce « Pointage » (son espace) s'ouvre, les autres restent verrouillées */}
+        <div className="mx-auto mb-4 flex max-w-lg justify-end">
+          <Mode3DToggle on={m3d.on} onChange={(v) => m3d.setOn(v) && go({ page: v ? "batiment" : "mon-espace" })} />
+        </div>
+        {m3d.on && route.page === "batiment" ? (
+          <Building3D access={pageAccess} onOpen={() => go({ page: "mon-espace" })} onExit={() => (m3d.setOn(false), go({ page: "mon-espace" }))} onFallback={(r) => (m3d.fallback(r), go({ page: "mon-espace" }))} />
+        ) : (
+          <div className="mx-auto max-w-lg">
+            {m3d.on && <BackToBuilding onClick={() => go({ page: "batiment" })} />}
+            <WorkerMode member={member} onExit={() => setSwitching(true)} />
+          </div>
+        )}
+        {m3d.notice && <Mode3DNotice reason={m3d.notice} onClose={m3d.clearNotice} />}
         <AnimatePresence>{switching && <SwitchUser current={member} onPick={enter} onSuperAdmin={() => enter(null)} onClose={() => setSwitching(false)} />}</AnimatePresence>
       </div>
     );
@@ -392,6 +436,7 @@ function Shell() {
             <span className="hidden sm:block">
               <LangSwitch />
             </span>
+            <Mode3DToggle on={m3d.on} onChange={switchMode} />
             <ThemeToggle labels={{ light: t("Mode jour"), dark: t("Mode nuit") }} />
             {data.members.length > 0 && (
               <button onClick={() => setSwitching(true)} className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-400 hover:text-white" title={t("Changer d'utilisateur sur cet appareil")}>
@@ -489,6 +534,8 @@ function Shell() {
                   <Eye className="h-4 w-4 text-cyan" /> {t("Lecture seule : vous pouvez consulter cette page, pas la modifier.")}
                 </p>
               )}
+              {page !== "batiment" && m3d.on && <BackToBuilding onClick={() => go({ page: "batiment" })} />}
+              {page === "batiment" && <Building3D access={pageAccess} onOpen={(target) => go(parse(`#${target}`))} onExit={() => switchMode(false)} onFallback={(r) => (m3d.fallback(r), go({ page: "apercu" }))} />}
               {page === "apercu" && <MoneyTab onOpenDoc={setDocId} onOpenJob={openJob} />}
               {page === "chantiers" && <JobsTab onOpen={openJob} onAdd={() => setNewJob({})} />}
               {page === "chantier" && (job ? <JobDetail key={job.id + (route.sub ?? "")} job={job} initialTab={route.sub === "rentabilite" ? "finance" : route.sub === "materiaux" ? "materials" : route.sub === "planning" ? "planning" : "docs"} onBack={() => go({ page: "chantiers" })} onOpenDoc={setDocId} onOpenClient={openClient} /> : <NotFound onBack={() => go({ page: "chantiers" })} />)}
@@ -562,6 +609,7 @@ function Shell() {
       <AnimatePresence>
         {switching && <SwitchUser current={member} onPick={enter} onSuperAdmin={() => enter(null)} onClose={() => setSwitching(false)} />}
       </AnimatePresence>
+      {m3d.notice && <Mode3DNotice reason={m3d.notice} onClose={m3d.clearNotice} />}
       <AnimatePresence>
         {denied && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} role="alert" className="fixed inset-x-4 bottom-20 z-[70] mx-auto flex max-w-md items-start gap-3 rounded-2xl border border-rose-500/40 bg-ink p-4 text-sm shadow-2xl md:bottom-6">
