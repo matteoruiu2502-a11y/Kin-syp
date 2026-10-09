@@ -363,19 +363,7 @@ function Shell() {
   if (member && workerOnly(perms))
     return (
       <div className="min-h-dvh px-4 py-6">
-        {/* mode 3D de l'ouvrier : seule la pièce « Pointage » (son espace) s'ouvre, les autres restent verrouillées */}
-        <div className="mx-auto mb-4 flex max-w-lg justify-end">
-          <Mode3DToggle on={m3d.on} onChange={(v) => m3d.setOn(v) && go({ page: v ? "batiment" : "mon-espace" })} />
-        </div>
-        {m3d.on && route.page === "batiment" ? (
-          <Building3D access={pageAccess} onOpen={() => go({ page: "mon-espace" })} onExit={() => (m3d.setOn(false), go({ page: "mon-espace" }))} onFallback={(r) => (m3d.fallback(r), go({ page: "mon-espace" }))} />
-        ) : (
-          <div className="mx-auto max-w-lg">
-            {m3d.on && <BackToBuilding onClick={() => go({ page: "batiment" })} />}
-            <WorkerMode member={member} onExit={() => setSwitching(true)} />
-          </div>
-        )}
-        {m3d.notice && <Mode3DNotice reason={m3d.notice} onClose={m3d.clearNotice} />}
+        <WorkerMode member={member} onExit={() => setSwitching(true)} />
         <AnimatePresence>{switching && <SwitchUser current={member} onPick={enter} onSuperAdmin={() => enter(null)} onClose={() => setSwitching(false)} />}</AnimatePresence>
       </div>
     );
