@@ -535,6 +535,8 @@ export type AccountData = {
   weatherDays: WeatherDay[];
   tasks: Task[];
   audit: AuditEntry[];
+  /** Abonnement : secret du compte auprès du serveur et dernière licence signée reçue. */
+  billing: { secret: string; license: string | null };
 };
 
 export type CollectionKey = { [K in keyof AccountData]: AccountData[K] extends { id: string }[] ? K : never }[keyof AccountData];

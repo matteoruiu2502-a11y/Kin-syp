@@ -39,7 +39,6 @@ import {
 } from "lucide-react";
 import { AppProvider, useApp, useAppData } from "@/lib/app/store";
 import { TrProvider, useTr } from "@/lib/app/tr";
-import { PRICE_MONTHLY, PRICE_YEARLY, TRIAL_DAYS, paymentConfigured, readSubscription, subscribeHref, trialDaysLeft } from "@/lib/checkout";
 import { Field, Modal, Notice, ReadOnlyContext, inputClass } from "./ui";
 import { dueReminders } from "@/lib/app/reminders";
 import { MODULES } from "@/lib/app/labels";
@@ -57,6 +56,9 @@ import { MoneyTab } from "./MoneyTab";
 import { WorkerLogin, WorkerMode } from "./WorkerMode";
 import { VOICE_EVENT, VoiceQuoteButton, VoiceQuoteChat } from "./VoiceQuoteChat";
 import { BackToBuilding, Building3D, Mode3DNotice, Mode3DToggle, useMode3D } from "@/mode-3d";
+import { PlanChip, PlanBlockToast, PlanGate, UsageAlertText, openPlans } from "./PlanGate";
+import { PLANS, planFor, type Feature } from "@/lib/plans";
+import { usageAlert } from "@/lib/billing/entitlement";
 
 // Chaque page de l'espace artisan est chargée à la demande : l'ouverture de l'app est plus rapide sur téléphone.
 function PageLoading() {
@@ -86,11 +88,12 @@ const JobForm = dynamic(() => import("./JobForm").then((m) => m.JobForm), { ssr:
 const DocEditor = dynamic(() => import("./DocEditor").then((m) => m.DocEditor), { ssr: false, loading: PageLoading });
 const ClientsTab = dynamic(() => import("./ClientsTab").then((m) => m.ClientsTab), { ssr: false, loading: PageLoading });
 const ClientDetail = dynamic(() => import("./ClientsTab").then((m) => m.ClientDetail), { ssr: false, loading: PageLoading });
+const BillingPage = dynamic(() => import("./BillingPage").then((m) => m.BillingPage), { ssr: false, loading: PageLoading });
 
-type Page = "batiment" | "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "outils" | "contrats" | "modules" | "module" | "parametres" | "mon-espace";
+type Page = "batiment" | "abonnement" | "apercu" | "chantiers" | "chantier" | "clients" | "client" | "documents" | "catalogue" | "planning" | "equipe" | "achats" | "stock" | "flotte" | "banque" | "comptabilite" | "sous-traitants" | "outils" | "contrats" | "modules" | "module" | "parametres" | "mon-espace";
 type Route = { page: Page; id?: string; sub?: string };
 
-const PAGES: Page[] = ["batiment", "apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "banque", "comptabilite", "sous-traitants", "outils", "contrats", "modules", "module", "parametres", "mon-espace"];
+const PAGES: Page[] = ["batiment", "abonnement", "apercu", "chantiers", "chantier", "clients", "client", "documents", "catalogue", "planning", "equipe", "achats", "stock", "flotte", "banque", "comptabilite", "sous-traitants", "outils", "contrats", "modules", "module", "parametres", "mon-espace"];
 const parse = (hash: string): Route => {
   const [a, b, c] = hash.replace(/^#/, "").split("/");
   const page = (PAGES as string[]).includes(a) ? (a as Page) : "apercu";
@@ -103,6 +106,7 @@ const toHash = (r: Route) => `#${r.page}${r.id ? `/${r.id}` : ""}${r.sub ? `/${r
 /** Module de droits qui ouvre chaque page (au moins un en lecture). */
 const PAGE_MODULES: Record<Page, PermModule[]> = {
   batiment: PERM_MODULES, // mode 3D : la scène elle-même ; chaque pièce vérifie ses propres droits
+  abonnement: ["settings"], // réservé au super admin (voir `roleCan`)
   apercu: ["money"],
   chantiers: ["jobs"],
   chantier: ["jobs"],
@@ -123,6 +127,23 @@ const PAGE_MODULES: Record<Page, PermModule[]> = {
   modules: ["modules"],
   module: ["modules"],
   parametres: ["settings"],
+  "mon-espace": ["worker"],
+};
+
+/** Fonctionnalités du forfait qui ouvrent chaque page (au moins une) : sinon la page est grisée, jamais cachée. */
+const PAGE_FEATURES: Partial<Record<Page, Feature[]>> = {
+  batiment: ["mode3d"],
+  catalogue: ["catalog"],
+  planning: ["planning"],
+  equipe: ["users", "team", "time"],
+  achats: ["purchases"],
+  stock: ["stock"],
+  flotte: ["fleet"],
+  "sous-traitants": ["subcontractors"],
+  outils: ["tools"],
+  contrats: ["contracts"],
+  modules: ["modules"],
+  module: ["modules"],
   "mon-espace": ["worker"],
 };
 
@@ -231,9 +252,8 @@ function GlobalSearch({ go, openDoc }: { go: (r: Route) => void; openDoc: (id: s
 
 function Shell() {
   const { t } = useTr();
-  const { data, account, logOut, isDemo, resetDemo, actor: member, setActor, perms, can: canModule, denied, clearDenied } = useAppData();
+  const { data, account, logOut, isDemo, resetDemo, actor: member, setActor, rolePerms, can: canModule, canRole, denied, clearDenied, ent, billing, feature, planBlock, showPlanBlock, clearPlanBlock } = useAppData();
   const [route, setRoute] = useState<Route>({ page: "apercu" });
-  const [subscribed, setSubscribed] = useState(false);
   const [newJob, setNewJob] = useState<{ clientId?: string } | null>(null);
   const [docId, setDocId] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
@@ -257,7 +277,6 @@ function Shell() {
   }, []);
 
   useEffect(() => {
-    setSubscribed(readSubscription());
     const sync = () => setRoute(parse(window.location.hash));
     sync();
     window.addEventListener("hashchange", sync);
@@ -289,16 +308,17 @@ function Shell() {
     return () => clearTimeout(id);
   }, [denied, clearDenied]);
 
-  const trialLeft = account ? trialDaysLeft(account.createdAt) : TRIAL_DAYS;
-  const trialOver = !isDemo && !subscribed && trialLeft === 0;
   const mods = data.settings.modules;
   const reminders = dueReminders(data).length;
   const superAdmin = isSuperAdmin(member);
-  const can = (p: Page) => (p === "batiment" ? m3d.on : p === "mon-espace" ? !superAdmin && canModule("worker") : PAGE_MODULES[p].some((m) => canModule(m)));
+  const m3dAllowed = feature("mode3d");
+  // page visible selon le RÔLE ; le forfait ne cache rien, il grise (voir `planOk`)
+  const can = (p: Page) => (p === "batiment" ? m3d.on && m3dAllowed : p === "abonnement" ? superAdmin : p === "mon-espace" ? !superAdmin && canRole("worker") : PAGE_MODULES[p].some((m) => canRole(m)));
+  const planOk = (p: Page) => !PAGE_FEATURES[p] || PAGE_FEATURES[p]!.some((f) => feature(f));
   const canEdit = (p: Page) => PAGE_MODULES[p].some((m) => canModule(m, "edit"));
 
   const nav: { page: Page; label: string; icon: typeof HardHat; badge?: number; on: boolean; group: 0 | 1 | 2 | 3 }[] = [
-    { page: "batiment", label: t("Bâtiment"), icon: Building2, on: m3d.on, group: 0 },
+    { page: "batiment", label: t("Bâtiment"), icon: Building2, on: m3d.on && m3dAllowed, group: 0 },
     { page: "apercu", label: t("Argent à recevoir"), icon: HandCoins, badge: reminders || undefined, on: true, group: 0 },
     { page: "chantiers", label: t("Chantiers"), icon: HardHat, on: true, group: 0 },
     { page: "clients", label: t("Clients"), icon: Contact, on: mods.clients, group: 0 },
@@ -317,6 +337,7 @@ function Shell() {
     { page: "mon-espace", label: t("Mon espace"), icon: HardHat, on: true, group: 3 },
     { page: "modules", label: t("Modules"), icon: Blocks, on: true, group: 3 },
     { page: "parametres", label: t("Paramètres"), icon: Settings, on: true, group: 3 },
+    { page: "abonnement", label: t("Mon abonnement"), icon: CreditCard, on: !isDemo, group: 3 },
   ];
   const visible = nav.filter((n) => n.on && can(n.page));
   const active = (p: Page) => route.page === p || (route.page === "chantier" && p === "chantiers") || (route.page === "client" && p === "clients") || (route.page === "module" && p === "modules");
@@ -324,28 +345,30 @@ function Shell() {
   const client = route.page === "client" ? data.clients.find((c) => c.id === route.id) : undefined;
   // Page demandée sans droit (lien, favori, adresse tapée) : première page autorisée.
   const firstAllowed = visible[0]?.page ?? "apercu";
-  const routeOk = can(route.page) && !(route.page === "chantier" && (route.sub === "rentabilite" || route.sub === "materiaux") && !canModule("profit"));
+  const routeOk = can(route.page) && !(route.page === "chantier" && (route.sub === "rentabilite" || route.sub === "materiaux") && !canRole("profit"));
   const page: Page = routeOk ? route.page : firstAllowed;
-  const readOnly = !superAdmin && page !== "mon-espace" && page !== "batiment" && !canEdit(page);
+  // lecture seule : droits du rôle, ou abonnement expiré / impayé (forfait)
+  const readOnly = (ent.readOnly && page !== "abonnement") || (!superAdmin && page !== "mon-espace" && page !== "batiment" && page !== "abonnement" && !canEdit(page));
   // Mode 3D : accès à une page pour les pièces du bâtiment (mêmes droits et modules activés que le menu)
   const pageAccess = (p: string): "ok" | "locked" | "off" => {
     if (!(PAGES as string[]).includes(p)) return "off";
     const n = nav.find((x) => x.page === p);
     if (n && !n.on) return "off";
-    return can(p as Page) ? "ok" : "locked";
+    return can(p as Page) && planOk(p as Page) ? "ok" : "locked";
   };
   const firstNormal = nav.find((n) => n.page !== "batiment" && n.on && can(n.page))?.page ?? "apercu";
   const switchMode = (v: boolean) => {
+    if (v && !m3dAllowed) return showPlanBlock({ kind: "feature", feature: "mode3d", plan: planFor("mode3d") });
     if (m3d.setOn(v)) go({ page: v ? "batiment" : firstNormal });
   };
   // 3D désactivée (repli automatique, autre appareil…) alors que l'adresse est celle du bâtiment : page normale
   useEffect(() => {
-    if (m3d.ready && !m3d.on && route.page === "batiment") {
-      const next: Route = { page: member && workerOnly(perms) ? "mon-espace" : firstNormal };
+    if (m3d.ready && (!m3d.on || !m3dAllowed) && route.page === "batiment") {
+      const next: Route = { page: member && workerOnly(rolePerms) ? "mon-espace" : firstNormal };
       window.history.replaceState(null, "", toHash(next));
       setRoute(next);
     }
-  }, [m3d.ready, m3d.on, route.page, firstNormal, member, perms]);
+  }, [m3d.ready, m3d.on, m3dAllowed, route.page, firstNormal, member, rolePerms]);
 
   if (member && !member.active)
     return (
@@ -360,10 +383,10 @@ function Shell() {
       </div>
     );
 
-  if (member && workerOnly(perms))
+  if (member && workerOnly(rolePerms))
     return (
       <div className="min-h-dvh px-4 py-6">
-        <WorkerMode member={member} onExit={() => setSwitching(true)} />
+        {feature("worker") ? <WorkerMode member={member} onExit={() => setSwitching(true)} /> : <PlanGate feature="worker" className="mx-auto max-w-lg" />}
         <AnimatePresence>{switching && <SwitchUser current={member} onPick={enter} onSuperAdmin={() => enter(null)} onClose={() => setSwitching(false)} />}</AnimatePresence>
       </div>
     );
@@ -375,10 +398,12 @@ function Shell() {
           {visible
             .filter((n) => n.group === g)
             .map(({ page: p, label, icon: Icon, badge }) => (
-              <button key={p} onClick={() => (go({ page: p }), onPick?.())} className={cn("relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors", active(p) ? "text-white" : "text-slate-400 hover:text-white")}>
+              <button key={p} onClick={() => (go({ page: p }), onPick?.())} className={cn("relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors", active(p) ? "text-white" : "text-slate-400 hover:text-white", !planOk(p) && "opacity-60")}>
                 {active(p) && <motion.span layoutId="app-nav" className="absolute inset-0 rounded-xl bg-white/[0.07] ring-1 ring-white/10" />}
                 <Icon className="relative h-4 w-4" />
                 <span className="relative flex-1 text-left">{label}</span>
+                {/* module hors forfait : grisé avec le forfait requis */}
+                {!planOk(p) && <PlanChip plan={planFor(PAGE_FEATURES[p]![0])} className="relative" />}
                 {badge && <span className="relative rounded-full bg-amber-400 px-1.5 text-[10px] font-bold text-ink">{badge}</span>}
               </button>
             ))}
@@ -424,7 +449,7 @@ function Shell() {
             <span className="hidden sm:block">
               <LangSwitch />
             </span>
-            <Mode3DToggle on={m3d.on} onChange={switchMode} />
+            <Mode3DToggle on={m3d.on && m3dAllowed} onChange={switchMode} />
             <ThemeToggle labels={{ light: t("Mode jour"), dark: t("Mode nuit") }} />
             {data.members.length > 0 && (
               <button onClick={() => setSwitching(true)} className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-400 hover:text-white" title={t("Changer d'utilisateur sur cet appareil")}>
@@ -479,32 +504,7 @@ function Shell() {
               </div>
             </div>
           )}
-          {!isDemo && !subscribed && trialLeft > 0 && (
-            <div className="glow-border mb-6 flex flex-col gap-3 rounded-2xl bg-blue/15 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-              <p className="flex items-start gap-3 text-slate-300">
-                <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-cyan" />
-                <span>
-                  <strong className="text-white">{trialLeft === 1 ? t("Essai gratuit : dernier jour.") : t("Essai gratuit : {n} jours restants.", { n: trialLeft })}</strong>{" "}
-                  {t("Aucune carte demandée pendant l'essai. Pour continuer ensuite : {p} € HTVA / mois, résiliable à tout moment.", { p: PRICE_MONTHLY })}
-                </span>
-              </p>
-              {subscribeHref() && (
-                <a href={subscribeHref()!} className="btn-primary shrink-0 !py-2 text-sm">
-                  {t("S'abonner")}
-                </a>
-              )}
-            </div>
-          )}
-          {trialOver && !paymentConfigured && (
-            <div className="mb-6">
-              <Notice tone="warn">{t("L'essai gratuit est terminé. Le lien de paiement Stripe n'est pas encore configuré : l'accès reste ouvert en attendant.")}</Notice>
-            </div>
-          )}
-          {subscribed && (
-            <p className="mb-6 flex items-center gap-2 text-sm text-emerald">
-              <ShieldCheck className="h-4 w-4" /> {t("Abonnement actif — prélèvement automatique.")}
-            </p>
-          )}
+          <SubscriptionBanner superAdmin={superAdmin} />
           {companyMissing(data.company) && page !== "parametres" && can("parametres") && (
             <button onClick={() => go({ page: "parametres" })} className="mb-6 w-full rounded-2xl border border-amber-400/30 bg-amber-400/10 px-5 py-3 text-left text-sm text-amber-200">
               {t("Identité de l'entreprise incomplète (BCE, IBAN, adresse…) : complétez-la pour émettre des factures conformes →")}
@@ -513,9 +513,6 @@ function Shell() {
 
           <AnimatePresence mode="wait">
             <motion.div key={page + (route.id ?? "")} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
-              {trialOver && paymentConfigured && page !== "parametres" ? (
-                <Paywall onBackup={() => go({ page: "parametres" })} />
-              ) : (
               <ReadOnlyContext.Provider value={readOnly}>
               {readOnly && (
                 <p className="mb-4 flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-slate-300">
@@ -523,6 +520,7 @@ function Shell() {
                 </p>
               )}
               {page !== "batiment" && m3d.on && <BackToBuilding onClick={() => go({ page: "batiment" })} />}
+              {!planOk(page) ? <PlanGate feature={PAGE_FEATURES[page]![0]} /> : <>
               {page === "batiment" && <Building3D access={pageAccess} onOpen={(target) => go(parse(`#${target}`))} onExit={() => switchMode(false)} onFallback={(r) => (m3d.fallback(r), go({ page: "apercu" }))} />}
               {page === "apercu" && <MoneyTab onOpenDoc={setDocId} onOpenJob={openJob} />}
               {page === "chantiers" && <JobsTab onOpen={openJob} onAdd={() => setNewJob({})} />}
@@ -544,8 +542,9 @@ function Shell() {
               {(page === "modules" || page === "module") && <ModulesTab module={page === "module" && route.id && route.id in MODULES ? (route.id as ModuleId) : null} onOpen={(m) => go({ page: "module", id: m })} onBack={() => go({ page: "modules" })} go={goPage} onOpenJob={openJob} />}
               {page === "parametres" && <SettingsTab />}
               {page === "mon-espace" && member && <WorkerMode member={member} onExit={() => go({ page: firstAllowed })} />}
+              {page === "abonnement" && <BillingPage initialPlan={route.id} />}
+              </>}
               </ReadOnlyContext.Provider>
-              )}
             </motion.div>
           </AnimatePresence>
         </main>
@@ -598,6 +597,7 @@ function Shell() {
         {switching && <SwitchUser current={member} onPick={enter} onSuperAdmin={() => enter(null)} onClose={() => setSwitching(false)} />}
       </AnimatePresence>
       {m3d.notice && <Mode3DNotice reason={m3d.notice} onClose={m3d.clearNotice} />}
+      {planBlock && <PlanBlockToast block={planBlock} onClose={clearPlanBlock} />}
       <AnimatePresence>
         {denied && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} role="alert" className="fixed inset-x-4 bottom-20 z-[70] mx-auto flex max-w-md items-start gap-3 rounded-2xl border border-rose-500/40 bg-ink p-4 text-sm shadow-2xl md:bottom-6">
@@ -669,30 +669,6 @@ function SwitchUser({ current, onPick, onSuperAdmin, onClose }: { current: Membe
   );
 }
 
-/** Fin de l'essai gratuit : abonnement requis pour continuer (les données restent exportables). */
-function Paywall({ onBackup }: { onBackup: () => void }) {
-  const { t } = useTr();
-  return (
-    <div className="card mx-auto max-w-xl space-y-5 p-8 text-center">
-      <CreditCard className="mx-auto h-10 w-10 text-cyan" />
-      <h1 className="font-display text-2xl font-bold text-white">{t("Votre essai gratuit de {n} jours est terminé", { n: TRIAL_DAYS })}</h1>
-      <p className="text-sm text-slate-400">{t("Abonnez-vous pour continuer à utiliser Biltov. Vos chantiers, devis et factures sont conservés.")}</p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <a href={subscribeHref()!} className="btn-primary text-sm">
-          {t("{p} € HTVA / mois", { p: PRICE_MONTHLY })}
-        </a>
-        <a href={subscribeHref(true)!} className="btn-ghost text-sm">
-          {t("{p} € HTVA / an", { p: PRICE_YEARLY })}
-        </a>
-      </div>
-      <p className="text-xs text-slate-500">{t("Paiement sécurisé par Stripe, prélèvement automatique, résiliable à tout moment.")}</p>
-      <button onClick={onBackup} className="text-sm text-cyan hover:underline">
-        {t("Télécharger une sauvegarde de mes données")}
-      </button>
-    </div>
-  );
-}
-
 function NotFound({ onBack }: { onBack: () => void }) {
   const { t } = useTr();
   return (
@@ -703,4 +679,48 @@ function NotFound({ onBack }: { onBack: () => void }) {
       </button>
     </div>
   );
+}
+
+/** Bandeaux d'abonnement : essai en cours, paiement échoué, lecture seule, quota de factures (80 / 100 %). */
+function SubscriptionBanner({ superAdmin }: { superAdmin: boolean }) {
+  const { t } = useTr();
+  const { ent, billing } = useAppData();
+  const action = superAdmin && (
+    <button onClick={() => openPlans()} className="btn-primary shrink-0 !py-2 text-sm">
+      {t("Choisir un forfait")}
+    </button>
+  );
+  if (billing.source === "demo") return null;
+  if (billing.source === "unconfigured")
+    return (
+      <div className="mb-6">
+        <Notice tone="warn">{t("L'essai gratuit est terminé. Le paiement n'est pas encore configuré : l'accès reste ouvert en attendant.")}</Notice>
+      </div>
+    );
+  const box = (tone: "info" | "warn" | "danger", text: React.ReactNode, act: React.ReactNode = action) => (
+    <div className={cn("mb-6 flex flex-col gap-3 rounded-2xl border px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between", tone === "info" ? "border-blue/30 bg-blue/10" : tone === "warn" ? "border-amber-400/30 bg-amber-400/10" : "border-rose-500/30 bg-rose-500/10")}>
+      <p className="flex items-start gap-3 text-slate-300">
+        <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-cyan" />
+        <span>{text}</span>
+      </p>
+      {act}
+    </div>
+  );
+  if (billing.offline) return box("warn", t("Connectez-vous à Internet pour vérifier votre abonnement : lecture seule en attendant. Vos données sont conservées."), null);
+  if (ent.status === "trial")
+    return box(
+      "info",
+      <>
+        <strong className="text-white">{ent.daysLeft === 1 ? t("Essai gratuit : dernier jour.") : t("Essai gratuit : {n} jours restants.", { n: ent.daysLeft ?? 0 })}</strong> {t("Toutes les fonctionnalités du forfait {p}, sans carte bancaire. Ensuite, choisissez votre forfait ; sinon, vos données restent consultables en lecture seule.", { p: PLANS[ent.plan].name })}
+      </>,
+    );
+  if (ent.status === "past_due") return box("warn", t("Paiement échoué : mettez à jour votre moyen de paiement. Sans régularisation, lecture seule dans {n} jour(s).", { n: ent.daysLeft ?? 0 }), superAdmin && <button onClick={() => openPlans()} className="btn-primary shrink-0 !py-2 text-sm">{t("Régulariser")}</button>);
+  if (ent.readOnly) return box("danger", ent.status === "unpaid" ? t("Abonnement impayé : lecture seule. Vos données sont conservées ; régularisez le paiement pour tout retrouver.") : t("Essai ou abonnement terminé : lecture seule. Vos données sont conservées ; choisissez un forfait pour continuer."));
+  if (superAdmin && usageAlert(ent, billing.used))
+    return (
+      <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3">
+        <UsageAlertText />
+      </div>
+    );
+  return null;
 }

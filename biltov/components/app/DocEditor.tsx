@@ -32,6 +32,8 @@ import { VoiceInput } from "./VoiceInput";
 import { SendDialog } from "./SendDialog";
 import { SignDialog } from "./SignDialog";
 import { ImportWizard } from "./ImportWizard";
+import { PlanChip } from "./PlanGate";
+import { PLANS, planFor } from "@/lib/plans";
 
 const METRE_FIELDS: FieldDef[] = [
   { key: "ref", label: "Poste", type: "text", synonyms: ["poste", "post", "n°", "numero", "code", "ref", "référence"] },
@@ -75,6 +77,8 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
   const mapLine = (id: string, fn: (l: Line) => Line) => setLines(doc.lines.map((l) => (l.id === id ? fn(l) : l)));
   // coût, marge et exécutant : visibles par qui peut modifier le devis ou consulter la rentabilité
   const showCost = canEditDoc || app.can("profit");
+  // sous-traitance ligne par ligne : réservée au forfait qui l'inclut (sinon grisée, l'existant reste affiché)
+  const subLines = app.feature("subcontractLines");
   const subcontractors = data.suppliers.filter((x) => x.kind === "subcontractor");
   const [newSubFor, setNewSubFor] = useState<string | null>(null);
   const addLines = (lines: Line[]) => setLines([...doc.lines, ...lines]);
@@ -476,7 +480,8 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
                                 aria-label={t("Exécution")}
                                 className={cn(cellClass, "!py-1 text-xs", l.executedBy && "border-violet-400/50 text-violet-300")}
                                 value={l.executedBy ?? ""}
-                                disabled={locked}
+                                disabled={locked || !subLines}
+                                title={subLines ? undefined : t("Disponible dans le forfait {p}.", { p: PLANS[planFor("subcontractLines")].name })}
                                 onChange={(e) => (e.target.value === "__new" ? setNewSubFor(l.id) : mapLine(l.id, (x) => withExecution(data, x, e.target.value || null)))}
                               >
                                 <option value="">{t("Notre société")}</option>
@@ -488,6 +493,7 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
                                 {l.executedBy && !subcontractors.some((sc) => sc.id === l.executedBy) && <option value={l.executedBy}>{t("Sous-traitant supprimé")}</option>}
                                 {!locked && <option value="__new">{t("+ Nouveau sous-traitant…")}</option>}
                               </select>
+                              {!subLines && <PlanChip plan={planFor("subcontractLines")} />}
                             </label>
                             <label className="flex items-center gap-1">
                               {t("Coût")}

@@ -23,6 +23,8 @@ import { ExpensesList } from "./ExpensesPanel";
 import { JobWeatherSummary } from "./WeatherTab";
 import { JobPlanning } from "./JobPlanning";
 import { ChatPanel, FilesPanel, ReportsPanel, TimePanel } from "./FieldPanels";
+import { PlanGate } from "./PlanGate";
+import { PLANS, planFor, type Feature } from "@/lib/plans";
 
 type Tab = "docs" | "planning" | "finance" | "materials" | "time" | "reports" | "photos" | "costs" | "files" | "chat";
 
@@ -30,10 +32,13 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
   const { t } = useTr();
   const f = useFmt();
   const { t: land } = useI18n();
-  const { data, update, run, can, perms } = useAppData();
+  const { data, update, run, can, perms, canRole, feature } = useAppData();
+  // forfait : onglet visible selon le rôle, grisé (avec le forfait requis) s'il n'est pas inclus
+  const TAB_FEATURE: Partial<Record<Tab, Feature>> = { planning: "gantt", finance: "profit", materials: "materials", time: "time" };
+  const lockOf = (id: Tab) => (TAB_FEATURE[id] && !feature(TAB_FEATURE[id]!) ? PLANS[planFor(TAB_FEATURE[id]!)].name : undefined);
   const canEdit = can("jobs", "edit");
   const seeMoney = can("quotes") || can("invoices");
-  const [tab, setTab] = useState<Tab>(initialTab !== "docs" && !can("profit") ? "docs" : initialTab);
+  const [tab, setTab] = useState<Tab>(initialTab !== "docs" && !canRole("profit") ? "docs" : initialTab);
   const [editing, setEditing] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const client = data.clients.find((c) => c.id === job.clientId);
@@ -50,12 +55,12 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
     onBack();
   };
 
-  const tabs: { id: Tab; label: string; count?: number; on?: boolean }[] = [
+  const tabs: { id: Tab; label: string; count?: number; on?: boolean; locked?: string }[] = [
     { id: "docs", label: t("Devis & factures"), count: docs.length, on: seeMoney },
-    { id: "planning", label: t("Planning"), count: data.tasks.filter((x) => x.jobId === job.id && x.kind !== "phase").length, on: can("planning") },
-    { id: "finance", label: t("Rentabilité"), on: can("profit") },
-    { id: "materials", label: t("Matériaux prévu / réel"), on: can("profit") },
-    { id: "time", label: t("Heures"), count: data.timeEntries.filter((x) => x.jobId === job.id).length, on: m.time },
+    { id: "planning", label: t("Planning"), count: data.tasks.filter((x) => x.jobId === job.id && x.kind !== "phase").length, on: canRole("planning"), locked: lockOf("planning") },
+    { id: "finance", label: t("Rentabilité"), on: canRole("profit"), locked: lockOf("finance") },
+    { id: "materials", label: t("Matériaux prévu / réel"), on: canRole("profit"), locked: lockOf("materials") },
+    { id: "time", label: t("Heures"), count: data.timeEntries.filter((x) => x.jobId === job.id).length, on: m.time, locked: lockOf("time") },
     { id: "reports", label: t("Rapports"), count: data.reports.filter((r) => r.jobId === job.id).length, on: m.reports },
     { id: "photos", label: t("Photos"), count: data.photos.filter((p) => p.jobId === job.id).length },
     { id: "costs", label: t("Dépenses"), count: data.expenses.filter((e) => e.jobId === job.id).length },
@@ -179,10 +184,11 @@ export function JobDetail({ job, onBack, onOpenDoc, onOpenClient, initialTab = "
           )}
         </div>
       )}
-      {tab === "planning" && can("planning") && <JobPlanning job={job} />}
+      {lockOf(tab) && <PlanGate feature={TAB_FEATURE[tab]!} />}
+      {tab === "planning" && can("planning") && !lockOf(tab) && <JobPlanning job={job} />}
       {tab === "finance" && can("profit") && <JobProfitPanel job={job} />}
-      {tab === "materials" && can("profit") && <MaterialsPanel job={job} />}
-      {tab === "time" && <TimePanel job={job} />}
+      {tab === "materials" && can("profit") && !lockOf(tab) && <MaterialsPanel job={job} />}
+      {tab === "time" && !lockOf(tab) && <TimePanel job={job} />}
       {tab === "reports" && <ReportsPanel job={job} />}
       {tab === "photos" && <PhotosPanel job={job} />}
       {tab === "costs" && <ExpensesList jobId={job.id} />}

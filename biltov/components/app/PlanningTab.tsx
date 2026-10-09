@@ -16,6 +16,8 @@ import { holidayName } from "@/lib/app/workdays";
 import { Field, Modal, Notice, PageHeader, SubTabs, inputClass } from "./ui";
 import { WeatherTab } from "./WeatherTab";
 import { GanttTab } from "./GanttTab";
+import { PlanGate } from "./PlanGate";
+import { PLANS, planFor } from "@/lib/plans";
 
 export const EVENT_KIND: Record<EventKind, { label: string; color: string }> = {
   job: { label: "Chantier", color: "#2563eb" },
@@ -170,7 +172,9 @@ export const blankEvent = (day: string, p: Partial<PlanningEvent> = {}): Plannin
 /** Page Planning : agenda des équipes et calendrier des intempéries. */
 export function PlanningTab({ view, onView }: { view?: string; onView?: (v: string) => void }) {
   const { t } = useTr();
-  const { data } = useAppData();
+  const { data, feature } = useAppData();
+  // forfait : Gantt et intempéries restent visibles, grisés s'ils ne sont pas inclus
+  const lock = (f: "gantt" | "weather") => (feature(f) ? undefined : PLANS[planFor(f)].name);
   const [local, setLocal] = useState(view === "intemperies" || view === "gantt" ? view : "agenda");
   const current = view === "intemperies" || view === "agenda" || view === "gantt" ? view : local;
   const toJustify = data.weatherDays.filter(needsProof).length;
@@ -181,14 +185,18 @@ export function PlanningTab({ view, onView }: { view?: string; onView?: (v: stri
         <SubTabs
           tabs={[
             { id: "agenda", label: t("Agenda") },
-            { id: "gantt", label: t("Gantt") },
-            { id: "intemperies", label: t("Intempéries"), count: toJustify || undefined },
+            { id: "gantt", label: t("Gantt"), locked: lock("gantt") },
+            { id: "intemperies", label: t("Intempéries"), count: toJustify || undefined, locked: lock("weather") },
           ]}
           value={current}
           onChange={change}
         />
       </div>
-      {current === "gantt" ? (
+      {current === "gantt" && lock("gantt") ? (
+        <PlanGate feature="gantt" />
+      ) : current === "intemperies" && lock("weather") ? (
+        <PlanGate feature="weather" />
+      ) : current === "gantt" ? (
         <>
           <PageHeader title={t("Planning des chantiers")} subtitle={t("Tous les chantiers sur une frise : chevauchements, conflits d'équipe et charge de travail.")} />
           <GanttTab />
