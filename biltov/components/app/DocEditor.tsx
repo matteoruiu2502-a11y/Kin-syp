@@ -22,6 +22,7 @@ import { downloadBlob } from "@/lib/app/send";
 import { decideVat, VAT_CODES, type LineCategory, type VatCode } from "@/lib/tax/belgium";
 import type { Doc, Lang, Line } from "@/lib/app/types";
 import { cn } from "@/lib/utils";
+import { QuoteVisualPanel } from "./QuoteVisual";
 import { ordersFromQuote } from "@/lib/app/orders";
 import { OWN, lineMargin, quoteByExecution, withCost, withExecution, withMargin, withPrice } from "@/lib/app/execution";
 import { NewSubcontractorDialog } from "./SubcontractorsTab";
@@ -604,6 +605,7 @@ export function DocEditor({ docId, onClose, onOpen }: { docId: string; onClose: 
               <Field label={t("Texte affiché sur le document")}>
                 <textarea rows={3} className={cn(inputClass, "resize-y")} value={doc.notes} disabled={locked} onChange={(e) => patch({ notes: e.target.value })} />
               </Field>
+              {doc.type === "quote" && <QuoteVisualPanel doc={doc} job={job} locked={locked} onChange={(visual) => patch({ visual })} />}
               {doc.type === "invoice" && doc.lockedAt && (
                 <div className="space-y-3 rounded-2xl border border-white/10 p-4 text-sm">
                   <p className="font-semibold text-white">{t("Suivi du paiement")}</p>

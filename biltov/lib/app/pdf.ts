@@ -113,7 +113,7 @@ function paragraphs(pdf: jsPDF, y: number, title: string, items: string[]) {
   return y + 4;
 }
 
-export async function buildDocumentPdf(doc: Doc, data: AccountData, opts: { watermark?: string; source?: Doc | null } = {}): Promise<jsPDF> {
+export async function buildDocumentPdf(doc: Doc, data: AccountData, opts: { watermark?: string; source?: Doc | null; getBlob?: (key: string) => Promise<Blob | undefined> } = {}): Promise<jsPDF> {
   const { jsPDF, autoTable } = await pdfLib();
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
   const lang = doc.lang;
@@ -194,6 +194,9 @@ export async function buildDocumentPdf(doc: Doc, data: AccountData, opts: { wate
     pdf.text(v, W - M - 3, ry, { align: "right" });
   });
   y = Math.max((pdf as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY, y + 4 + rows.length * 5.6) + 6;
+
+  // Devis : avant / après pour le client (photo actuelle et visualisation du résultat)
+  if (doc.type === "quote" && doc.visual && opts.getBlob) y = await visualBlock(pdf, y, doc.visual, opts.getBlob, lang);
 
   // Paiement : IBAN, communication structurée, QR EPC
   if ((doc.type === "invoice" || doc.type === "proforma") && c.iban && t.due > 0) {
@@ -350,6 +353,34 @@ export async function buildReportPdf(report: Report, job: Job, client: Client | 
   }
   footer(pdf, data, lang, watermark);
   return pdf;
+}
+
+/** Bloc « Avant / Après » d'un devis : deux images côte à côte, légendes et mention non contractuelle. */
+async function visualBlock(pdf: jsPDF, y: number, v: NonNullable<Doc["visual"]>, getBlob: (key: string) => Promise<Blob | undefined>, lang: Lang) {
+  const load = async (key: string | null) => {
+    const b = key ? await getBlob(key) : undefined;
+    return b ? toJpeg(b, 1400) : null;
+  };
+  const imgs = [await load(v.before), await load(v.after)] as const;
+  if (!imgs[0] && !imgs[1]) return y;
+  const colW = (W - 2 * M - 6) / 2;
+  const hs = imgs.map((i) => (i ? Math.min(78, (colW / i.w) * i.h) : 0));
+  const h = Math.max(...hs);
+  y = ensure(pdf, y, h + 26);
+  pdf.setFont("helvetica", "bold").setFontSize(9).setTextColor(...INK).text(dt(lang, "visualTitle"), M, y);
+  y += 4;
+  imgs.forEach((img, k) => {
+    if (!img) return;
+    const w = Math.min(colW, (hs[k] / img.h) * img.w);
+    const x = M + k * (colW + 6);
+    pdf.addImage(img.url, "JPEG", x, y, w, hs[k]);
+    pdf.setFont("helvetica", "bold").setFontSize(8).setTextColor(...INK).text(dt(lang, k === 0 ? "visualBefore" : "visualAfter"), x, y + hs[k] + 4.5, { maxWidth: colW });
+  });
+  y += h + 9;
+  pdf.setFont("helvetica", "italic").setFontSize(7.5).setTextColor(...MUTED);
+  const lines = pdf.splitTextToSize([v.caption.trim(), dt(lang, "visualNote")].filter(Boolean).join(" — "), W - 2 * M) as string[];
+  pdf.text(lines, M, y);
+  return y + lines.length * 3.6 + 4;
 }
 
 // ── Rapport d'intempéries ────────────────────────────────────────────────────

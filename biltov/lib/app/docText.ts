@@ -69,6 +69,14 @@ const T = {
   before: ["Avant", "Voor", "Vorher"],
   during: ["Pendant", "Tijdens", "Während"],
   after: ["Après", "Na", "Nachher"],
+  visualTitle: ["AVANT / APRÈS", "VOOR / NA", "VORHER / NACHHER"],
+  visualBefore: ["Avant : situation actuelle", "Voor: huidige toestand", "Vorher: aktueller Zustand"],
+  visualAfter: ["Après : visualisation du résultat", "Na: visualisatie van het resultaat", "Nachher: Visualisierung des Ergebnisses"],
+  visualNote: [
+    "Visualisation indicative et non contractuelle : seul le descriptif du devis engage les parties.",
+    "Indicatieve en niet-contractuele visualisatie: enkel de beschrijving in de offerte verbindt de partijen.",
+    "Unverbindliche Visualisierung: Nur die Leistungsbeschreibung des Angebots ist verbindlich.",
+  ],
   intervention: ["BON D'INTERVENTION", "INTERVENTIEBON", "EINSATZBERICHT"],
   demo: ["DÉMONSTRATION", "DEMONSTRATIE", "DEMONSTRATION"],
 } as const;
