@@ -6287,5 +6287,18 @@ export const DICT: Record<string, [string, string]> = {
  "Gantt et jours d'intempéries": ["Gantt en weerverletdagen", "Gantt und Schlechtwettertage"],
  "Mode 3D indisponible : ce navigateur ne gère pas la 3D (WebGL). Affichage normal.": ["3D-modus niet beschikbaar: deze browser ondersteunt geen 3D (WebGL). Normale weergave.", "3D-Modus nicht verfügbar: Dieser Browser unterstützt kein 3D (WebGL). Normale Ansicht."],
  "Mode 3D désactivé : vous avez choisi de réduire les animations. Affichage normal.": ["3D-modus uitgeschakeld: u hebt gekozen om animaties te beperken. Normale weergave.", "3D-Modus deaktiviert: Sie haben reduzierte Animationen gewählt. Normale Ansicht."],
- "Mode 3D désactivé : cet appareil est trop lent pour l'afficher confortablement. Affichage normal.": ["3D-modus uitgeschakeld: dit toestel is te traag om hem vlot te tonen. Normale weergave.", "3D-Modus deaktiviert: Dieses Gerät ist zu langsam für eine flüssige Anzeige. Normale Ansicht."]
+ "Mode 3D désactivé : cet appareil est trop lent pour l'afficher confortablement. Affichage normal.": ["3D-modus uitgeschakeld: dit toestel is te traag om hem vlot te tonen. Normale weergave.", "3D-Modus deaktiviert: Dieses Gerät ist zu langsam für eine flüssige Anzeige. Normale Ansicht."],
+ "Avant / après pour le client": ["Voor / na voor de klant", "Vorher / Nachher für den Kunden"],
+ "Montrez la situation actuelle et le résultat attendu. Les deux images sont ajoutées au PDF du devis, avec la mention « visualisation non contractuelle ».": ["Toon de huidige toestand en het verwachte resultaat. Beide beelden worden aan de pdf van de offerte toegevoegd, met de vermelding « niet-contractuele visualisatie ».", "Zeigen Sie den aktuellen Zustand und das erwartete Ergebnis. Beide Bilder werden dem PDF des Angebots hinzugefügt, mit dem Hinweis « unverbindliche Visualisierung »."],
+ "Avant : situation actuelle": ["Voor: huidige toestand", "Vorher: aktueller Zustand"],
+ "Photos « avant » du chantier": ["« Voor »-foto's van de werf", "« Vorher »-Fotos der Baustelle"],
+ "Après : visualisation du résultat": ["Na: visualisatie van het resultaat", "Nachher: Visualisierung des Ergebnisses"],
+ "Simulation, croquis ou photo d'une réalisation semblable.": ["Simulatie, schets of foto van een gelijkaardige realisatie.", "Simulation, Skizze oder Foto einer ähnlichen Ausführung."],
+ "Vos réalisations (photos « après » d'autres chantiers)": ["Uw realisaties (« na »-foto's van andere werven)", "Ihre Referenzen (« Nachher »-Fotos anderer Baustellen)"],
+ "Légende pour le client (facultatif)": ["Bijschrift voor de klant (optioneel)", "Bildunterschrift für den Kunden (optional)"],
+ "Chargement…": ["Laden…", "Wird geladen…"],
+ "Prendre ou importer une photo": ["Foto nemen of importeren", "Foto aufnehmen oder importieren"],
+ "Remplacer l'image": ["Afbeelding vervangen", "Bild ersetzen"],
+ "Retirer l'image": ["Afbeelding verwijderen", "Bild entfernen"],
+ "Choisir cette photo": ["Deze foto kiezen", "Dieses Foto wählen"]
 };

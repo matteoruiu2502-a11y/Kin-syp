@@ -18,7 +18,7 @@ const PHASES: { id: PhotoPhase; label: string }[] = [
   { id: "apres", label: "Après" },
 ];
 
-function useBlobUrl(key: string | null) {
+export function useBlobUrl(key: string | null) {
   const { blobUrl } = useAppData();
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {

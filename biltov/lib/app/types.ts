@@ -186,6 +186,12 @@ export type SendLog = { at: string; channel: "email" | "whatsapp" | "sms" | "sha
 export type Payment = { id: string; date: ISODate; amount: number; method: string; reference: string };
 export type Milestone = { id: string; label: string; percent: number; invoiced: boolean };
 
+/**
+ * Avant / après montré au client dans un devis : la situation actuelle et une visualisation du résultat attendu.
+ * Chaque image est une clé de fichier : « photo:<id> » (photo du chantier) ou « visual:<id> » (image importée).
+ */
+export type QuoteVisual = { before: string | null; after: string | null; caption: string };
+
 export type Doc = {
   id: string;
   jobId: string;
@@ -219,6 +225,7 @@ export type Doc = {
   peppol: { status: "none" | "ready" | "sent" | "delivered" | "error"; at?: string; message?: string };
   dispute: { active: boolean; note: string; since?: ISODate };
   lockedAt: string | null;
+  visual?: QuoteVisual | null; // devis : avant / après pour le client (facultatif)
 };
 
 export type ArticleType = "supply" | "labour" | "equipment" | "subcontract" | "package";

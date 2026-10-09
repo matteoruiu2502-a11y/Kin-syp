@@ -8,16 +8,16 @@ import type { Doc } from "./types";
 
 /** PDF d'un document avec les données à jour du compte (filigrane en démo). */
 export function usePdf() {
-  const { data, isDemo } = useAppData();
+  const { data, isDemo, getBlob } = useAppData();
   const make = useCallback(
     async (doc: Doc) => {
       const source = doc.sourceId ? data.docs.find((d) => d.id === doc.sourceId) : null;
-      const pdf = await buildDocumentPdf(doc, data, { source, watermark: isDemo ? "DÉMONSTRATION" : undefined });
+      const pdf = await buildDocumentPdf(doc, data, { source, watermark: isDemo ? "DÉMONSTRATION" : undefined, getBlob });
       const name = docFileName(doc, data.clients.find((c) => c.id === doc.clientId));
       const blob = pdf.output("blob");
       return { pdf, name, blob, file: new File([blob], name, { type: "application/pdf" }) };
     },
-    [data, isDemo],
+    [data, isDemo, getBlob],
   );
   const preview = useCallback(async (doc: Doc) => {
     const w = window.open("", "_blank");
