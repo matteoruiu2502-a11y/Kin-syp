@@ -3,28 +3,24 @@
 import { useEffect, useState } from "react";
 import { BiltovLogo } from "../BiltovLogo";
 
-const SEEN_KEY = "biltov.splash";
-/** Durée de l'animation du logo (voir .bl-anim dans globals.css) */
+/** Durée de l'animation du logo (voir .bl-anim dans globals.css) ; logo fixe si « réduire les animations » */
 const ANIMATION_MS = 1300;
+const REDUCED_MS = 700;
 const FADE_MS = 350;
 
 /**
- * Écran d'ouverture : logo animé une fois par ouverture de l'application (onglet ou appli installée).
+ * Écran d'ouverture : logo animé à chaque ouverture ou rechargement de l'espace (les changements
+ * d'écran à l'intérieur de l'application ne le relancent pas).
  * Il recouvre le chargement des données au lieu de le retarder : il s'efface dès que l'animation est
- * finie ET que l'espace est prêt. Un toucher le passe ; « réduire les animations » le supprime.
+ * finie ET que l'espace est prêt. Un toucher le passe ; « réduire les animations » : logo fixe et fondu.
  */
 export function Splash({ ready }: { ready: boolean }) {
   const [phase, setPhase] = useState<"show" | "fade" | "gone">("show");
   const [played, setPlayed] = useState(false);
 
   useEffect(() => {
-    let seen = false;
-    try {
-      seen = sessionStorage.getItem(SEEN_KEY) === "1";
-      sessionStorage.setItem(SEEN_KEY, "1");
-    } catch {}
-    if (seen || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return setPhase("gone");
-    const id = setTimeout(() => setPlayed(true), ANIMATION_MS);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const id = setTimeout(() => setPlayed(true), reduced ? REDUCED_MS : ANIMATION_MS);
     return () => clearTimeout(id);
   }, []);
 
