@@ -1,0 +1,10 @@
+// Publication de Biltov sur Cloudflare (Workers, fichiers statiques) : biltov.be.
+// Cloudflare construit le site (« npm run build » dans biltov/) puis publie le dossier out/ avec « npx wrangler deploy ».
+{
+  "name": "biltov",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  }
+}

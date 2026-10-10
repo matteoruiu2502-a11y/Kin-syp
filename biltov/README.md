@@ -86,3 +86,21 @@ de l'appareil ; le choix est mémorisé. Les couleurs du mode jour sont dans `ap
 - Les rôles limitent l'affichage sur l'appareil, ce n'est pas un contrôle d'accès.
 - Avec le serveur d'abonnement, le forfait (licence signée) et le quota Peppol ne sont pas falsifiables ; la limite d'utilisateurs
   et l'accès aux modules restent appliqués dans le navigateur, car les données sont sur l'appareil.
+
+## Hébergement sur biltov.be (Cloudflare)
+
+Le site est publié à la racine de `https://biltov.be` par Cloudflare (Workers, fichiers statiques), relié à ce dépôt
+GitHub : chaque modification de la branche principale le reconstruit et le republie automatiquement.
+
+| Réglage Cloudflare | Valeur |
+|---|---|
+| Nom du projet | `biltov` (doit correspondre à `name` dans `wrangler.jsonc`) |
+| Branche de production | `claude/escalhop-restaurant-site-7zp39c` |
+| Dossier racine (Root directory / chemin) | `biltov` |
+| Commande de construction | `npm run build` |
+| Commande de déploiement | `npx wrangler deploy` (publie `out/`, voir `wrangler.jsonc`) |
+| Variables | aucune obligatoire (Supabase a des valeurs par défaut) ; `NEXT_PUBLIC_BASE_PATH` doit rester **vide** |
+
+Node 22 est imposé par `.node-version`. Le domaine `biltov.be` est géré par Cloudflare (serveurs DNS changés chez
+LWS) et ajouté dans *Domaines et routes* du projet. Dans Supabase (Authentication → URL Configuration), la Site URL
+est `https://biltov.be/tableau-de-bord/`.
