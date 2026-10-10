@@ -50,6 +50,7 @@ import { cn } from "@/lib/utils";
 import { BiltovLogo } from "../BiltovLogo";
 import { ThemeToggle } from "../ThemeToggle";
 import { AuthScreen } from "./AuthScreen";
+import { Splash } from "./Splash";
 import { Onboarding } from "./Onboarding";
 import { companyMissing } from "./CompanyForm";
 import { MoneyTab } from "./MoneyTab";
@@ -164,9 +165,15 @@ export function App() {
     <TrProvider>
       <AppProvider>
         <Gate />
+        <AppSplash />
       </AppProvider>
     </TrProvider>
   );
+}
+
+function AppSplash() {
+  const { loading } = useApp();
+  return <Splash ready={!loading} />;
 }
 
 /** Compte obligatoire (ou démo), puis identité de l'entreprise, puis tableau de bord. */
