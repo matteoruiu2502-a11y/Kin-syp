@@ -86,3 +86,21 @@ de l'appareil ; le choix est mémorisé. Les couleurs du mode jour sont dans `ap
 - Les rôles limitent l'affichage sur l'appareil, ce n'est pas un contrôle d'accès.
 - Avec le serveur d'abonnement, le forfait (licence signée) et le quota Peppol ne sont pas falsifiables ; la limite d'utilisateurs
   et l'accès aux modules restent appliqués dans le navigateur, car les données sont sur l'appareil.
+
+## Hébergement sur biltov.be (Cloudflare Pages)
+
+Le site est publié à la racine de `https://biltov.be` par Cloudflare Pages, relié à ce dépôt GitHub :
+chaque modification de la branche principale le reconstruit automatiquement.
+
+| Réglage Cloudflare Pages | Valeur |
+|---|---|
+| Branche de production | `claude/escalhop-restaurant-site-7zp39c` |
+| Framework preset | None |
+| Commande de build | `npm run build` |
+| Dossier de sortie | `out` |
+| Dossier racine (Root directory) | `biltov` |
+| Variables | aucune obligatoire (Supabase a des valeurs par défaut) ; `NEXT_PUBLIC_BASE_PATH` doit rester **vide** |
+
+Node 22 est imposé par `.node-version`. Le domaine `biltov.be` est géré par Cloudflare (serveurs DNS changés chez
+LWS) et ajouté dans *Custom domains* du projet Pages. Dans Supabase (Authentication → URL Configuration), la Site URL
+est `https://biltov.be/tableau-de-bord/`.
