@@ -11,15 +11,18 @@ import { cn } from "@/lib/utils";
  * sombres du « B » (maison, toit) sont de vrais trous (masque SVG), on voit la page au travers.
  * Le mot « Biltov » est blanc (#f5f7fa) en mode nuit et bleu nuit en mode jour pour rester lisible.
  * Fichiers seuls : public/brand/biltov-logo.svg, biltov-mark.svg.
+ * animated : version de l'écran d'ouverture (tracé de l'hexagone, remplissage, fenêtres, mot), animations dans globals.css.
  */
 export function BiltovLogo({
   size = 36,
   className,
   wordmark = true,
+  animated = false,
 }: {
   size?: number;
   className?: string;
   wordmark?: boolean;
+  animated?: boolean;
 }) {
   const id = useId().replace(/:/g, "");
   const k = size / 128; // l'hexagone mesure 128 unités de large
@@ -31,7 +34,7 @@ export function BiltovLogo({
       height={Math.round(180 * k)}
       role="img"
       aria-label="Biltov"
-      className={cn("shrink-0 text-[#f5f7fa] [:root[data-theme=light]_&]:text-[#0b1324]", className)}
+      className={cn("shrink-0 text-[#f5f7fa] [:root[data-theme=light]_&]:text-[#0b1324]", animated && "bl-anim", className)}
     >
       <defs>
         <linearGradient
@@ -104,7 +107,19 @@ export function BiltovLogo({
           />
         </mask>
       </defs>
-      <g mask={`url(#${id}holes)`}>
+      {animated && (
+        <path
+          className="bl-outline"
+          transform="matrix(1,0,0,-1,0,792)"
+          d="M151.7456 699.76 198.0219 673.3164 199.3442 658.7725 189.6482 642.0248 206.3958 631.4474 208.1586 596.1893 151.7456 560.0497 91.8068 593.5449V667.587Z"
+          pathLength={1}
+          fill="none"
+          stroke={`url(#${id}g2)`}
+          strokeWidth="3"
+          strokeLinejoin="round"
+        />
+      )}
+      <g mask={`url(#${id}holes)`} className="bl-hex">
         <path
           transform="matrix(1,0,0,-1,0,792)"
           d="M151.7456 699.76 198.0219 673.3164 199.3442 658.7725 189.6482 642.0248 206.3958 631.4474 208.1586 596.1893 151.7456 560.0497 91.8068 593.5449V667.587Z"
@@ -132,24 +147,28 @@ export function BiltovLogo({
         transform="matrix(1,0,0,-1,0,792)"
         d="M140.2867 615.5812H146.4569C147.4306 615.5812 148.2198 614.7919 148.2198 613.8183V607.6482C148.2198 606.6745 147.4306 605.8852 146.4569 605.8852H140.2867C139.3131 605.8852 138.5238 606.6745 138.5238 607.6482V613.8183C138.5238 614.7919 139.3131 615.5812 140.2867 615.5812Z"
         fill="#19e3c4"
+        className="bl-win"
       />
       <path
         transform="matrix(1,0,0,-1,0,792)"
         d="M152.6271 615.5812H158.7973C159.7709 615.5812 160.5602 614.7919 160.5602 613.8183V607.6482C160.5602 606.6745 159.7709 605.8852 158.7973 605.8852H152.6271C151.6534 605.8852 150.8642 606.6745 150.8642 607.6482V613.8183C150.8642 614.7919 151.6534 615.5812 152.6271 615.5812Z"
         fill="#19e3c4"
+        className="bl-win"
       />
       <path
         transform="matrix(1,0,0,-1,0,792)"
         d="M140.2867 603.2409H146.4569C147.4306 603.2409 148.2198 602.4516 148.2198 601.478V595.3078C148.2198 594.3342 147.4306 593.5449 146.4569 593.5449H140.2867C139.3131 593.5449 138.5238 594.3342 138.5238 595.3078V601.478C138.5238 602.4516 139.3131 603.2409 140.2867 603.2409Z"
         fill="#19e3c4"
+        className="bl-win"
       />
       <path
         transform="matrix(1,0,0,-1,0,792)"
         d="M152.6271 603.2409H158.7973C159.7709 603.2409 160.5602 602.4516 160.5602 601.478V595.3078C160.5602 594.3342 159.7709 593.5449 158.7973 593.5449H152.6271C151.6534 593.5449 150.8642 594.3342 150.8642 595.3078V601.478C150.8642 602.4516 151.6534 603.2409 152.6271 603.2409Z"
         fill="#19e3c4"
+        className="bl-win"
       />
       {wordmark && (
-        <>
+        <g className="bl-word">
           <path
             transform="matrix(1,0,0,-1,0,792)"
             d="M231.0765 673.3164H275.1491C291.8967 673.3164 300.7113 663.1797 300.7113 652.1615 300.7113 643.7878 296.7447 638.499 290.1338 635.4139 299.8298 632.3288 305.1186 624.3958 305.1186 614.6998 305.1186 604.1223 296.304 597.0707 280.4378 597.0707H231.0765ZM249.587 657.0095H273.3862C279.1157 657.0095 282.2007 653.9245 282.2007 649.9579 282.2007 645.9914 279.1157 642.9062 273.3862 642.9062H249.587ZM249.587 628.803H276.0306C282.2007 628.803 285.7266 625.2772 285.7266 620.8699 285.7266 616.0219 282.2007 612.9369 276.0306 612.9369H249.587Z"
@@ -191,7 +210,7 @@ export function BiltovLogo({
             d="M462.458 656.5688H481.4093L492.4274 621.7514 505.6492 656.5688H524.6005L499.9198 597.0707H482.7314Z"
             fill="currentColor"
           />
-        </>
+        </g>
       )}
     </svg>
   );

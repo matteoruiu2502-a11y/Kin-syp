@@ -332,3 +332,73 @@ body {
     animation: none;
   }
 }
+
+/* Écran d'ouverture de l'espace artisan (components/app/Splash.tsx) : logo animé en ~1,2 s.
+   1. le contour de l'hexagone se dessine comme un plan ; 2. il se remplit du dégradé de marque ;
+   3. les fenêtres s'allument une à une ; 4. le mot « Biltov » se dévoile. */
+.bl-anim .bl-outline {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation:
+    bl-draw 0.6s cubic-bezier(0.65, 0, 0.35, 1) forwards,
+    bl-fade-out 0.3s ease 0.75s forwards;
+}
+.bl-anim .bl-hex {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bl-fill 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards;
+}
+.bl-anim .bl-win {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bl-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.bl-anim .bl-win:nth-child(4) { animation-delay: 0.62s; }
+.bl-anim .bl-win:nth-child(5) { animation-delay: 0.7s; }
+.bl-anim .bl-win:nth-child(6) { animation-delay: 0.78s; }
+.bl-anim .bl-win:nth-child(7) { animation-delay: 0.86s; }
+.bl-anim .bl-word {
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+  animation: bl-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.8s forwards;
+}
+@keyframes bl-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes bl-fade-out {
+  to { opacity: 0; }
+}
+@keyframes bl-fill {
+  from { opacity: 0; transform: scale(0.86); filter: blur(4px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes bl-pop {
+  from { opacity: 0; transform: scale(0.2); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes bl-reveal {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-10px); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); }
+}
+/* Halo qui respire derrière le logo tant que les données se chargent. */
+.splash-halo {
+  background: radial-gradient(closest-side, rgba(4, 191, 235, 0.22), transparent);
+  animation: splash-breathe 2.4s ease-in-out infinite;
+}
+@keyframes splash-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bl-anim .bl-outline { display: none; }
+  .bl-anim .bl-hex,
+  .bl-anim .bl-win,
+  .bl-anim .bl-word {
+    animation: none;
+    opacity: 1;
+    clip-path: none;
+  }
+  .splash-halo { animation: none; }
+}
