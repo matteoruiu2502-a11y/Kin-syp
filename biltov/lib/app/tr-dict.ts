@@ -1,6 +1,62 @@
 // Dictionnaire FR → [NL, DE] de l'interface. Généré à partir des textes passés à t() ; compléter au besoin.
 // Les textes absents restent affichés en français.
 export const DICT: Record<string, [string, string]> = {
+ "Conditions générales": [
+  "Algemene voorwaarden",
+  "AGB"
+ ],
+ "Confidentialité": [
+  "Privacy",
+  "Datenschutz"
+ ],
+ "Ce lien de réinitialisation a expiré ou a été ouvert sur un autre appareil. Redemandez un lien depuis cet appareil.": [
+  "Deze resetlink is verlopen of werd op een ander toestel geopend. Vraag een nieuwe link aan vanaf dit toestel.",
+  "Dieser Link zum Zurücksetzen ist abgelaufen oder wurde auf einem anderen Gerät geöffnet. Fordern Sie auf diesem Gerät einen neuen Link an."
+ ],
+ "Si un compte existe avec cet e-mail, vous allez recevoir un lien pour choisir un nouveau mot de passe. Ouvrez-le sur cet appareil.": [
+  "Als er een account met dit e-mailadres bestaat, ontvangt u een link om een nieuw wachtwoord te kiezen. Open hem op dit toestel.",
+  "Falls ein Konto mit dieser E-Mail-Adresse existiert, erhalten Sie einen Link, um ein neues Passwort zu wählen. Öffnen Sie ihn auf diesem Gerät."
+ ],
+ "Mot de passe oublié": [
+  "Wachtwoord vergeten",
+  "Passwort vergessen"
+ ],
+ "Mot de passe oublié ?": [
+  "Wachtwoord vergeten?",
+  "Passwort vergessen?"
+ ],
+ "Indiquez l'e-mail de votre compte : nous vous envoyons un lien pour choisir un nouveau mot de passe.": [
+  "Geef het e-mailadres van uw account op: we sturen u een link om een nieuw wachtwoord te kiezen.",
+  "Geben Sie die E-Mail-Adresse Ihres Kontos an: Wir senden Ihnen einen Link, um ein neues Passwort zu wählen."
+ ],
+ "Envoyer le lien": [
+  "Link versturen",
+  "Link senden"
+ ],
+ "Retour à la connexion": [
+  "Terug naar aanmelden",
+  "Zurück zur Anmeldung"
+ ],
+ "Choisissez un nouveau mot de passe": [
+  "Kies een nieuw wachtwoord",
+  "Wählen Sie ein neues Passwort"
+ ],
+ "Nouveau mot de passe": [
+  "Nieuw wachtwoord",
+  "Neues Passwort"
+ ],
+ "Enregistrer le mot de passe": [
+  "Wachtwoord opslaan",
+  "Passwort speichern"
+ ],
+ "Trop de demandes en peu de temps. Patientez quelques minutes, puis réessayez.": [
+  "Te veel aanvragen in korte tijd. Wacht enkele minuten en probeer opnieuw.",
+  "Zu viele Anfragen in kurzer Zeit. Warten Sie einige Minuten und versuchen Sie es erneut."
+ ],
+ "Le nouveau mot de passe doit être différent de l'ancien.": [
+  "Het nieuwe wachtwoord moet verschillen van het oude.",
+  "Das neue Passwort muss sich vom alten unterscheiden."
+ ],
  "Un compte existe déjà avec cet e-mail. Connectez-vous.": [
   "Er bestaat al een account met dit e-mailadres. Log in.",
   "Mit dieser E-Mail-Adresse besteht bereits ein Konto. Bitte melden Sie sich an."

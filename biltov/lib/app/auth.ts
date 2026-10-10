@@ -28,7 +28,7 @@ export async function listAccounts() {
 }
 
 export class AuthError extends Error {
-  constructor(public code: "exists" | "invalid" | "weak" | "confirm" | "unconfirmed" | "network") {
+  constructor(public code: "exists" | "invalid" | "weak" | "confirm" | "unconfirmed" | "network" | "rate" | "same") {
     super(code);
   }
 }
@@ -41,6 +41,8 @@ function cloudError(err: { code?: string; message?: string; status?: number }): 
   if (err.code === "email_not_confirmed") return new AuthError("unconfirmed");
   if (err.code === "weak_password") return new AuthError("weak");
   if (err.code === "invalid_credentials") return new AuthError("invalid");
+  if (err.code === "over_email_send_rate_limit" || err.code === "over_request_rate_limit" || err.status === 429) return new AuthError("rate");
+  if (err.code === "same_password") return new AuthError("same");
   return new AuthError(err.status && err.status < 500 ? "invalid" : "network");
 }
 
@@ -64,6 +66,29 @@ async function cloudLogIn(email: string, password: string): Promise<Account> {
   if (error || !data?.user) throw cloudError(error ?? {});
   setSession(null);
   return cloudAccount(data.user);
+}
+
+/** Paramètre ajouté au lien de l'e-mail « mot de passe oublié » : l'espace demande alors un nouveau mot de passe. */
+export const RECOVERY_PARAM = "reinitialisation";
+
+/** Envoie l'e-mail de réinitialisation (réponse identique que le compte existe ou non). */
+export async function requestPasswordReset(email: string) {
+  const url = new URL(window.location.href);
+  url.search = `?${RECOVERY_PARAM}=1`;
+  url.hash = "";
+  const { error } = await createClient()
+    .auth.resetPasswordForEmail(normalizeEmail(email), { redirectTo: url.toString() })
+    .catch(() => ({ error: { status: 0 } }));
+  if (error) throw cloudError(error);
+}
+
+/** Nouveau mot de passe du compte connecté (après le lien de réinitialisation). */
+export async function updatePassword(password: string) {
+  if (password.length < 8) throw new AuthError("weak");
+  const { error } = await createClient()
+    .auth.updateUser({ password })
+    .catch(() => ({ error: { status: 0 } }));
+  if (error) throw cloudError(error);
 }
 
 /** Compte enregistré sur cet appareil avant le passage en ligne (même e-mail) : ses données sont reprises. */
